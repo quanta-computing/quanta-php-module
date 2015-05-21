@@ -1,0 +1,6 @@
+docker-py
+jinja2
+pyaml
+pyOpenSSL
+ndg-httpsclient
+pyasn1

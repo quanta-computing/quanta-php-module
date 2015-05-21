@@ -1,0 +1,42 @@
+global:
+  templates_dir: ./templates
+  spec_root: ./specs
+  docker_build_dir: ./build
+  docker_host: 192.168.59.103
+  logs_dir: ./logs
+
+environment:
+  vary:
+    - packager
+    - php
+    - magento
+  templates:
+    Dockerfile: Dockerfile.tpl
+    local.xml: local.xml.tpl
+  ports:
+    - '8080'
+    - '80'
+
+defaults:
+  magento: &magento_defaults
+    user: magento
+    password: magento
+
+context_data:
+  packager:
+    dpkg:
+      base_image: ubuntu
+      pkg_install_cmd: apt-get install -y
+      pkgs: zsh
+    rpm:
+      base_image: centos
+      pkg_install_cmd: yum install -y
+      pkgs: zsh nc
+  php:
+    php-5.3:
+      php_version: 5.3.3
+    php-5.4:
+      php_version: 5.4.0
+  magento:
+    CE-1.9:
+      magento_mount: /data/magento/1.9.0.1
