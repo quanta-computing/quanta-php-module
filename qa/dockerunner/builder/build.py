@@ -1,6 +1,6 @@
 import os
 import json
-
+import uuid
 
 class Build:
     """
@@ -15,6 +15,8 @@ class Build:
         self.name = name
         self.build_dir = build_dir
         self.context = context
+        self.uid = str(uuid.uuid1())
+        self.context['docker_tag'] = self.docker_tag
 
 
     @property
@@ -23,7 +25,7 @@ class Build:
         Returns the docker tag name
 
         """
-        return '{}:{}'.format(self.DOCKER_IMG_NAME, self.name)
+        return '{}:{}_{}'.format(self.DOCKER_IMG_NAME, self.name, self.uid)
 
 
     def build(self):
