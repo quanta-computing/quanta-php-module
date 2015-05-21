@@ -21,17 +21,20 @@ defaults:
   magento: &magento_defaults
     user: magento
     password: magento
+  packager: &packager_defaults
+    pkg_zsh: zsh
 
 context_data:
   packager:
     dpkg:
+      <<: *packager_defaults
       base_image: ubuntu
       pkg_install_cmd: apt-get install -y
-      pkgs: zsh
     rpm:
+      <<: *packager_defaults
       base_image: centos
       pkg_install_cmd: yum install -y
-      pkgs: zsh nc
+      pkg_nc: nc
   php:
     php-5.3:
       php_version: 5.3.3
