@@ -801,7 +801,7 @@ void hp_clean_profiler_state(TSRMLS_D) {
    * it's just pointers to static memory, unlike ignored function names
    * which are emalloced.
    *
-   * Delete the array storing monitored function names 
+   * Delete the array storing monitored function names
    hp_array_del(hp_globals.monitored_function_names);
    hp_globals.monitored_function_names = NULL;
   */
@@ -2058,6 +2058,27 @@ static void hp_end(TSRMLS_D) {
   hp_clean_profiler_state(TSRMLS_C);
 }
 
+#define PROFILING_OUTPUT_JSON_FORMAT \
+"{\n\
+  \"profiling\": {\n\
+    \"flag\": %x,\n\
+    \"timers\": {\n\
+      \"magento_loading\": %f,\n\
+      \"before_layout_loading\": %f,\n\
+      \"layout_loading\": %f,\n\
+      \"between_layout_loading_and_rendering\": %f,\n\
+      \"layout_rendering\": %f,\n\
+      \"after_layout_rendering\": %f,\n\
+      \"before_sending_response\": %f\n\
+    }\n\
+  }\n\
+}\n"
+
+static float cpu_cycles_to_seconds(float cpufreq, long long start, long long end) {
+  // TODO check if it doesnt exceed long max value
+  return (end - start) / (cpufreq * 1000000);
+}
+
 #define OUTBUF_QUANTA_SIZE 2048
 /**
  * Called from quanta_mon_disable(). Removes all the proxies setup by
@@ -2108,16 +2129,29 @@ static void hp_stop(TSRMLS_D) {
   fd_log_out = open(bufout, O_WRONLY | O_APPEND | O_CREAT, 0644);
   if(fd_log_out> 0)
   {
-    size = snprintf(bufout, OUTBUF_QUANTA_SIZE, "quanta1: flag=%x cpufreq=%f name0=%s beg0=%lld stp0=%lld name1=%s beg1=%lld stp1=%lld name2=%s beg2=%lld stp2=%lld name3=%s beg3=%lld stp3=%lld name4=%s beg4=%lld stp4=%lld name5=%s beg5=%lld stp5=%lld \n",
+    // size = snprintf(bufout, OUTBUF_QUANTA_SIZE, "quanta1: flag=%x cpufreq=%f name0=%s beg0=%lld stp0=%lld name1=%s beg1=%lld stp1=%lld name2=%s beg2=%lld stp2=%lld name3=%s beg3=%lld stp3=%lld name4=%s beg4=%lld stp4=%lld name5=%s beg5=%lld stp5=%lld \n",
+		// 	hp_globals.quanta_dbg,
+		// 	hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
+		// 	hp_globals.monitored_function_names[0], hp_globals.monitored_function_tsc_start[0], hp_globals.monitored_function_tsc_stop[0],
+		// 	hp_globals.monitored_function_names[1], hp_globals.monitored_function_tsc_start[1], hp_globals.monitored_function_tsc_stop[1],
+		// 	hp_globals.monitored_function_names[2], hp_globals.monitored_function_tsc_start[2], hp_globals.monitored_function_tsc_stop[2],
+		// 	hp_globals.monitored_function_names[3], hp_globals.monitored_function_tsc_start[3], hp_globals.monitored_function_tsc_stop[3],
+		// 	hp_globals.monitored_function_names[4], hp_globals.monitored_function_tsc_start[4], hp_globals.monitored_function_tsc_stop[4],
+		// 	hp_globals.monitored_function_names[5], hp_globals.monitored_function_tsc_start[5], hp_globals.monitored_function_tsc_stop[5]
+		//    );
+    float cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
+    long long* starts = hp_globals.monitored_function_tsc_start;
+    long long* stops =  hp_globals.monitored_function_tsc_stop;
+    size = snprintf(bufout, OUTBUF_QUANTA_SIZE, PROFILING_OUTPUT_JSON_FORMAT,
 			hp_globals.quanta_dbg,
-			hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
-			hp_globals.monitored_function_names[0], hp_globals.monitored_function_tsc_start[0], hp_globals.monitored_function_tsc_stop[0],
-			hp_globals.monitored_function_names[1], hp_globals.monitored_function_tsc_start[1], hp_globals.monitored_function_tsc_stop[1],
-			hp_globals.monitored_function_names[2], hp_globals.monitored_function_tsc_start[2], hp_globals.monitored_function_tsc_stop[2],
-			hp_globals.monitored_function_names[3], hp_globals.monitored_function_tsc_start[3], hp_globals.monitored_function_tsc_stop[3],
-			hp_globals.monitored_function_names[4], hp_globals.monitored_function_tsc_start[4], hp_globals.monitored_function_tsc_stop[4],
-			hp_globals.monitored_function_names[5], hp_globals.monitored_function_tsc_start[5], hp_globals.monitored_function_tsc_stop[5]
-		   );
+      cpu_cycles_to_seconds(cpufreq, starts[0], starts[1]),
+      cpu_cycles_to_seconds(cpufreq, starts[1], starts[2]),
+      cpu_cycles_to_seconds(cpufreq, starts[2], stops[2]),
+      cpu_cycles_to_seconds(cpufreq, stops[2], starts[3]),
+      cpu_cycles_to_seconds(cpufreq, starts[3], stops[3]),
+      cpu_cycles_to_seconds(cpufreq, stops[3], stops[4]),
+      cpu_cycles_to_seconds(cpufreq, stops[4], stops[5])
+    );
     if(size > 0) {
        if ( write(fd_log_out, bufout, size) < 0 )
 	hp_globals.quanta_dbg |= 0x10000;

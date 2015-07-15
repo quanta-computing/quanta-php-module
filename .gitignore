@@ -85,3 +85,27 @@ docs/_build/
 
 # PyBuilder
 target/
+
+extension/.deps
+extension/.libs/
+extension/Makefile
+extension/Makefile.fragments
+extension/Makefile.global
+extension/Makefile.objects
+extension/acinclude.m4
+extension/aclocal.m4
+extension/autom4te.cache/
+extension/config.guess
+extension/config.h
+extension/config.h.in
+extension/config.nice
+extension/config.status
+extension/config.sub
+extension/configure
+extension/configure.in
+extension/install-sh
+extension/libtool
+extension/ltmain.sh
+extension/missing
+extension/mkinstalldirs
+extension/run-tests.php
