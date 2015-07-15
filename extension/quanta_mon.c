@@ -2074,9 +2074,9 @@ static void hp_end(TSRMLS_D) {
   }\n\
 }\n"
 
-static float cpu_cycles_to_seconds(float cpufreq, long long start, long long end) {
+static float cpu_cycles_to_ms(float cpufreq, long long start, long long end) {
   // TODO check if it doesnt exceed long max value
-  return (end - start) / (cpufreq * 1000000);
+  return (end - start) / (cpufreq * 1000000) * 1000;
 }
 
 #define OUTBUF_QUANTA_SIZE 2048
@@ -2144,13 +2144,13 @@ static void hp_stop(TSRMLS_D) {
     long long* stops =  hp_globals.monitored_function_tsc_stop;
     size = snprintf(bufout, OUTBUF_QUANTA_SIZE, PROFILING_OUTPUT_JSON_FORMAT,
 			hp_globals.quanta_dbg,
-      cpu_cycles_to_seconds(cpufreq, starts[0], starts[1]),
-      cpu_cycles_to_seconds(cpufreq, starts[1], starts[2]),
-      cpu_cycles_to_seconds(cpufreq, starts[2], stops[2]),
-      cpu_cycles_to_seconds(cpufreq, stops[2], starts[3]),
-      cpu_cycles_to_seconds(cpufreq, starts[3], stops[3]),
-      cpu_cycles_to_seconds(cpufreq, stops[3], stops[4]),
-      cpu_cycles_to_seconds(cpufreq, stops[4], stops[5])
+      cpu_cycles_to_ms(cpufreq, starts[0], starts[1]),
+      cpu_cycles_to_ms(cpufreq, starts[1], starts[2]),
+      cpu_cycles_to_ms(cpufreq, starts[2], stops[2]),
+      cpu_cycles_to_ms(cpufreq, stops[2], starts[3]),
+      cpu_cycles_to_ms(cpufreq, starts[3], stops[3]),
+      cpu_cycles_to_ms(cpufreq, stops[3], stops[4]),
+      cpu_cycles_to_ms(cpufreq, stops[4], stops[5])
     );
     if(size > 0) {
        if ( write(fd_log_out, bufout, size) < 0 )
