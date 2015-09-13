@@ -32,6 +32,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdlib.h>
@@ -81,6 +82,18 @@
 /* QuantaMon version                           */
 #define QUANTA_MON_VERSION       "0.9.2"
 
+#define DEBUG_QUANTA
+
+#ifdef DEBUG_QUANTA
+  #define PRINTF_QUANTA printf
+#else
+  #define PRINTF_QUANTA dummy
+#endif
+static void dummy(char *unused, ...)
+{
+        return;
+}
+
 /* Fictitious function name to represent top of the call tree. The paranthesis
  * in the name is to ensure we don't conflict with user function names.  */
 #define ROOT_SYMBOL                "main()"
@@ -113,7 +126,7 @@
 
 #define QUANTA_EXTRA_CHECKS
 #define QUANTA_MON_MAX_MONITORED_FUNCTIONS_HASH  256
-#define QUANTA_MON_MAX_MONITORED_FUNCTIONS  7
+#define QUANTA_MON_MAX_MONITORED_FUNCTIONS  8
 #define QUANTA_MON_MONITORED_FUNCTION_FILTER_SIZE                           \
                ((QUANTA_MON_MAX_MONITORED_FUNCTIONS_HASH + 7)/8)
 
@@ -167,6 +180,16 @@ typedef struct hp_mode_cb {
   hp_begin_function_cb   begin_fn_cb;
   hp_end_function_cb     end_fn_cb;
 } hp_mode_cb;
+
+typedef struct generate_block_details_t {
+  uint64  tsc_start;
+  uint64  tsc_stop;
+  char    *type;
+  char    *name;
+  char	  *class;
+  char    *template;
+  struct generate_block_details_t *next_generate_block_detail;
+} generate_block_details;
 
 /* Xhprof's global state.
  *
@@ -237,6 +260,8 @@ typedef struct hp_global_t {
   uint8   monitored_function_filter[QUANTA_MON_MONITORED_FUNCTION_FILTER_SIZE];
   uint64  monitored_function_tsc_start[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
   uint64  monitored_function_tsc_stop[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
+  generate_block_details *monitored_function_generate_block_first_linked_list;
+  generate_block_details *monitored_function_generate_block_last_linked_list;
   uint32  quanta_dbg;
 
 } hp_global_t;
@@ -674,6 +699,8 @@ int hp_ignored_functions_filter_collision(uint8 hash) {
   return hp_globals.ignored_function_filter[INDEX_2_BYTE(hash)] & mask;
 }
 
+/* Special handling */
+#define POS_ENTRY_GENERATEBLOCK 6
 /**
 */
 /**
@@ -692,7 +719,8 @@ static void hp_get_monitored_functions_fill() {
   hp_globals.monitored_function_names[3] = "Mage_Core_Controller_Varien_Action::renderLayout";
   hp_globals.monitored_function_names[4] = "Mage_Core_Controller_Varien_Action::postDispatch";
   hp_globals.monitored_function_names[5] = "Mage_Core_Controller_Response_Http::sendResponse";
-  hp_globals.monitored_function_names[6] = NULL;
+  hp_globals.monitored_function_names[POS_ENTRY_GENERATEBLOCK] = "Mage_Core_Model_Layout::_generateBlock";
+  hp_globals.monitored_function_names[7] = NULL;
   // Don't forget to change QUANTA_MON_MAX_MONITORED_FUNCTIONS
 }
 
@@ -719,6 +747,7 @@ static void hp_monitored_functions_filter_init() {
       int   idx  = INDEX_2_BYTE(hash);
       hp_globals.monitored_function_filter[idx] |= INDEX_2_BIT(hash);
     }
+    hp_globals.monitored_function_generate_block_first_linked_list = NULL;
 }
 
 /**
@@ -814,29 +843,32 @@ void hp_clean_profiler_state(TSRMLS_D) {
  *        TSRMLS_CC CAN BE MADE AVAILABLE VIA TSRMLS_DC IN THE
  *        CALLING FUNCTION OR BY CALLING TSRMLS_FETCH()
  *        TSRMLS_FETCH() IS RELATIVELY EXPENSIVE.
+ *
+ * return profile_curr with -2 if this function is banned and musn't be profiled at all
+ *                          -1 if this function is profiled by the general code, but not specifically
+ *                          >=0 this function is specifically profiled, in this case contain the array position
  */
-#define BEGIN_PROFILING(entries, symbol, profile_curr, pathname)        \
-  do {                                                                  \
-    /* Use a hash code to filter most of the string comparisons. */     \
-    uint8 hash_code  = hp_inline_hash(symbol);                          \
-    profile_curr = qm_record_timers_loading_time(hash_code, symbol);    \
-    if(hp_ignore_entry(hash_code, symbol)) {                            \
-       if(profile_curr == -1)                                           \
-	   profile_curr--;                                              \
-    }                                                                   \
-    if (profile_curr > -2 ) {                                           \
-      hp_entry_t *cur_entry = hp_fast_alloc_hprof_entry();              \
-      (cur_entry)->hash_code = hash_code;                               \
-      (cur_entry)->name_hprof = symbol;                                 \
-      (cur_entry)->pathname_hprof = pathname;                           \
-      (cur_entry)->prev_hprof = (*(entries));                           \
-      /* Call the universal callback */                                 \
-      hp_mode_common_beginfn((entries), (cur_entry) TSRMLS_CC);         \
-      /* Call the mode's beginfn callback */                            \
-      hp_globals.mode_cb.begin_fn_cb((entries), (cur_entry) TSRMLS_CC); \
-      /* Update entries linked list */                                  \
-      (*(entries)) = (cur_entry);                                       \
-    }                                                                   \
+#define BEGIN_PROFILING(entries, symbol, profile_curr, pathname, execute_data)        \
+  do {                                                                                \
+    /* Use a hash code to filter most of the string comparisons. */                   \
+    uint8 hash_code  = hp_inline_hash(symbol);                                        \
+    if(hp_ignore_entry(hash_code, symbol))                                            \
+	 profile_curr = -2;                                                           \
+    else                                                                              \
+         profile_curr = qm_record_timers_loading_time(hash_code, symbol, execute_data);    \
+    if (profile_curr > -2 ) {                                                         \
+      hp_entry_t *cur_entry = hp_fast_alloc_hprof_entry();                            \
+      (cur_entry)->hash_code = hash_code;                                             \
+      (cur_entry)->name_hprof = symbol;                                               \
+      (cur_entry)->pathname_hprof = pathname;                                         \
+      (cur_entry)->prev_hprof = (*(entries));                                         \
+      /* Call the universal callback */                                               \
+      hp_mode_common_beginfn((entries), (cur_entry) TSRMLS_CC);                       \
+      /* Call the mode's beginfn callback */                                          \
+      hp_globals.mode_cb.begin_fn_cb((entries), (cur_entry) TSRMLS_CC);               \
+      /* Update entries linked list */                                                \
+      (*(entries)) = (cur_entry);                                                     \
+    }                                                                                 \
   } while (0)
 
 /*
@@ -847,11 +879,15 @@ void hp_clean_profiler_state(TSRMLS_D) {
  *        CALLING FUNCTION OR BY CALLING TSRMLS_FETCH()
  *        TSRMLS_FETCH() IS RELATIVELY EXPENSIVE.
  */
-#define END_PROFILING(entries, profile_curr)                                 \
-  do {                                                                       \
+#define END_PROFILING(entries, profile_curr)                                    \
+  do {                                                                          \
+    if (profile_curr >= 0) {                                                    \
+         hp_globals.monitored_function_tsc_stop[profile_curr] = cycle_timer();  \
+         if (profile_curr == POS_ENTRY_GENERATEBLOCK)                           \
+             hp_globals.monitored_function_generate_block_last_linked_list->tsc_stop = hp_globals.monitored_function_tsc_stop[profile_curr]; \
+    }                                                                        \
     if (profile_curr > -2) {                                                 \
       hp_entry_t *cur_entry;                                                 \
-      hp_globals.monitored_function_tsc_stop[profile_curr] = cycle_timer();  \
       /* Call the mode's endfn callback. */                                  \
       /* NOTE(cjiang): we want to call this 'end_fn_cb' before */            \
       /* 'hp_mode_common_endfn' to avoid including the time in */            \
@@ -939,23 +975,175 @@ static inline int  hp_ignore_entry(uint8 hash_code, char *curr_func) {
  *
  * @author ch
  */
-int  qm_record_timers_loading_time(uint8 hash_code, char *curr_func) {
-  if (hp_monitored_functions_filter_collision(hash_code)) {
-    int i = 0;
-    for (; hp_globals.monitored_function_names[i] != NULL; i++) {
+int  qm_record_timers_loading_time(uint8 hash_code, char *curr_func, zend_execute_data *execute_data TSRMLS_DC) {
+  int i = 0;
+  zval *param_node;
+  const char *class_name;
+  zend_uint class_name_len;
+  zval *arr, *arr_final, **data, **data_final;
+  HashTable *arr_hash, *arr_hash_final;
+  HashPosition pointer, pointer_final;
+  char *key, *tmpstrbuf;
+  int key_len, typekey;
+  long index;
+  generate_block_details *current_gen_block_details;
+
+  /* Search quickly if we may have a match */
+  if (!hp_monitored_functions_filter_collision(hash_code))
+    return -1;
+
+  /* We MAY have a match, enumerate the function array for an exact match */
+  for (; hp_globals.monitored_function_names[i] != NULL; i++) {
       char *name = hp_globals.monitored_function_names[i];
-      if ( !strcmp(curr_func, name)) {
-#ifdef QUANTA_EXTRA_CHECKS
-        if ( hp_globals.monitored_function_tsc_start[i] != 0 )
-		hp_globals.quanta_dbg |= 0x1000 + i; /* The same func() as been called twice */
-#endif
-        hp_globals.monitored_function_tsc_start[i] = cycle_timer();
-        return i;
-      }
-    }
+      if ( !strcmp(curr_func, name))
+        break;
   }
 
-  return -1;
+  if ( hp_globals.monitored_function_names[i] == NULL)
+     return -1;  /* False match, we have nothing */
+
+  hp_globals.monitored_function_tsc_start[i] = cycle_timer();
+
+  /* Something special for this function ? */
+  if ( i != POS_ENTRY_GENERATEBLOCK )
+     return i; /* No, bailout */
+
+  /* Do some sanity check, protect ourself against any modification of the magento core */
+  /* For calling the debuger : __asm__("int3"); */
+  if (!execute_data) {
+	PRINTF_QUANTA ("execute_data NULL\n");
+	return -1;
+  }
+  if (!execute_data->prev_execute_data) {
+	PRINTF_QUANTA ("execute_data->prev_execute_data NULL\n");
+	return -1;
+  }
+  if ((execute_data->prev_execute_data->function_state.arguments)[0] != (void*)2) {
+	PRINTF_QUANTA ("execute_data->prev_execute_data->function_state.arguments is not 2 (%p)\n", \
+		(execute_data->prev_execute_data->function_state.arguments)[0]);
+	return -1;
+  }
+  param_node = (zval *)(execute_data->prev_execute_data->function_state.arguments)[-2];
+  if (!param_node) {
+	PRINTF_QUANTA ("execute_data->prev_execute_data->function_state.arguments[-2] NULL\n");
+	return -1;
+  }
+
+  if (Z_TYPE_P(param_node) != IS_OBJECT) {
+	PRINTF_QUANTA ("arguments[-2] is not an object\n");
+	return -1;
+  }
+
+  if (!Z_OBJ_HANDLER(*param_node, get_class_name)) {
+	PRINTF_QUANTA ("arguments[-2] is an object of unknown class\n");
+	return -1;
+  }
+  Z_OBJ_HANDLER(*param_node, get_class_name)(param_node, &class_name, &class_name_len, 0 TSRMLS_CC);
+  if ((class_name_len != 30) && memcmp(class_name, "Mage_Core_Model_Layout_Element", 30) )
+  {
+	PRINTF_QUANTA ("arguments[-1] is not a Mage_Core_Model_Layout_Element object (%s)\n", class_name);
+	efree((char*)class_name);
+	return -1;
+  }
+  efree((char*)class_name);
+
+  /* Okay, we should have something that looks like what we want, now entering into the object
+   * at first we have a single entry (@attributes) which is an array, grab the pointer and enumerate the array in the array */
+  arr_hash = Z_OBJPROP_P(param_node);
+  /* If we want to get a count : array_count = zend_hash_num_elements(arr_hash); */
+
+  for (zend_hash_internal_pointer_reset_ex(arr_hash, &pointer);
+			 zend_hash_get_current_data_ex(arr_hash, (void**) &data, &pointer) == SUCCESS;
+			 zend_hash_move_forward_ex(arr_hash, &pointer)) {
+
+	if (zend_hash_get_current_key_ex(arr_hash, &key, &key_len, &index, 0, &pointer) == HASH_KEY_IS_STRING) {
+		if ((key_len != 11) && memcmp(key, "@attributes", 11)) {
+			PRINTF_QUANTA ("Unexpected outer key '%s', skipping....\n", key);
+			continue;
+		}
+	} else {
+		PRINTF_QUANTA ("Hash key is numeric (%ld)\n", index);
+		continue;
+	}
+
+	if (Z_TYPE_PP(data) != IS_ARRAY) {
+		PRINTF_QUANTA ("Object doesn't contain an array, skipping... (type=%d)\n", Z_TYPE_PP(data));
+		continue;
+	}
+	current_gen_block_details = ecalloc (1, sizeof(generate_block_details));
+
+	if (hp_globals.monitored_function_generate_block_first_linked_list == NULL)
+		hp_globals.monitored_function_generate_block_first_linked_list = current_gen_block_details;
+	else
+		hp_globals.monitored_function_generate_block_last_linked_list->next_generate_block_detail = current_gen_block_details;
+
+	hp_globals.monitored_function_generate_block_last_linked_list = current_gen_block_details;
+
+	current_gen_block_details->tsc_start = hp_globals.monitored_function_tsc_start[i];
+
+	arr_hash_final = Z_ARRVAL_PP(data);
+	for (zend_hash_internal_pointer_reset_ex(arr_hash_final, &pointer_final);
+			 zend_hash_get_current_data_ex(arr_hash_final, (void**) &data_final, &pointer_final) == SUCCESS;
+			 zend_hash_move_forward_ex(arr_hash_final, &pointer_final)) {
+
+		if (Z_TYPE_PP(data_final) != IS_STRING) {
+			PRINTF_QUANTA ("Final array doesn't contain a string, skipping... (type=%d)\n", Z_TYPE_PP(data_final));
+			continue;
+		}
+		if (zend_hash_get_current_key_ex(arr_hash_final, &key, &key_len, &index, 0, &pointer_final) != HASH_KEY_IS_STRING) {
+			PRINTF_QUANTA ("Hash final key is numeric (%ld) => %s\n", index, Z_STRVAL_PP(data_final));
+			continue;
+		}
+		PRINTF_QUANTA ("final key '%s'=>'%s'\n", key, Z_STRVAL_PP(data_final)); //, Z_STRLEN_PP(data));
+
+		typekey = 0;
+		switch(key_len) {
+			case 5:
+				if (!memcmp(key, "type", 4))
+					typekey = 1;
+				else if (!memcmp(key, "name", 4))
+					typekey = 2;
+				break;
+			case 6:
+				if (!memcmp(key, "class", 5))
+					typekey = 3;
+				break;
+			case 9:
+				if (!memcmp(key, "template", 8))
+					typekey = 4;
+				break;
+			case 12:
+				if (!memcmp(key, "@attributes", 11))
+					typekey = -1;
+				break;
+			default:
+				break;
+		}
+
+		if (typekey == -1)
+			continue;
+
+		if (typekey == 0) {
+			PRINTF_QUANTA ("Unknown final key='%s'=>'%s', skipping....\n", key, Z_STRVAL_PP(data_final));
+			continue;
+		}
+		index = strlen (Z_STRVAL_PP(data_final));
+		tmpstrbuf = emalloc (index + 1);
+
+		memcpy (tmpstrbuf, Z_STRVAL_PP(data_final), index);
+		tmpstrbuf[index] = 0;
+
+		switch (typekey) {
+			case 1:	current_gen_block_details->type = tmpstrbuf;  break;
+			case 2:	current_gen_block_details->name = tmpstrbuf;  break;
+			case 3:	current_gen_block_details->class = tmpstrbuf;  break;
+			case 4:	current_gen_block_details->template = tmpstrbuf;  break;
+			default: PRINTF_QUANTA ("Unknown typekey (%d)\n", typekey); break;
+		}
+		
+	} /* for - inner data */
+  } /* for - outer data */
+  return i;
 }
 
 /**
@@ -1809,7 +1997,7 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
     return;
   }
 
-  BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag, pathname);
+  BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag, pathname, execute_data);
 #if PHP_VERSION_ID < 50500
   _zend_execute(ops TSRMLS_CC);
 #else
@@ -1849,9 +2037,8 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
 
   current_data = EG(current_execute_data);
   func = hp_get_function_name(current_data->op_array, &pathname TSRMLS_CC);
-
   if (func) {
-    BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag, pathname);
+    BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag, pathname, execute_data);
   }
 
   if (!_zend_execute_internal) {
@@ -1933,7 +2120,7 @@ ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle,
   func      = (char *)emalloc(len);
   snprintf(func, len, "load::%s", filename);
 
-  BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag, filename);
+  BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag, filename, NULL);
   ret = _zend_compile_file(file_handle, type TSRMLS_CC);
   if (hp_globals.entries) {
     END_PROFILING(&hp_globals.entries, hp_profile_flag);
@@ -1957,7 +2144,7 @@ ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filena
     func = (char *)emalloc(len);
     snprintf(func, len, "eval::%s", filename);
 
-    BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag, filename);
+    BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag, filename, NULL);
     ret = _zend_compile_string(source_string, filename TSRMLS_CC);
     if (hp_globals.entries) {
         END_PROFILING(&hp_globals.entries, hp_profile_flag);
@@ -2036,7 +2223,7 @@ static void hp_begin(long level, long quanta_mon_flags TSRMLS_DC) {
     hp_init_profiler_state(level TSRMLS_CC);
 
     /* start profiling from fictitious main() */
-    BEGIN_PROFILING(&hp_globals.entries, ROOT_SYMBOL, hp_profile_flag, "main");
+    BEGIN_PROFILING(&hp_globals.entries, ROOT_SYMBOL, hp_profile_flag, "main", NULL);
   }
 }
 
@@ -2069,6 +2256,7 @@ static void hp_stop(TSRMLS_D) {
   int   hp_profile_flag = 1;
   int   size;
   struct timeval tv;
+  generate_block_details *current_block, *prev_block;
 
   /* End any unfinished calls */
   while (hp_globals.entries) {
@@ -2094,37 +2282,60 @@ static void hp_stop(TSRMLS_D) {
   if(gettimeofday(&tv, NULL) == -1)
     return;
 
-  bufout = malloc(OUTBUF_QUANTA_SIZE);
+  bufout = emalloc(OUTBUF_QUANTA_SIZE);
   if(bufout == NULL)
     return;
 
   size = snprintf(bufout, OUTBUF_QUANTA_SIZE, "/tmp/quanta-%d.%d-%d.txt", tv.tv_sec, tv.tv_usec, getpid());
   if(size < 4)
   {
-     free(bufout);
+     efree(bufout);
      return;
   }
 
   fd_log_out = open(bufout, O_WRONLY | O_APPEND | O_CREAT, 0644);
-  if(fd_log_out> 0)
-  {
-    size = snprintf(bufout, OUTBUF_QUANTA_SIZE, "quanta1: flag=%x cpufreq=%f name0=%s beg0=%lld stp0=%lld name1=%s beg1=%lld stp1=%lld name2=%s beg2=%lld stp2=%lld name3=%s beg3=%lld stp3=%lld name4=%s beg4=%lld stp4=%lld name5=%s beg5=%lld stp5=%lld \n",
-			hp_globals.quanta_dbg,
-			hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
-			hp_globals.monitored_function_names[0], hp_globals.monitored_function_tsc_start[0], hp_globals.monitored_function_tsc_stop[0],
-			hp_globals.monitored_function_names[1], hp_globals.monitored_function_tsc_start[1], hp_globals.monitored_function_tsc_stop[1],
-			hp_globals.monitored_function_names[2], hp_globals.monitored_function_tsc_start[2], hp_globals.monitored_function_tsc_stop[2],
-			hp_globals.monitored_function_names[3], hp_globals.monitored_function_tsc_start[3], hp_globals.monitored_function_tsc_stop[3],
-			hp_globals.monitored_function_names[4], hp_globals.monitored_function_tsc_start[4], hp_globals.monitored_function_tsc_stop[4],
-			hp_globals.monitored_function_names[5], hp_globals.monitored_function_tsc_start[5], hp_globals.monitored_function_tsc_stop[5]
-		   );
-    if(size > 0) {
-       if ( write(fd_log_out, bufout, size) < 0 )
-	hp_globals.quanta_dbg |= 0x10000;
-    }
-    close(fd_log_out);
+  if(fd_log_out<= 0) {
+     efree(bufout);
+     return;
   }
-  free(bufout);
+  size = snprintf(bufout, OUTBUF_QUANTA_SIZE, "quanta1: flag=%x cpufreq=%f name0=%s beg0=%lld stp0=%lld name1=%s beg1=%lld stp1=%lld name2=%s beg2=%lld stp2=%lld name3=%s beg3=%lld stp3=%lld name4=%s beg4=%lld stp4=%lld name5=%s beg5=%lld stp5=%lld \n",
+		hp_globals.quanta_dbg,
+		hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
+		hp_globals.monitored_function_names[0], hp_globals.monitored_function_tsc_start[0], hp_globals.monitored_function_tsc_stop[0],
+		hp_globals.monitored_function_names[1], hp_globals.monitored_function_tsc_start[1], hp_globals.monitored_function_tsc_stop[1],
+		hp_globals.monitored_function_names[2], hp_globals.monitored_function_tsc_start[2], hp_globals.monitored_function_tsc_stop[2],
+		hp_globals.monitored_function_names[3], hp_globals.monitored_function_tsc_start[3], hp_globals.monitored_function_tsc_stop[3],
+		hp_globals.monitored_function_names[4], hp_globals.monitored_function_tsc_start[4], hp_globals.monitored_function_tsc_stop[4],
+		hp_globals.monitored_function_names[5], hp_globals.monitored_function_tsc_start[5], hp_globals.monitored_function_tsc_stop[5]
+	   );
+  if (size > 0) {
+    if ( write(fd_log_out, bufout, size) < 0 )
+       hp_globals.quanta_dbg |= 0x10000;
+  }
+  current_block = hp_globals.monitored_function_generate_block_first_linked_list;
+  while (current_block)
+  {
+     size = snprintf(bufout, OUTBUF_QUANTA_SIZE, "name=%s type=%s template=%s class=%s start=%lld stop=%lld\n",
+		current_block->name, current_block->type, current_block->template, current_block->class, current_block->tsc_start, current_block->tsc_stop);
+     if (size > 0) {
+        if ( write(fd_log_out, bufout, size) < 0 )
+            hp_globals.quanta_dbg |= 0x10000;
+     }
+     if (current_block->name)
+         efree (current_block->name);
+
+     if (current_block->type)
+         efree (current_block->type);
+
+     if (current_block->template)
+          efree (current_block->template);
+
+     prev_block = current_block;
+     current_block = current_block->next_generate_block_detail;
+     efree(prev_block);
+  }
+  close(fd_log_out);
+  efree(bufout);
 }
 
 
