@@ -830,7 +830,7 @@ void hp_clean_profiler_state(TSRMLS_D) {
    * it's just pointers to static memory, unlike ignored function names
    * which are emalloced.
    *
-   * Delete the array storing monitored function names 
+   * Delete the array storing monitored function names
    hp_array_del(hp_globals.monitored_function_names);
    hp_globals.monitored_function_names = NULL;
   */
@@ -2245,6 +2245,40 @@ static void hp_end(TSRMLS_D) {
   hp_clean_profiler_state(TSRMLS_C);
 }
 
+#define PROFILING_OUTPUT_JSON_FORMAT \
+"{\n\
+  \"profiling\": {\n\
+    \"flag\": %x,\n\
+    \"timers\": {\n\
+      \"magento_loading\": %f,\n\
+      \"before_layout_loading\": %f,\n\
+      \"layout_loading\": %f,\n\
+      \"between_layout_loading_and_rendering\": %f,\n\
+      \"layout_rendering\": %f,\n\
+      \"after_layout_rendering\": %f,\n\
+      \"before_sending_response\": %f\n\
+    }\n\
+  }\n\
+}\n"
+
+#define PROFILING_BLOCK_OUTPUT_JSON_FORMAT \
+"{\n\
+  \"profiling_block\": {\n\
+    \"node_name\": \"%s\",\n\
+    \"node_type\": \"%s\",\n\
+    \"node_template\": \"%s\",\n\
+    \"node_class\": \"%s\",\n\
+    \"timers\": {\n\
+      \"_generateBlock\": %f,\n\
+    }\n\
+  }\n\
+}\n"
+
+static float cpu_cycles_to_ms(float cpufreq, long long start, long long end) {
+  // TODO check if it doesnt exceed long max value
+  return (end - start) / (cpufreq * 1000000) * 1000;
+}
+
 #define OUTBUF_QUANTA_SIZE 2048
 /**
  * Called from quanta_mon_disable(). Removes all the proxies setup by
@@ -2257,6 +2291,9 @@ static void hp_stop(TSRMLS_D) {
   int   size;
   struct timeval tv;
   generate_block_details *current_block, *prev_block;
+  float cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
+  long long* starts = hp_globals.monitored_function_tsc_start;
+  long long* stops =  hp_globals.monitored_function_tsc_stop;
 
   /* End any unfinished calls */
   while (hp_globals.entries) {
@@ -2298,16 +2335,16 @@ static void hp_stop(TSRMLS_D) {
      efree(bufout);
      return;
   }
-  size = snprintf(bufout, OUTBUF_QUANTA_SIZE, "quanta1: flag=%x cpufreq=%f name0=%s beg0=%lld stp0=%lld name1=%s beg1=%lld stp1=%lld name2=%s beg2=%lld stp2=%lld name3=%s beg3=%lld stp3=%lld name4=%s beg4=%lld stp4=%lld name5=%s beg5=%lld stp5=%lld \n",
-		hp_globals.quanta_dbg,
-		hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
-		hp_globals.monitored_function_names[0], hp_globals.monitored_function_tsc_start[0], hp_globals.monitored_function_tsc_stop[0],
-		hp_globals.monitored_function_names[1], hp_globals.monitored_function_tsc_start[1], hp_globals.monitored_function_tsc_stop[1],
-		hp_globals.monitored_function_names[2], hp_globals.monitored_function_tsc_start[2], hp_globals.monitored_function_tsc_stop[2],
-		hp_globals.monitored_function_names[3], hp_globals.monitored_function_tsc_start[3], hp_globals.monitored_function_tsc_stop[3],
-		hp_globals.monitored_function_names[4], hp_globals.monitored_function_tsc_start[4], hp_globals.monitored_function_tsc_stop[4],
-		hp_globals.monitored_function_names[5], hp_globals.monitored_function_tsc_start[5], hp_globals.monitored_function_tsc_stop[5]
-	   );
+  size = snprintf(bufout, OUTBUF_QUANTA_SIZE, PROFILING_OUTPUT_JSON_FORMAT,
+			hp_globals.quanta_dbg,
+      cpu_cycles_to_ms(cpufreq, starts[0], starts[1]),
+      cpu_cycles_to_ms(cpufreq, starts[1], starts[2]),
+      cpu_cycles_to_ms(cpufreq, starts[2], stops[2]),
+      cpu_cycles_to_ms(cpufreq, stops[2], starts[3]),
+      cpu_cycles_to_ms(cpufreq, starts[3], stops[3]),
+      cpu_cycles_to_ms(cpufreq, stops[3], stops[4]),
+      cpu_cycles_to_ms(cpufreq, stops[4], stops[5])
+    );
   if (size > 0) {
     if ( write(fd_log_out, bufout, size) < 0 )
        hp_globals.quanta_dbg |= 0x10000;
@@ -2315,8 +2352,12 @@ static void hp_stop(TSRMLS_D) {
   current_block = hp_globals.monitored_function_generate_block_first_linked_list;
   while (current_block)
   {
-     size = snprintf(bufout, OUTBUF_QUANTA_SIZE, "name=%s type=%s template=%s class=%s start=%lld stop=%lld\n",
-		current_block->name, current_block->type, current_block->template, current_block->class, current_block->tsc_start, current_block->tsc_stop);
+     size = snprintf(bufout, OUTBUF_QUANTA_SIZE, PROFILING_BLOCK_OUTPUT_JSON_FORMAT,
+		current_block->name,
+                current_block->type,
+                current_block->template,
+                current_block->class,
+                cpu_cycles_to_ms(cpufreq, current_block->tsc_start, current_block->tsc_stop));
      if (size > 0) {
         if ( write(fd_log_out, bufout, size) < 0 )
             hp_globals.quanta_dbg |= 0x10000;
