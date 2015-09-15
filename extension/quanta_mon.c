@@ -1140,7 +1140,7 @@ int  qm_record_timers_loading_time(uint8 hash_code, char *curr_func, zend_execut
 			case 4:	current_gen_block_details->template = tmpstrbuf;  break;
 			default: PRINTF_QUANTA ("Unknown typekey (%d)\n", typekey); break;
 		}
-		
+
 	} /* for - inner data */
   } /* for - outer data */
   return i;
@@ -2245,33 +2245,37 @@ static void hp_end(TSRMLS_D) {
   hp_clean_profiler_state(TSRMLS_C);
 }
 
-#define PROFILING_OUTPUT_JSON_FORMAT \
-"{\n\
-  \"profiling\": {\n\
-    \"flag\": %x,\n\
-    \"timers\": {\n\
-      \"magento_loading\": %f,\n\
-      \"before_layout_loading\": %f,\n\
-      \"layout_loading\": %f,\n\
-      \"between_layout_loading_and_rendering\": %f,\n\
-      \"layout_rendering\": %f,\n\
-      \"after_layout_rendering\": %f,\n\
-      \"before_sending_response\": %f\n\
-    }\n\
-  }\n\
-}\n"
+#define BEGIN_OUTPUT_JSON_FORMAT \
+"{\n"
 
-#define PROFILING_BLOCK_OUTPUT_JSON_FORMAT \
+#define PROFILING_OUTPUT_JSON_FORMAT \
+"  \"profiling\": {\n\
+    \"magento_loading\": %f,\n\
+    \"before_layout_loading\": %f,\n\
+    \"layout_loading\": %f,\n\
+    \"between_layout_loading_and_rendering\": %f,\n\
+    \"layout_rendering\": %f,\n\
+    \"after_layout_rendering\": %f,\n\
+    \"before_sending_response\": %f\n\
+  },\n"
+
+#define BLOCKS_BEGIN_OUTPUT_JSON_FORMAT \
+"  \"blocks\": ["
+
+#define BLOCK_OUTPUT_JSON_FORMAT \
 "{\n\
-  \"profiling_block\": {\n\
-    \"node_name\": \"%s\",\n\
-    \"node_type\": \"%s\",\n\
-    \"node_template\": \"%s\",\n\
-    \"node_class\": \"%s\",\n\
-    \"timers\": {\n\
-      \"_generateBlock\": %f,\n\
-    }\n\
-  }\n\
+    \"name\": \"%s\",\n\
+    \"type\": \"%s\",\n\
+    \"template\": \"%s\",\n\
+    \"class\": \"%s\",\n\
+    \"generate\": %f\n\
+  }"
+
+#define BLOCKS_END_OUTPUT_JSON_FORMAT \
+"],\n"
+
+#define END_OUTPUT_JSON_FORMAT \
+"  \"flag\": %x\n\
 }\n"
 
 static float cpu_cycles_to_ms(float cpufreq, long long start, long long end) {
@@ -2280,103 +2284,117 @@ static float cpu_cycles_to_ms(float cpufreq, long long start, long long end) {
 }
 
 #define OUTBUF_QUANTA_SIZE 2048
+
+// returns ouput file FD or -1
+static int init_output(char *bufout) {
+  struct timeval tv;
+  return gettimeofday(&tv, NULL) == -1 ||
+    snprintf(bufout, OUTBUF_QUANTA_SIZE, "/tmp/quanta-%d.%d-%d.txt",
+    tv.tv_sec, tv.tv_usec, getpid()) < 4 ? -1 :
+    open(bufout, O_WRONLY | O_APPEND | O_CREAT, 0644);
+}
+
+// writes content into the output file and set the debug info if necessary
+static void output(int size, char *bufout, int fd_log_out) {
+  if (size > 0 && write(fd_log_out, bufout, size) < 0)
+    hp_globals.quanta_dbg |= 0x10000;
+}
+
+// begins the output
+static void begin_output(int fd_log_out) {
+  output(strlen(BEGIN_OUTPUT_JSON_FORMAT),
+    BEGIN_OUTPUT_JSON_FORMAT, fd_log_out);
+}
+
+// ouputs the profiling data
+static void profiler_output(char *bufout, int fd_log_out, float cpufreq) {
+  long long *starts = hp_globals.monitored_function_tsc_start,
+    *stops = hp_globals.monitored_function_tsc_stop;
+  output(snprintf(bufout, OUTBUF_QUANTA_SIZE,
+    PROFILING_OUTPUT_JSON_FORMAT,
+    cpu_cycles_to_ms(cpufreq, starts[0], starts[1]),
+    cpu_cycles_to_ms(cpufreq, starts[1], starts[2]),
+    cpu_cycles_to_ms(cpufreq, starts[2], stops[2]),
+    cpu_cycles_to_ms(cpufreq, stops[2], starts[3]),
+    cpu_cycles_to_ms(cpufreq, starts[3], stops[3]),
+    cpu_cycles_to_ms(cpufreq, stops[3], stops[4]),
+    cpu_cycles_to_ms(cpufreq, stops[4], stops[5])),
+  bufout, fd_log_out);
+}
+
+// outputs a single block data
+static void block_output(char *bufout, int fd_log_out,
+float cpufreq, generate_block_details *block) {
+  output(snprintf(bufout, OUTBUF_QUANTA_SIZE, BLOCK_OUTPUT_JSON_FORMAT,
+    block->name, block->type, block->template, block->class,
+    cpu_cycles_to_ms(cpufreq, block->tsc_start, block->tsc_stop))
+  , bufout, fd_log_out);
+  if (block->name) efree(block->name);
+  if (block->type) efree(block->type);
+  if (block->template) efree(block->template);
+}
+
+// outputs a blocks data
+static void blocks_output(char *bufout, int fd_log_out, float cpufreq) {
+  output(strlen(BLOCKS_BEGIN_OUTPUT_JSON_FORMAT),
+    BLOCKS_BEGIN_OUTPUT_JSON_FORMAT, fd_log_out);
+  generate_block_details *current_block, *prev_block;
+  current_block = hp_globals.monitored_function_generate_block_first_linked_list;
+  while (current_block) {
+    block_output(bufout, fd_log_out, cpufreq, prev_block = current_block);
+    current_block = current_block->next_generate_block_detail;
+    if (current_block) output(2, ", ", fd_log_out);
+    efree(prev_block);
+  }
+  output(strlen(BLOCKS_END_OUTPUT_JSON_FORMAT),
+    BLOCKS_END_OUTPUT_JSON_FORMAT, fd_log_out);
+}
+
+// ends output
+static void end_output(char *bufout, int fd_log_out) {
+  output(snprintf(bufout, OUTBUF_QUANTA_SIZE, END_OUTPUT_JSON_FORMAT,
+    hp_globals.quanta_dbg), bufout, fd_log_out);
+}
+
+static void restore_original_zend_execute(void) {
+  /* Remove proxies, restore the originals */
+  #if PHP_VERSION_ID < 50500
+    zend_execute          = _zend_execute;
+  #else
+    zend_execute_ex       = _zend_execute_ex;
+  #endif
+    zend_execute_internal = _zend_execute_internal;
+    zend_compile_file     = _zend_compile_file;
+    zend_compile_string   = _zend_compile_string;
+}
+
 /**
  * Called from quanta_mon_disable(). Removes all the proxies setup by
  * hp_begin() and restores the original values.
  */
 static void hp_stop(TSRMLS_D) {
-  int   fd_log_out;
   char  *bufout;
-  int   hp_profile_flag = 1;
-  int   size;
-  struct timeval tv;
-  generate_block_details *current_block, *prev_block;
+  int   hp_profile_flag = 1, fd_log_out;
   float cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
-  long long* starts = hp_globals.monitored_function_tsc_start;
-  long long* stops =  hp_globals.monitored_function_tsc_stop;
 
   /* End any unfinished calls */
-  while (hp_globals.entries) {
+  while (hp_globals.entries)
     END_PROFILING(&hp_globals.entries, hp_profile_flag);
-  }
-
-  /* Remove proxies, restore the originals */
-#if PHP_VERSION_ID < 50500
-  zend_execute          = _zend_execute;
-#else
-  zend_execute_ex       = _zend_execute_ex;
-#endif
-  zend_execute_internal = _zend_execute_internal;
-  zend_compile_file     = _zend_compile_file;
-  zend_compile_string   = _zend_compile_string;
-
+  restore_original_zend_execute();
   /* Resore cpu affinity. */
   restore_cpu_affinity(&hp_globals.prev_mask);
-
   /* Stop profiling */
   hp_globals.enabled = 0;
-
-  if(gettimeofday(&tv, NULL) == -1)
-    return;
-
-  bufout = emalloc(OUTBUF_QUANTA_SIZE);
-  if(bufout == NULL)
-    return;
-
-  size = snprintf(bufout, OUTBUF_QUANTA_SIZE, "/tmp/quanta-%d.%d-%d.txt", tv.tv_sec, tv.tv_usec, getpid());
-  if(size < 4)
-  {
-     efree(bufout);
-     return;
+  if ((bufout = emalloc(OUTBUF_QUANTA_SIZE))) {
+    if ((fd_log_out = init_output(bufout)) > 0) {
+      begin_output(fd_log_out);
+      profiler_output(bufout, fd_log_out, cpufreq);
+      blocks_output(bufout, fd_log_out, cpufreq);
+      end_output(bufout, fd_log_out);
+      close(fd_log_out);
+    }
+    efree(bufout);
   }
-
-  fd_log_out = open(bufout, O_WRONLY | O_APPEND | O_CREAT, 0644);
-  if(fd_log_out<= 0) {
-     efree(bufout);
-     return;
-  }
-  size = snprintf(bufout, OUTBUF_QUANTA_SIZE, PROFILING_OUTPUT_JSON_FORMAT,
-			hp_globals.quanta_dbg,
-      cpu_cycles_to_ms(cpufreq, starts[0], starts[1]),
-      cpu_cycles_to_ms(cpufreq, starts[1], starts[2]),
-      cpu_cycles_to_ms(cpufreq, starts[2], stops[2]),
-      cpu_cycles_to_ms(cpufreq, stops[2], starts[3]),
-      cpu_cycles_to_ms(cpufreq, starts[3], stops[3]),
-      cpu_cycles_to_ms(cpufreq, stops[3], stops[4]),
-      cpu_cycles_to_ms(cpufreq, stops[4], stops[5])
-    );
-  if (size > 0) {
-    if ( write(fd_log_out, bufout, size) < 0 )
-       hp_globals.quanta_dbg |= 0x10000;
-  }
-  current_block = hp_globals.monitored_function_generate_block_first_linked_list;
-  while (current_block)
-  {
-     size = snprintf(bufout, OUTBUF_QUANTA_SIZE, PROFILING_BLOCK_OUTPUT_JSON_FORMAT,
-		current_block->name,
-                current_block->type,
-                current_block->template,
-                current_block->class,
-                cpu_cycles_to_ms(cpufreq, current_block->tsc_start, current_block->tsc_stop));
-     if (size > 0) {
-        if ( write(fd_log_out, bufout, size) < 0 )
-            hp_globals.quanta_dbg |= 0x10000;
-     }
-     if (current_block->name)
-         efree (current_block->name);
-
-     if (current_block->type)
-         efree (current_block->type);
-
-     if (current_block->template)
-          efree (current_block->template);
-
-     prev_block = current_block;
-     current_block = current_block->next_generate_block_detail;
-     efree(prev_block);
-  }
-  close(fd_log_out);
-  efree(bufout);
 }
 
 
