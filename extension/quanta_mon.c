@@ -29,6 +29,7 @@
 #include "ext/standard/info.h"
 #include "php_quanta_mon.h"
 #include "zend_extensions.h"
+#include <SAPI.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <fcntl.h>
@@ -81,7 +82,8 @@
 
 /* QuantaMon version                           */
 #define QUANTA_MON_VERSION       "0.9.2"
-
+/* Set the following cookie for enabling full monitoring. The cookie value
+ * should be modified for each customers, maybe moved to a configuration file */
 #define DEBUG_QUANTA
 
 #ifdef DEBUG_QUANTA
@@ -105,6 +107,7 @@ static void dummy(char *unused, ...)
  * callbacks in hp_begin() */
 #define QUANTA_MON_MODE_HIERARCHICAL            1
 #define QUANTA_MON_MODE_SAMPLED            620002      /* Rockfort's zip code */
+#define QUANTA_MON_MODE_EVENTS_ONLY             3
 
 /* Hierarchical profiling flags.
  *
@@ -186,12 +189,10 @@ typedef struct generate_renderize_block_details_t {
   uint64  tsc_generate_stop;
   uint64  tsc_renderize_first_start; /* Might be re-entrant, record the first call */
   uint64  tsc_renderize_last_stop;   /* Always record the latest timestamp */
-  int     pos_in_list;
   char    *type;
   char    *name;
-  char	  *class;
+  char    *class;
   char    *template;
-  char    *templateToHtml;
   struct generate_renderize_block_details_t *next_generate_renderize_block_detail;
 } generate_renderize_block_details;
 
@@ -224,6 +225,15 @@ typedef struct hp_global_t {
 
   /* Callbacks for various quanta_mon modes */
   hp_mode_cb       mode_cb;
+
+  /* Cookie value that must be received for enabling full monitoring */
+  char             *full_monitoring_cookie_trigger;
+
+  /* Path of the forwarding agent */
+  char             *path_quanta_agent_exe;
+
+  /* Path of the quanta agent unix socket */
+  char             *path_quanta_agent_socket;
 
   /*       ----------   Mode specific attributes:  -----------       */
 
@@ -408,7 +418,9 @@ PHP_INI_BEGIN()
  * choose to save/restore QuantaMon profiler runs in the
  * directory specified by this ini setting.
  */
-PHP_INI_ENTRY("quanta_mon.output_dir", "", PHP_INI_ALL, NULL)
+PHP_INI_ENTRY("quanta_mon.full_monitoring_cookie_trigger", "", PHP_INI_SYSTEM, NULL)
+PHP_INI_ENTRY("quanta_mon.path_quanta_agent_exe", "", PHP_INI_SYSTEM, NULL)
+PHP_INI_ENTRY("quanta_mon.path_quanta_agent_socket", "", PHP_INI_SYSTEM, NULL)
 
 PHP_INI_END()
 
@@ -499,6 +511,24 @@ PHP_MINIT_FUNCTION(quanta_mon) {
 
   REGISTER_INI_ENTRIES();
 
+  hp_globals.full_monitoring_cookie_trigger = INI_STR("quanta_mon.full_monitoring_cookie_trigger");
+  if ((!hp_globals.full_monitoring_cookie_trigger) || (strlen(hp_globals.full_monitoring_cookie_trigger) < 4)) {
+	php_error_docref(NULL TSRMLS_CC, E_WARNING, "quanta_mon.full_monitoring_cookie_trigger configuration missing or invalid. Module disabled.");
+	return FAILURE;
+  }
+
+  hp_globals.path_quanta_agent_exe = INI_STR("quanta_mon.path_quanta_agent_exe");
+  if ((!hp_globals.path_quanta_agent_exe) || (strlen(hp_globals.path_quanta_agent_exe) < 4)) {
+	php_error_docref(NULL TSRMLS_CC, E_WARNING, "quanta_mon.path_quanta_agent_exe configuration missing or invalid. Module disabled.");
+	return FAILURE;
+  }
+
+  hp_globals.path_quanta_agent_socket = INI_STR("quanta_mon.path_quanta_agent_socket");
+  if ((!hp_globals.path_quanta_agent_socket) || (strlen(hp_globals.path_quanta_agent_socket) < 4)) {
+	php_error_docref(NULL TSRMLS_CC, E_WARNING, "quanta_mon.path_quanta_agent_socket configuration missing or invalid. Module disabled.");
+	return FAILURE;
+  }
+
   hp_register_constants(INIT_FUNC_ARGS_PASSTHRU);
 
   /* Get the number of available logical CPUs. */
@@ -553,9 +583,23 @@ PHP_MSHUTDOWN_FUNCTION(quanta_mon) {
 }
 
 /**
- * Request init callback. Nothing to do yet!
+ * Request init callback. 
  */
 PHP_RINIT_FUNCTION(quanta_mon) {
+  int mode;
+  long  quanta_mon_flags = 0;                                    /* QuantaMon flags */
+  zval *optional_array = NULL;         /* optional array arg: for future use */
+
+  if (strstr(SG(request_info).cookie_data, hp_globals.full_monitoring_cookie_trigger))
+	mode = QUANTA_MON_MODE_HIERARCHICAL;
+  else
+	mode = QUANTA_MON_MODE_EVENTS_ONLY;
+
+  hp_get_ignored_functions_from_arg(optional_array);
+  hp_get_monitored_functions_fill();
+
+  hp_begin(mode, quanta_mon_flags TSRMLS_CC);
+
   return SUCCESS;
 }
 
@@ -1202,14 +1246,14 @@ static int qm_extract_this_before_tohtml_do (const char *class_name, zend_uint c
 			memcpy (current_render_block_details->class, class_name, class_name_len);
 			current_render_block_details->class[class_name_len] = 0;
 		}
-		if (!current_render_block_details->templateToHtml)
-			current_render_block_details->templateToHtml = template;
+		/* Usually already filled by _generateBlock, but sometimes it's missing */
+		if ((!current_render_block_details->template) && (template))
+			current_render_block_details->template = template;
 		else
 			efree(template);
 		if (!current_render_block_details->tsc_renderize_first_start)
 			current_render_block_details->tsc_renderize_first_start = cycle_timer();
 
-		current_render_block_details->pos_in_list = linked_list_pos;	
 		hp_globals.renderize_block_last_used = current_render_block_details;
 #ifdef _QUANTA_MODULE_ULTRA_VERBOSE
 		PRINTF_QUANTA ("_beforeToHtml: Block name '%s' found in the _generateBlock list at position %d\n", name_in_layout, linked_list_pos);
@@ -1527,8 +1571,6 @@ static char *hp_get_function_name(zend_op_array *ops, char **pathname TSRMLS_DC)
         len = strlen(cls) + strlen(func) + 8;
         ret = (char*)emalloc(len);
         snprintf(ret, len, "%s::%s", cls, func);
-//if(!strcmp(filename, "/var/www/html/app/code/core/Mage/Core/Model/Layout.php"))
-//	raise(SIGSEGV);
       } else {
         ret = estrdup(func);
       }
@@ -2111,6 +2153,14 @@ void hp_mode_hier_beginfn_cb(hp_entry_t **entries,
   }
 }
 
+/**
+ * QUANTA_MON_MODE_EVENTS_ONLY's begin function callback
+ *
+ * @author ch
+ */
+void hp_mode_events_only_beginfn_cb(hp_entry_t **entries,
+                             hp_entry_t  *current  TSRMLS_DC) {
+}
 
 /**
  * QUANTA_MON_MODE_SAMPLED's begin function callback
@@ -2207,6 +2257,14 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
 void hp_mode_sampled_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
   /* See if its time to take a sample */
   hp_sample_check(entries  TSRMLS_CC);
+}
+
+/**
+ * QUANTA_MON_MODE_EVENTS_ONLY's end function callback
+ *
+ * @author veeve
+ */
+void hp_mode_events_only_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
 }
 
 
@@ -2462,6 +2520,10 @@ static void hp_begin(long level, long quanta_mon_flags TSRMLS_DC) {
         hp_globals.mode_cb.init_cb     = hp_mode_sampled_init_cb;
         hp_globals.mode_cb.begin_fn_cb = hp_mode_sampled_beginfn_cb;
         hp_globals.mode_cb.end_fn_cb   = hp_mode_sampled_endfn_cb;
+        break;
+      case QUANTA_MON_MODE_EVENTS_ONLY:
+        hp_globals.mode_cb.begin_fn_cb = hp_mode_events_only_beginfn_cb;
+        hp_globals.mode_cb.end_fn_cb   = hp_mode_events_only_endfn_cb;
         break;
     }
 

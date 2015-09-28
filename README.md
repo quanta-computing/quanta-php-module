@@ -17,12 +17,10 @@ and create a link : cd /etc/php5/apache2/conf.d && ln -s ../../mods-available/qu
 ``` 
 [quanta_mon]
 extension=quanta_mon.so
-;
-; directory used by default implementation of the iQuantaMonRuns
-; interface (namely, the QuantaMonRuns_Default class) for storing
-; QuantaMon runs.
-;
-quanta_mon.output_dir=<directory_for_storing_quanta_monitoring_runs>
+quanta_mon.full_monitoring_cookie_trigger="QUANTA_ENABLE=vWCJf16SQYh2y8BNx"
+quanta_mon.path_quanta_agent_exe="/usr/local/bin/quanta_agent"
+quanta_mon.path_quanta_agent_socket="/var/run/quanta_agent.sock"
+
 ```
 
 ## Output
