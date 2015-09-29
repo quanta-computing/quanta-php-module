@@ -105,9 +105,10 @@ static void dummy(char *unused, ...)
 
 /* Various QUANTA_MON modes. If you are adding a new mode, register the appropriate
  * callbacks in hp_begin() */
-#define QUANTA_MON_MODE_HIERARCHICAL            1
-#define QUANTA_MON_MODE_SAMPLED            620002      /* Rockfort's zip code */
-#define QUANTA_MON_MODE_EVENTS_ONLY             3
+#define QUANTA_MON_MODE_HIERARCHICAL            1      /* Complete profiling of every single PHP calls */
+#define QUANTA_MON_MODE_SAMPLED                 2      /* Statistical sample of most PHP calls */
+#define QUANTA_MON_MODE_MAGENTO_PROFILING       3      /* Profiling of selected Magento calls (see hp_get_monitored_functions_fill) */
+#define QUANTA_MON_MODE_EVENTS_ONLY             4      /* No profiling, deal only with calls >= POS_ENTRY_EVENTS_ONLY */
 
 /* Hierarchical profiling flags.
  *
@@ -129,7 +130,7 @@ static void dummy(char *unused, ...)
 
 #define QUANTA_EXTRA_CHECKS
 #define QUANTA_MON_MAX_MONITORED_FUNCTIONS_HASH  256
-#define QUANTA_MON_MAX_MONITORED_FUNCTIONS  10
+#define QUANTA_MON_MAX_MONITORED_FUNCTIONS  13
 #define QUANTA_MON_MONITORED_FUNCTION_FILTER_SIZE                           \
                ((QUANTA_MON_MAX_MONITORED_FUNCTIONS_HASH + 7)/8)
 
@@ -226,8 +227,11 @@ typedef struct hp_global_t {
   /* Callbacks for various quanta_mon modes */
   hp_mode_cb       mode_cb;
 
-  /* Cookie value that must be received for enabling full monitoring */
-  char             *full_monitoring_cookie_trigger;
+  /* Cookie value that must be received for enabling full profiling (all PHP calls, like xhprof) */
+  char             *full_profiling_cookie_trigger;
+
+  /* Cookie value that must be received for enabling magento profiling (Magento calls listed in hp_get_monitored_functions_fill) */
+  char             *magento_profiling_cookie_trigger;
 
   /* Path of the forwarding agent */
   char             *path_quanta_agent_exe;
@@ -363,11 +367,6 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO(arginfo_quanta_mon_disable, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_quanta_mon_sample_enable, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO(arginfo_quanta_mon_sample_disable, 0)
-ZEND_END_ARG_INFO()
 /* }}} */
 
 /**
@@ -387,8 +386,6 @@ int bind_to_cpu(uint32 cpu_id);
 zend_function_entry quanta_mon_functions[] = {
   PHP_FE(quanta_mon_enable, arginfo_quanta_mon_enable)
   PHP_FE(quanta_mon_disable, arginfo_quanta_mon_disable)
-  PHP_FE(quanta_mon_sample_enable, arginfo_quanta_mon_sample_enable)
-  PHP_FE(quanta_mon_sample_disable, arginfo_quanta_mon_sample_disable)
   {NULL, NULL, NULL}
 };
 
@@ -418,7 +415,8 @@ PHP_INI_BEGIN()
  * choose to save/restore QuantaMon profiler runs in the
  * directory specified by this ini setting.
  */
-PHP_INI_ENTRY("quanta_mon.full_monitoring_cookie_trigger", "", PHP_INI_SYSTEM, NULL)
+PHP_INI_ENTRY("quanta_mon.full_profiling_cookie_trigger", "", PHP_INI_SYSTEM, NULL)
+PHP_INI_ENTRY("quanta_mon.magento_profiling_cookie_trigger", "", PHP_INI_SYSTEM, NULL)
 PHP_INI_ENTRY("quanta_mon.path_quanta_agent_exe", "", PHP_INI_SYSTEM, NULL)
 PHP_INI_ENTRY("quanta_mon.path_quanta_agent_socket", "", PHP_INI_SYSTEM, NULL)
 
@@ -442,18 +440,7 @@ ZEND_GET_MODULE(quanta_mon)
  * @author kannan
  */
 PHP_FUNCTION(quanta_mon_enable) {
-  long  quanta_mon_flags = 0;                                    /* QuantaMon flags */
-  zval *optional_array = NULL;         /* optional array arg: for future use */
-
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
-                            "|lz", &quanta_mon_flags, &optional_array) == FAILURE) {
-    return;
-  }
-
-  hp_get_ignored_functions_from_arg(optional_array);
-  hp_get_monitored_functions_fill();
-
-  hp_begin(QUANTA_MON_MODE_HIERARCHICAL, quanta_mon_flags TSRMLS_CC);
+  /* The module is now activated at each request, this function is no longer used. */
 }
 
 /**
@@ -465,45 +452,12 @@ PHP_FUNCTION(quanta_mon_enable) {
  * @author kannan, hzhao
  */
 PHP_FUNCTION(quanta_mon_disable) {
-  if (hp_globals.enabled) {
-    hp_stop(TSRMLS_C);
-    RETURN_ZVAL(hp_globals.stats_count, 1, 0);
-  }
-  /* else null is returned */
-}
-
-/**
- * Start QuantaMon profiling in sampling mode.
- *
- * @return void
- * @author cjiang
- */
-PHP_FUNCTION(quanta_mon_sample_enable) {
-  long  quanta_mon_flags = 0;                                    /* QuantaMon flags */
-  hp_get_ignored_functions_from_arg(NULL);
-  hp_get_monitored_functions_fill();
-  hp_begin(QUANTA_MON_MODE_SAMPLED, quanta_mon_flags TSRMLS_CC);
-}
-
-/**
- * Stops QuantaMon from profiling in sampling mode anymore and returns the profile
- * info.
- *
- * @param  void
- * @return array  hash-array of QuantaMon's profile info
- * @author cjiang
- */
-PHP_FUNCTION(quanta_mon_sample_disable) {
-  if (hp_globals.enabled) {
-    hp_stop(TSRMLS_C);
-    RETURN_ZVAL(hp_globals.stats_count, 1, 0);
-  }
-  /* else null is returned */
+  /* Like quanta_mon_enable, this function is longer used. */
 }
 
 /**
  * Module init callback.
- *
+ * Called during Apache startup
  * @author cjiang
  */
 PHP_MINIT_FUNCTION(quanta_mon) {
@@ -511,9 +465,15 @@ PHP_MINIT_FUNCTION(quanta_mon) {
 
   REGISTER_INI_ENTRIES();
 
-  hp_globals.full_monitoring_cookie_trigger = INI_STR("quanta_mon.full_monitoring_cookie_trigger");
-  if ((!hp_globals.full_monitoring_cookie_trigger) || (strlen(hp_globals.full_monitoring_cookie_trigger) < 4)) {
-	php_error_docref(NULL TSRMLS_CC, E_WARNING, "quanta_mon.full_monitoring_cookie_trigger configuration missing or invalid. Module disabled.");
+  hp_globals.full_profiling_cookie_trigger = INI_STR("quanta_mon.full_profiling_cookie_trigger");
+  if ((!hp_globals.full_profiling_cookie_trigger) || (strlen(hp_globals.full_profiling_cookie_trigger) < 4)) {
+	php_error_docref(NULL TSRMLS_CC, E_WARNING, "quanta_mon.full_profiling_cookie_trigger configuration missing or invalid. Module disabled.");
+	return FAILURE;
+  }
+
+  hp_globals.magento_profiling_cookie_trigger = INI_STR("quanta_mon.magento_profiling_cookie_trigger");
+  if ((!hp_globals.magento_profiling_cookie_trigger) || (strlen(hp_globals.magento_profiling_cookie_trigger) < 4)) {
+	php_error_docref(NULL TSRMLS_CC, E_WARNING, "quanta_mon.magento_profiling_cookie_trigger configuration missing or invalid. Module disabled.");
 	return FAILURE;
   }
 
@@ -586,12 +546,17 @@ PHP_MSHUTDOWN_FUNCTION(quanta_mon) {
  * Request init callback. 
  */
 PHP_RINIT_FUNCTION(quanta_mon) {
+// xxx VERIFIER qu'on puisse bien faire un hp_begin avec des param differents
+// a chaque appel
+// puis remplir hp_mode_evnets_only_beginfn_cb
   int mode;
   long  quanta_mon_flags = 0;                                    /* QuantaMon flags */
   zval *optional_array = NULL;         /* optional array arg: for future use */
 
-  if (strstr(SG(request_info).cookie_data, hp_globals.full_monitoring_cookie_trigger))
+  if (strstr(SG(request_info).cookie_data, hp_globals.full_profiling_cookie_trigger))
 	mode = QUANTA_MON_MODE_HIERARCHICAL;
+  else if (strstr(SG(request_info).cookie_data, hp_globals.magento_profiling_cookie_trigger))
+	mode = QUANTA_MON_MODE_MAGENTO_PROFILING;
   else
 	mode = QUANTA_MON_MODE_EVENTS_ONLY;
 
@@ -752,7 +717,7 @@ int hp_ignored_functions_filter_collision(uint8 hash) {
 #define POS_ENTRY_GENERATEBLOCK 6
 #define POS_ENTRY_BEFORETOHTML  7
 #define POS_ENTRY_AFTERTOHTML   8
-
+#define POS_ENTRY_EVENTS_ONLY   9 /* Anything below won't be processed unless the special cookie is set */
 /**
 */
 /**
@@ -774,8 +739,12 @@ static void hp_get_monitored_functions_fill() {
   hp_globals.monitored_function_names[POS_ENTRY_GENERATEBLOCK] /* 6 */ = "Mage_Core_Model_Layout::_generateBlock";
   hp_globals.monitored_function_names[POS_ENTRY_BEFORETOHTML]  /* 7 */ = "Mage_Core_Block_Abstract::_beforeToHtml";
   hp_globals.monitored_function_names[POS_ENTRY_AFTERTOHTML]   /* 8 */ = "Mage_Core_Block_Abstract::_afterToHtml";
-  hp_globals.monitored_function_names[9] = NULL;
-  // Don't forget to change QUANTA_MON_MAX_MONITORED_FUNCTIONS
+  /* POS_ENTRY_EVENTS_ONLY */
+  hp_globals.monitored_function_names[POS_ENTRY_EVENTS_ONLY]   /* 9  */ = "Mage_Core_Model_Cache::flush";
+  hp_globals.monitored_function_names[10]   /* 10 */ = "Mage_Core_Model_Cache::cleanType";
+  hp_globals.monitored_function_names[11]   /* 11 */ = "Mage_Index_Model_Event::_beforeSave";
+  hp_globals.monitored_function_names[12] = NULL;
+  // Don't forget to change QUANTA_MON_MAX_MONITORED_FUNCTIONS. It must be equal to the last entry ([x] = NULL) + 1
 }
 
 /**
@@ -829,25 +798,26 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
   }
   hp_globals.profiler_level  = (int) level;
 
-  /* Init stats_count */
-  if (hp_globals.stats_count) {
-    zval_dtor(hp_globals.stats_count);
-    FREE_ZVAL(hp_globals.stats_count);
+  if (level != QUANTA_MON_MODE_EVENTS_ONLY) {
+	  /* Init stats_count */
+	  if (hp_globals.stats_count) {
+	    zval_dtor(hp_globals.stats_count);
+	    FREE_ZVAL(hp_globals.stats_count);
+	  }
+	  MAKE_STD_ZVAL(hp_globals.stats_count);
+	  array_init(hp_globals.stats_count);
+
+	  /* NOTE(cjiang): some fields such as cpu_frequencies take relatively longer
+	   * to initialize, (5 milisecond per logical cpu right now), therefore we
+	   * calculate them lazily. */
+	  if (hp_globals.cpu_frequencies == NULL) {
+	    get_all_cpu_frequencies();
+	    restore_cpu_affinity(&hp_globals.prev_mask);
+	  }
+
+	  /* bind to a random cpu so that we can use rdtsc instruction. */
+	  bind_to_cpu((int) (rand() % hp_globals.cpu_num));
   }
-  MAKE_STD_ZVAL(hp_globals.stats_count);
-  array_init(hp_globals.stats_count);
-
-  /* NOTE(cjiang): some fields such as cpu_frequencies take relatively longer
-   * to initialize, (5 milisecond per logical cpu right now), therefore we
-   * calculate them lazily. */
-  if (hp_globals.cpu_frequencies == NULL) {
-    get_all_cpu_frequencies();
-    restore_cpu_affinity(&hp_globals.prev_mask);
-  }
-
-  /* bind to a random cpu so that we can use rdtsc instruction. */
-  bind_to_cpu((int) (rand() % hp_globals.cpu_num));
-
   /* Call current mode's init cb */
   hp_globals.mode_cb.init_cb(TSRMLS_C);
 
@@ -899,8 +869,8 @@ void hp_clean_profiler_state(TSRMLS_D) {
  *        CALLING FUNCTION OR BY CALLING TSRMLS_FETCH()
  *        TSRMLS_FETCH() IS RELATIVELY EXPENSIVE.
  *
- * return profile_curr with -2 if this function is banned and musn't be profiled at all
- *                          -1 if this function is profiled by the general code, but not specifically
+ * return profile_curr with 
+ *                          -1 if this function is not specifically profiled 
  *                          >=0 this function is specifically profiled, in this case contain the array position
  */
 #define BEGIN_PROFILING(entries, symbol, profile_curr, pathname, execute_data)        \
@@ -908,10 +878,10 @@ void hp_clean_profiler_state(TSRMLS_D) {
     /* Use a hash code to filter most of the string comparisons. */                   \
     uint8 hash_code  = hp_inline_hash(symbol);                                        \
     if(hp_ignore_entry(hash_code, symbol))                                            \
-	 profile_curr = -2;                                                           \
+	 profile_curr = -1;                                                           \
     else                                                                              \
          profile_curr = qm_record_timers_loading_time(hash_code, symbol, execute_data);    \
-    if (profile_curr > -2 ) {                                                         \
+    if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {                       \
       hp_entry_t *cur_entry = hp_fast_alloc_hprof_entry();                            \
       (cur_entry)->hash_code = hash_code;                                             \
       (cur_entry)->name_hprof = symbol;                                               \
@@ -943,7 +913,7 @@ void hp_clean_profiler_state(TSRMLS_D) {
 	else if (profile_curr == POS_ENTRY_AFTERTOHTML)                      \
              qm_after_tohmtl(execute_data);                                  \
     }                                                                        \
-    if (profile_curr > -2) {                                                 \
+    if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {              \
       hp_entry_t *cur_entry;                                                 \
       /* Call the mode's endfn callback. */                                  \
       /* NOTE(cjiang): we want to call this 'end_fn_cb' before */            \
@@ -1407,13 +1377,19 @@ static int qm_after_tohmtl(zend_execute_data *execute_data TSRMLS_DC)
  * filter then with an exact check against the function names.
  *
  * @author ch
+ * return -1 if we don't monitor specifically this function, -2 if we don't monitor at all
  */
 int  qm_record_timers_loading_time(uint8 hash_code, char *curr_func, zend_execute_data *execute_data TSRMLS_DC) {
-  int i = 0;
+  int i;
 
   /* Search quickly if we may have a match */
   if (!hp_monitored_functions_filter_collision(hash_code))
-    return -1;
+		return -1;
+
+  if (hp_globals.profiler_level == QUANTA_MON_MODE_EVENTS_ONLY)
+	i = POS_ENTRY_EVENTS_ONLY;
+  else
+	i = 0;
 
   /* We MAY have a match, enumerate the function array for an exact match */
   for (; hp_globals.monitored_function_names[i] != NULL; i++) {
@@ -1423,7 +1399,7 @@ int  qm_record_timers_loading_time(uint8 hash_code, char *curr_func, zend_execut
   }
 
   if ( hp_globals.monitored_function_names[i] == NULL)
-     return -1;  /* False match, we have nothing */
+		return -1; /* False match, we have nothing */
 
   hp_globals.monitored_function_tsc_start[i] = cycle_timer();
 
@@ -2154,6 +2130,14 @@ void hp_mode_hier_beginfn_cb(hp_entry_t **entries,
 }
 
 /**
+ * QUANTA_MON_MODE_MAGENTO_PROFILING's begin function callback
+ *
+ * @author ch
+ */
+void hp_mode_magento_profil_beginfn_cb(hp_entry_t **entries,
+                             hp_entry_t  *current  TSRMLS_DC) {
+}
+/**
  * QUANTA_MON_MODE_EVENTS_ONLY's begin function callback
  *
  * @author ch
@@ -2260,9 +2244,18 @@ void hp_mode_sampled_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
 }
 
 /**
+ * QUANTA_MON_MODE_MAGENTO_PROFILING's end function callback
+ *
+ * @author ch
+ */
+void hp_mode_magento_profil_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
+}
+
+
+/**
  * QUANTA_MON_MODE_EVENTS_ONLY's end function callback
  *
- * @author veeve
+ * @author ch
  */
 void hp_mode_events_only_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
 }
@@ -2521,6 +2514,9 @@ static void hp_begin(long level, long quanta_mon_flags TSRMLS_DC) {
         hp_globals.mode_cb.begin_fn_cb = hp_mode_sampled_beginfn_cb;
         hp_globals.mode_cb.end_fn_cb   = hp_mode_sampled_endfn_cb;
         break;
+      case QUANTA_MON_MODE_MAGENTO_PROFILING:
+        hp_globals.mode_cb.begin_fn_cb = hp_mode_magento_profil_beginfn_cb;
+        hp_globals.mode_cb.end_fn_cb   = hp_mode_magento_profil_endfn_cb;
       case QUANTA_MON_MODE_EVENTS_ONLY:
         hp_globals.mode_cb.begin_fn_cb = hp_mode_events_only_beginfn_cb;
         hp_globals.mode_cb.end_fn_cb   = hp_mode_events_only_endfn_cb;

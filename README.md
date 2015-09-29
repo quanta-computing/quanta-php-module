@@ -17,7 +17,8 @@ and create a link : cd /etc/php5/apache2/conf.d && ln -s ../../mods-available/qu
 ``` 
 [quanta_mon]
 extension=quanta_mon.so
-quanta_mon.full_monitoring_cookie_trigger="QUANTA_ENABLE=vWCJf16SQYh2y8BNx"
+quanta_mon.full_profiling_cookie_trigger="QUANTA_ENABLE=vWCJf16SQYh2y8BNx"
+quanta_mon.magento_profiling_cookie_trigger="QUANTA_ENABLE=qxWYBckzDk6icgiSu"
 quanta_mon.path_quanta_agent_exe="/usr/local/bin/quanta_agent"
 quanta_mon.path_quanta_agent_socket="/var/run/quanta_agent.sock"
 
