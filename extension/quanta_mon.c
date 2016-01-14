@@ -35,9 +35,17 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/types.h>
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <monikor/metric.h>
+
 #ifdef __FreeBSD__
 # if __FreeBSD_version >= 700110
 #   include <sys/resource.h>
@@ -543,7 +551,7 @@ PHP_MSHUTDOWN_FUNCTION(quanta_mon) {
 }
 
 /**
- * Request init callback. 
+ * Request init callback.
  */
 PHP_RINIT_FUNCTION(quanta_mon) {
 // xxx VERIFIER qu'on puisse bien faire un hp_begin avec des param differents
@@ -552,10 +560,11 @@ PHP_RINIT_FUNCTION(quanta_mon) {
   int mode;
   long  quanta_mon_flags = 0;                                    /* QuantaMon flags */
   zval *optional_array = NULL;         /* optional array arg: for future use */
+  char *cookie_data = SG(request_info).cookie_data;
 
-  if (strstr(SG(request_info).cookie_data, hp_globals.full_profiling_cookie_trigger))
+  if (cookie_data && strstr(cookie_data, hp_globals.full_profiling_cookie_trigger))
 	mode = QUANTA_MON_MODE_HIERARCHICAL;
-  else if (strstr(SG(request_info).cookie_data, hp_globals.magento_profiling_cookie_trigger))
+  else if (cookie_data && strstr(cookie_data, hp_globals.magento_profiling_cookie_trigger))
 	mode = QUANTA_MON_MODE_MAGENTO_PROFILING;
   else
 	mode = QUANTA_MON_MODE_EVENTS_ONLY;
@@ -869,8 +878,8 @@ void hp_clean_profiler_state(TSRMLS_D) {
  *        CALLING FUNCTION OR BY CALLING TSRMLS_FETCH()
  *        TSRMLS_FETCH() IS RELATIVELY EXPENSIVE.
  *
- * return profile_curr with 
- *                          -1 if this function is not specifically profiled 
+ * return profile_curr with
+ *                          -1 if this function is not specifically profiled
  *                          >=0 this function is specifically profiled, in this case contain the array position
  */
 #define BEGIN_PROFILING(entries, symbol, profile_curr, pathname, execute_data)        \
@@ -2587,7 +2596,7 @@ static float cpu_cycles_to_ms(float cpufreq, long long start, long long end) {
   // TODO check if it doesnt exceed long max value
   if (!start && !end)
      return -1.0;
-  if (!start) 
+  if (!start)
     return -2.0;
   if (!end)
     return -3.0;
@@ -2618,7 +2627,7 @@ static void begin_output(int fd_log_out) {
 }
 
 // ouputs the profiling data
-static void profiler_output(char *bufout, int fd_log_out, float cpufreq) {
+static void profiler_output(char *bufout, int fd_log_out, struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
   long long *starts = hp_globals.monitored_function_tsc_start,
     *stops = hp_globals.monitored_function_tsc_stop;
   output(snprintf(bufout, OUTBUF_QUANTA_SIZE,
@@ -2631,6 +2640,15 @@ static void profiler_output(char *bufout, int fd_log_out, float cpufreq) {
     cpu_cycles_to_ms(cpufreq, stops[3], stops[4]),
     cpu_cycles_to_ms(cpufreq, stops[4], stops[5])),
   bufout, fd_log_out);
+  monikor_metric_list_push(metrics, monikor_metric_float(
+    "magento.loading_time", clock, cpu_cycles_to_ms(cpufreq, starts[0], starts[1]), 0)
+  );
+  monikor_metric_list_push(metrics, monikor_metric_float(
+    "magento.layout_loading_time", clock, cpu_cycles_to_ms(cpufreq, starts[2], stops[2]), 0)
+  );
+  monikor_metric_list_push(metrics, monikor_metric_float(
+    "magento.layout_rendering_time", clock, cpu_cycles_to_ms(cpufreq, starts[3], stops[3]), 0)
+  );
 }
 
 // outputs a single block data
@@ -2680,6 +2698,33 @@ static void restore_original_zend_execute(void) {
     zend_compile_string   = _zend_compile_string;
 }
 
+static void send_data_to_monikor(monikor_metric_list_t *metrics) {
+  void *data = NULL;
+  int sock;
+  size_t size;
+  struct sockaddr_un addr;
+
+  if (!hp_globals.path_quanta_agent_socket) {
+    PRINTF_QUANTA("Cannot send data to monikor: socket not configured\n");
+    return;
+  }
+
+  addr.sun_family = AF_UNIX;
+  strcpy(addr.sun_path, hp_globals.path_quanta_agent_socket);
+  if (monikor_metric_list_serialize(metrics, &data, &size)) {
+    PRINTF_QUANTA("Cannot send data to monikor: cannot serialize metrics\n");
+    free(data);
+    return;
+  }
+  if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1
+  || connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == -1
+  || write(sock, data, size) == -1) {
+    PRINTF_QUANTA("Cannot send data to monikor: %s\n", strerror(errno));
+  }
+  free(data);
+  close(sock);
+}
+
 /**
  * Called from quanta_mon_disable(). Removes all the proxies setup by
  * hp_begin() and restores the original values.
@@ -2687,7 +2732,6 @@ static void restore_original_zend_execute(void) {
 static void hp_stop(TSRMLS_D) {
   char  *bufout;
   int   hp_profile_flag = 1, fd_log_out;
-  float cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
 
   /* End any unfinished calls */
   while (hp_globals.entries)
@@ -2699,11 +2743,24 @@ static void hp_stop(TSRMLS_D) {
   hp_globals.enabled = 0;
   if ((bufout = emalloc(OUTBUF_QUANTA_SIZE))) {
     if ((fd_log_out = init_output(bufout)) > 0) {
+      float cpufreq;
+      monikor_metric_list_t *metrics;
+      struct timeval now;
+
+      if (!hp_globals.cpu_frequencies
+      || !(metrics = monikor_metric_list_new())) {
+        PRINTF_QUANTA("Cannot initialize profling\n");
+        return;
+      }
+      cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
+      gettimeofday(&now, NULL);
       begin_output(fd_log_out);
-      profiler_output(bufout, fd_log_out, cpufreq);
+      profiler_output(bufout, fd_log_out, &now, metrics, cpufreq);
       blocks_output(bufout, fd_log_out, cpufreq);
       end_output(bufout, fd_log_out);
       close(fd_log_out);
+      send_data_to_monikor(metrics);
+      monikor_metric_list_free(metrics);
     }
     efree(bufout);
   }
