@@ -109,3 +109,6 @@ extension/ltmain.sh
 extension/missing
 extension/mkinstalldirs
 extension/run-tests.php
+
+# Magento test stuff
+/magento
