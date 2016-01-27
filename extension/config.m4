@@ -16,6 +16,28 @@ if test "$PHP_QUANTAMON" != "no"; then
     -lmonikor
   ])
 
+  PHP_ADD_INCLUDE(include/)
+
   PHP_SUBST(QUANTA_MON_SHARED_LIBADD)
-  PHP_NEW_EXTENSION(quanta_mon, quanta_mon.c, $ext_shared)
+  PHP_NEW_EXTENSION(quanta_mon,
+    src/constants.c \
+    src/cpu.c \
+    src/functions_filter.c \
+    src/hp_begin.c \
+    src/hp_end.c \
+    src/hp_list.c \
+    src/module_info.c \
+    src/module_init.c \
+    src/module_shutdown.c \
+    src/profiler_callbacks.c \
+    src/profiler_sample.c \
+    src/profiler.c \
+    src/quanta_mon.c \
+    src/quanta.c \
+    src/request_init.c \
+    src/request_shutdown.c \
+    src/send_metrics.c \
+    src/utils.c \
+    src/zend.c \
+    src/zval.c, $ext_shared,,-W -Wall)
 fi
