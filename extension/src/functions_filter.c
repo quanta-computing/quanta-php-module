@@ -8,7 +8,7 @@
 void hp_get_monitored_functions_fill() {
   /* Already initialized ? */
   if (hp_globals.monitored_function_names[0] != NULL) {
-	return;
+  return;
   }
   hp_globals.monitored_function_names[0] = "Mage::run";
   hp_globals.monitored_function_names[1] = "Mage_Core_Controller_Varien_Action::preDispatch";
@@ -46,7 +46,7 @@ void hp_monitored_functions_filter_init() {
     int i = 0;
     for(; hp_globals.monitored_function_names[i] != NULL; i++) {
       char *str  = hp_globals.monitored_function_names[i];
-      uint8 hash = hp_inline_hash(str);
+      uint8_t hash = hp_inline_hash(str);
       int   idx  = INDEX_2_BYTE(hash);
       hp_globals.monitored_function_filter[idx] |= INDEX_2_BIT(hash);
     }
@@ -59,8 +59,8 @@ void hp_monitored_functions_filter_init() {
  *
  * @author ch
  */
-int hp_monitored_functions_filter_collision(uint8 hash) {
-  uint8 mask = INDEX_2_BIT(hash);
+int hp_monitored_functions_filter_collision(uint8_t hash) {
+  uint8_t mask = INDEX_2_BIT(hash);
   return hp_globals.monitored_function_filter[INDEX_2_BYTE(hash)] & mask;
 }
 
@@ -105,7 +105,7 @@ void hp_ignored_functions_filter_init() {
     int i = 0;
     for(; hp_globals.ignored_function_names[i] != NULL; i++) {
       char *str  = hp_globals.ignored_function_names[i];
-      uint8 hash = hp_inline_hash(str);
+      uint8_t hash = hp_inline_hash(str);
       int   idx  = INDEX_2_BYTE(hash);
       hp_globals.ignored_function_filter[idx] |= INDEX_2_BIT(hash);
     }
@@ -119,8 +119,8 @@ void hp_ignored_functions_filter_init() {
  *
  * @author mpal
  */
-int hp_ignored_functions_filter_collision(uint8 hash) {
-  uint8 mask = INDEX_2_BIT(hash);
+int hp_ignored_functions_filter_collision(uint8_t hash) {
+  uint8_t mask = INDEX_2_BIT(hash);
   return hp_globals.ignored_function_filter[INDEX_2_BYTE(hash)] & mask;
 }
 
@@ -130,7 +130,7 @@ int hp_ignored_functions_filter_collision(uint8 hash) {
  *
  * @author mpal
  */
-int  hp_ignore_entry_work(uint8 hash_code, char *curr_func) {
+int  hp_ignore_entry_work(uint8_t hash_code, char *curr_func) {
   int ignore = 0;
   if (hp_ignored_functions_filter_collision(hash_code)) {
     int i = 0;
@@ -145,7 +145,7 @@ int  hp_ignore_entry_work(uint8 hash_code, char *curr_func) {
   return ignore;
 }
 
-inline int  hp_ignore_entry(uint8 hash_code, char *curr_func) {
+inline int hp_ignore_entry(uint8_t hash_code, char *curr_func) {
   /* First check if ignoring functions is enabled */
   return hp_globals.ignored_function_names != NULL &&
          hp_ignore_entry_work(hash_code, curr_func);

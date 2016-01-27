@@ -42,7 +42,7 @@ void hp_sample_check(hp_entry_t **entries  TSRMLS_DC) {
  * @return void
  * @author veeve
  */
-void hp_sample_stack(hp_entry_t  **entries  TSRMLS_DC) {
+void hp_sample_stack(hp_entry_t **entries  TSRMLS_DC) {
   char key[SCRATCH_BUF_LEN];
   char symbol[SCRATCH_BUF_LEN * 1000];
 

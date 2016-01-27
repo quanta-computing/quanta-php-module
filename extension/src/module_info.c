@@ -7,8 +7,8 @@ PHP_MINFO_FUNCTION(quanta_mon)
 {
   char buf[SCRATCH_BUF_LEN];
   char tmp[SCRATCH_BUF_LEN];
-  int i;
-  int len;
+  uint32_t i;
+  size_t len;
 
   php_info_print_table_start();
   php_info_print_table_header(2, "quanta_mon", QUANTA_MON_VERSION);

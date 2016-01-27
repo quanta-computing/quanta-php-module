@@ -77,7 +77,7 @@ const char *hp_get_base_filename(const char *filename) {
  *
  * @author kannan, hzhao
  */
-static char *hp_get_function_name(zend_op_array *ops, char **pathname TSRMLS_DC) {
+char *hp_get_function_name(zend_op_array *ops, char **pathname TSRMLS_DC) {
   zend_execute_data *data;
   const char        *func = NULL;
   const char        *cls = NULL;
@@ -113,7 +113,7 @@ static char *hp_get_function_name(zend_op_array *ops, char **pathname TSRMLS_DC)
         const char *filename;
         int   len;
         if (ops)
-	   filename = hp_get_base_filename(ops->filename);
+     filename = hp_get_base_filename(ops->filename);
         else
            filename = "null";
         *pathname = strdup(filename);
@@ -227,10 +227,7 @@ inline uint8_t hp_inline_hash(char * str) {
  *
  * @author kannan, veeve
  */
-size_t hp_get_function_stack(hp_entry_t *entry,
-                             int            level,
-                             char          *result_buf,
-                             size_t         result_len) {
+size_t hp_get_function_stack(hp_entry_t *entry, int level, char *result_buf, size_t result_len) {
   size_t         len = 0;
 
   /* End recursion if we dont need deeper levels or we dont have any deeper
@@ -281,9 +278,8 @@ size_t hp_get_function_stack(hp_entry_t *entry,
  * @return void
  * @author veeve
  */
-void hp_trunc_time(struct timeval *tv,
-                   uint64          intr) {
-  uint64 time_in_micro;
+void hp_trunc_time(struct timeval *tv, uint64_t intr) {
+  uint64_t time_in_micro;
 
   /* Convert to microsecs and trunc that first */
   time_in_micro = (tv->tv_sec * 1000000) + tv->tv_usec;

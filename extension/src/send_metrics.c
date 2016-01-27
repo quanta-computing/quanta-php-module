@@ -24,8 +24,8 @@ static void begin_output(int fd_log_out) {
 
 // ouputs the profiling data
 static void profiler_output(char *bufout, int fd_log_out, struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
-  long long *starts = hp_globals.monitored_function_tsc_start,
-    *stops = hp_globals.monitored_function_tsc_stop;
+  uint64_t *starts = hp_globals.monitored_function_tsc_start;
+  uint64_t *stops = hp_globals.monitored_function_tsc_stop;
   output(snprintf(bufout, OUTBUF_QUANTA_SIZE,
     PROFILING_OUTPUT_JSON_FORMAT,
     cpu_cycles_to_ms(cpufreq, starts[0], starts[1]),
@@ -108,4 +108,33 @@ static void send_data_to_monikor(monikor_metric_list_t *metrics) {
   }
   free(data);
   close(sock);
+}
+
+void send_metrics(void) {
+  char  *bufout;
+  int fd_log_out;
+  float cpufreq;
+  monikor_metric_list_t *metrics;
+  struct timeval now;
+
+  if (!hp_globals.cpu_frequencies
+  || !(metrics = monikor_metric_list_new())) {
+    PRINTF_QUANTA("Cannot initialize profiling output\n");
+    return;
+  }
+  if (!(bufout = emalloc(OUTBUF_QUANTA_SIZE))
+  || (fd_log_out = init_output(bufout)) == -1) {
+    efree(bufout);
+    return;
+  }
+  cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
+  gettimeofday(&now, NULL);
+  begin_output(fd_log_out);
+  profiler_output(bufout, fd_log_out, &now, metrics, cpufreq);
+  blocks_output(bufout, fd_log_out, cpufreq);
+  end_output(bufout, fd_log_out);
+  close(fd_log_out);
+  send_data_to_monikor(metrics);
+  monikor_metric_list_free(metrics);
+  efree(bufout);
 }

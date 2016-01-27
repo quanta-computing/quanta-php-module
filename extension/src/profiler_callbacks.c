@@ -6,14 +6,8 @@
  * ***************************
  */
 void hp_mode_dummy_init_cb(TSRMLS_D) { }
-
-
 void hp_mode_dummy_exit_cb(TSRMLS_D) { }
-
-
-void hp_mode_dummy_beginfn_cb(hp_entry_t **entries,
-                              hp_entry_t *current  TSRMLS_DC) { }
-
+void hp_mode_dummy_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC) { }
 void hp_mode_dummy_endfn_cb(hp_entry_t **entries   TSRMLS_DC) { }
 
 
@@ -33,8 +27,7 @@ void hp_mode_dummy_endfn_cb(hp_entry_t **entries   TSRMLS_DC) { }
  * @return void
  * @author kannan, veeve
  */
-void hp_mode_common_beginfn(hp_entry_t **entries,
-                            hp_entry_t  *current  TSRMLS_DC) {
+void hp_mode_common_beginfn(hp_entry_t **entries, hp_entry_t  *current  TSRMLS_DC) {
   hp_entry_t   *p;
 
   /* This symbol's recursive level */
@@ -80,8 +73,8 @@ void hp_mode_common_endfn(hp_entry_t **entries, hp_entry_t *current TSRMLS_DC) {
  */
 void hp_mode_sampled_init_cb(TSRMLS_D) {
   struct timeval  now;
-  uint64 truncated_us;
-  uint64 truncated_tsc;
+  uint64_t truncated_us;
+  uint64_t truncated_tsc;
   double cpu_freq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
 
   /* Init the last_sample in tsc */
@@ -117,8 +110,7 @@ void hp_mode_sampled_init_cb(TSRMLS_D) {
  *
  * @author kannan
  */
-void hp_mode_hier_beginfn_cb(hp_entry_t **entries,
-                             hp_entry_t  *current  TSRMLS_DC) {
+void hp_mode_hier_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC) {
   /* Get start tsc counter */
   current->tsc_start = cycle_timer();
 
@@ -139,16 +131,14 @@ void hp_mode_hier_beginfn_cb(hp_entry_t **entries,
  *
  * @author ch
  */
-void hp_mode_magento_profil_beginfn_cb(hp_entry_t **entries,
-                             hp_entry_t  *current  TSRMLS_DC) {
+void hp_mode_magento_profil_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC) {
 }
 /**
  * QUANTA_MON_MODE_EVENTS_ONLY's begin function callback
  *
  * @author ch
  */
-void hp_mode_events_only_beginfn_cb(hp_entry_t **entries,
-                             hp_entry_t  *current  TSRMLS_DC) {
+void hp_mode_events_only_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC) {
 }
 
 /**
@@ -156,8 +146,7 @@ void hp_mode_events_only_beginfn_cb(hp_entry_t **entries,
  *
  * @author veeve
  */
-void hp_mode_sampled_beginfn_cb(hp_entry_t **entries,
-                                hp_entry_t  *current  TSRMLS_DC) {
+void hp_mode_sampled_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC) {
   /* See if its time to take a sample */
   hp_sample_check(entries  TSRMLS_CC);
 }
@@ -174,10 +163,9 @@ void hp_mode_sampled_beginfn_cb(hp_entry_t **entries,
  *
  * @author kannan
  */
-zval * hp_mode_shared_endfn_cb(hp_entry_t *top,
-                               char          *symbol  TSRMLS_DC) {
+zval * hp_mode_shared_endfn_cb(hp_entry_t *top, char *symbol  TSRMLS_DC) {
   zval    *counts;
-  uint64   tsc_end;
+  uint64_t   tsc_end;
 
   /* Get end tsc counter */
   tsc_end = cycle_timer();
@@ -210,8 +198,7 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
 
   /* Get the stat array */
   hp_get_function_stack(top, 2, symbol, sizeof(symbol));
-  if (!(counts = hp_mode_shared_endfn_cb(top,
-                                         symbol  TSRMLS_CC))) {
+  if (!(counts = hp_mode_shared_endfn_cb(top, symbol  TSRMLS_CC))) {
     return;
   }
 

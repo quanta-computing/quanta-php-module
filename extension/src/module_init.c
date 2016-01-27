@@ -1,13 +1,19 @@
 #include "quanta_mon.h"
 
-#include "quanta_mon.h"
-
+/*
+** Configuration
+*/
+PHP_INI_BEGIN()
+PHP_INI_ENTRY("quanta_mon.path_quanta_agent_socket", "", PHP_INI_SYSTEM, NULL)
+PHP_INI_END()
 
 PHP_MINIT_FUNCTION(quanta_mon) {
   int i;
 
   REGISTER_INI_ENTRIES();
 
+  hp_globals.full_profiling_cookie_trigger = "Quanta=FULL";
+  hp_globals.magento_profiling_cookie_trigger = "Quanta=MAGE";
   hp_globals.path_quanta_agent_socket = INI_STR("quanta_mon.path_quanta_agent_socket");
   if ((!hp_globals.path_quanta_agent_socket) || (strlen(hp_globals.path_quanta_agent_socket) < 4)) {
     php_error_docref(NULL TSRMLS_CC, E_WARNING,

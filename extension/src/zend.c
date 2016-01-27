@@ -1,5 +1,68 @@
 #include "quanta_mon.h"
 
+#if PHP_VERSION_ID < 50500
+/* Pointer to the original execute function */
+static ZEND_DLEXPORT void (*_zend_execute) (zend_op_array *ops TSRMLS_DC);
+
+/* Pointer to the origianl execute_internal function */
+static ZEND_DLEXPORT void (*_zend_execute_internal) (zend_execute_data *data,
+                           int ret TSRMLS_DC);
+#else
+/* Pointer to the original execute function */
+static void (*_zend_execute_ex) (zend_execute_data *execute_data TSRMLS_DC);
+
+/* Pointer to the origianl execute_internal function */
+static void (*_zend_execute_internal) (zend_execute_data *data,
+                      struct _zend_fcall_info *fci, int ret TSRMLS_DC);
+#endif
+
+/* Pointer to the original compile function */
+static zend_op_array * (*_zend_compile_file) (zend_file_handle *file_handle, int type TSRMLS_DC);
+
+/* Pointer to the original compile string function (used by eval) */
+static zend_op_array * (*_zend_compile_string) (zval *source_string, char *filename TSRMLS_DC);
+
+
+void hp_restore_original_zend_execute(void) {
+  /* Remove proxies, restore the originals */
+  #if PHP_VERSION_ID < 50500
+    zend_execute          = _zend_execute;
+  #else
+    zend_execute_ex       = _zend_execute_ex;
+  #endif
+    zend_execute_internal = _zend_execute_internal;
+    zend_compile_file     = _zend_compile_file;
+    zend_compile_string   = _zend_compile_string;
+}
+
+void hp_hijack_zend_execute(uint32_t flags) {
+  /* Replace zend_compile with our proxy */
+  _zend_compile_file = zend_compile_file;
+  zend_compile_file  = hp_compile_file;
+
+  /* Replace zend_compile_string with our proxy */
+  _zend_compile_string = zend_compile_string;
+  zend_compile_string = hp_compile_string;
+
+  /* Replace zend_execute with our proxy */
+#if PHP_VERSION_ID < 50500
+  _zend_execute = zend_execute;
+  zend_execute  = hp_execute;
+#else
+  _zend_execute_ex = zend_execute_ex;
+  zend_execute_ex  = hp_execute_ex;
+#endif
+
+  /* Replace zend_execute_internal with our proxy */
+  _zend_execute_internal = zend_execute_internal;
+  if (!(flags & QUANTA_MON_FLAGS_NO_BUILTINS)) {
+    /* if NO_BUILTINS is not set (i.e. user wants to profile builtins),
+     * then we intercept internal (builtin) function calls.
+     */
+    zend_execute_internal = hp_execute_internal;
+  }
+}
+
 /**
  * ***************************
  * PHP EXECUTE/COMPILE PROXIES
@@ -15,6 +78,7 @@
  */
 #if PHP_VERSION_ID < 50500
 ZEND_DLEXPORT void hp_execute (zend_op_array *ops TSRMLS_DC) {
+  zend_execute_data *execute_data = EG(current_execute_data);
 #else
 ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
   zend_op_array *ops = execute_data->op_array;
@@ -33,14 +97,14 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
     return;
   }
 
-  BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag, pathname, execute_data);
+  hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, pathname, execute_data);
 #if PHP_VERSION_ID < 50500
   _zend_execute(ops TSRMLS_CC);
 #else
   _zend_execute_ex(execute_data TSRMLS_CC);
 #endif
   if (hp_globals.entries) {
-    END_PROFILING(&hp_globals.entries, hp_profile_flag, execute_data);
+    hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data);
   }
   efree(func);
 }
@@ -58,13 +122,12 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
 #if PHP_VERSION_ID < 50500
 #define EX_T(offset) (*(temp_variable *)((char *) EX(Ts) + offset))
 
-ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
-                                       int ret TSRMLS_DC) {
+ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, int ret TSRMLS_DC) {
 #else
 #define EX_T(offset) (*EX_TMP_VAR(execute_data, offset))
 
 ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
-                                       struct _zend_fcall_info *fci, int ret TSRMLS_DC) {
+struct _zend_fcall_info *fci, int ret TSRMLS_DC) {
 #endif
   zend_execute_data *current_data;
   char             *func = NULL;
@@ -74,7 +137,7 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
   current_data = EG(current_execute_data);
   func = hp_get_function_name(current_data->op_array, &pathname TSRMLS_CC);
   if (func) {
-    BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag, pathname, execute_data);
+    hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, pathname, execute_data);
   }
 
   if (!_zend_execute_internal) {
@@ -130,7 +193,7 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
 
   if (func) {
     if (hp_globals.entries) {
-      END_PROFILING(&hp_globals.entries, hp_profile_flag, execute_data);
+      hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data);
     }
     efree(func);
   }
@@ -142,8 +205,7 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
  *
  * @author kannan, hzhao
  */
-ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle,
-                                             int type TSRMLS_DC) {
+ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle, int type TSRMLS_DC) {
 
   char           *filename;
   char           *func;
@@ -156,10 +218,10 @@ ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle,
   func      = (char *)emalloc(len);
   snprintf(func, len, "load::%s", filename);
 
-  BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag, filename, NULL);
+  hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, filename, NULL);
   ret = _zend_compile_file(file_handle, type TSRMLS_CC);
   if (hp_globals.entries) {
-    END_PROFILING(&hp_globals.entries, hp_profile_flag, NULL);
+    hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL);
   }
 
   efree(func);
@@ -180,10 +242,10 @@ ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filena
     func = (char *)emalloc(len);
     snprintf(func, len, "eval::%s", filename);
 
-    BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag, filename, NULL);
+    hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, filename, NULL);
     ret = _zend_compile_string(source_string, filename TSRMLS_CC);
     if (hp_globals.entries) {
-        END_PROFILING(&hp_globals.entries, hp_profile_flag, NULL);
+        hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL);
     }
 
     efree(func);

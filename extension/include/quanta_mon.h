@@ -27,6 +27,66 @@
 #endif
 
 #include "profiler.h"
+#include "cpu.h"
+
+
+/*
+** Full debug mode
+*/
+#define DEBUG_QUANTA
+
+#ifdef DEBUG_QUANTA
+  #define PRINTF_QUANTA printf
+#else
+  #define PRINTF_QUANTA dummy_printf
+  static void dummy_printf(char *unused, ...)
+  {
+    (void)unused;
+    return;
+  }
+#endif
+
+/* Fictitious function name to represent top of the call tree. The paranthesis
+ * in the name is to ensure we don't conflict with user function names.  */
+#define ROOT_SYMBOL                "main()"
+
+/* Size of a temp scratch buffer            */
+#define SCRATCH_BUF_LEN            512
+
+/* Various QUANTA_MON modes. If you are adding a new mode, register the appropriate
+ * callbacks in hp_begin() */
+#define QUANTA_MON_MODE_HIERARCHICAL            1      /* Complete profiling of every single PHP calls */
+#define QUANTA_MON_MODE_SAMPLED                 2      /* Statistical sample of most PHP calls */
+#define QUANTA_MON_MODE_MAGENTO_PROFILING       3      /* Profiling of selected Magento calls (see hp_get_monitored_functions_fill) */
+#define QUANTA_MON_MODE_EVENTS_ONLY             4      /* No profiling, deal only with calls >= POS_ENTRY_EVENTS_ONLY */
+
+/* Hierarchical profiling flags.
+ *
+ * Note: Function call counts and wall (elapsed) time are always profiled.
+ * The following optional flags can be used to control other aspects of
+ * profiling.
+ */
+#define QUANTA_MON_FLAGS_NO_BUILTINS   0x0001         /* do not profile builtins */
+#define QUANTA_MON_FLAGS_CPU           0x0002      /* gather CPU times for funcs */
+#define QUANTA_MON_FLAGS_MEMORY        0x0004   /* gather memory usage for funcs */
+
+/* Constants for QUANTA_MON_MODE_SAMPLED        */
+#define QUANTA_MON_SAMPLING_INTERVAL       100000      /* In microsecs        */
+
+/* Constant for ignoring functions, transparent to hierarchical profile */
+#define QUANTA_MON_MAX_IGNORED_FUNCTIONS  256
+#define QUANTA_MON_IGNORED_FUNCTION_FILTER_SIZE ((QUANTA_MON_MAX_IGNORED_FUNCTIONS + 7)/8)
+
+#define QUANTA_EXTRA_CHECKS
+#define QUANTA_MON_MAX_MONITORED_FUNCTIONS_HASH  256
+#define QUANTA_MON_MAX_MONITORED_FUNCTIONS  13
+#define QUANTA_MON_MONITORED_FUNCTION_FILTER_SIZE ((QUANTA_MON_MAX_MONITORED_FUNCTIONS_HASH + 7)/8)
+
+
+/* Bloom filter for function names to be ignored */
+#define INDEX_2_BYTE(index)  (index >> 3)
+#define INDEX_2_BIT(index)   (1 << (index & 0x7));
+
 
 extern zend_module_entry quanta_mon_module_entry;
 #define phpext_quanta_mon_ptr &quanta_mon_module_entry
@@ -47,12 +107,11 @@ PHP_RINIT_FUNCTION(quanta_mon);
 PHP_RSHUTDOWN_FUNCTION(quanta_mon);
 PHP_MINFO_FUNCTION(quanta_mon);
 
-PHP_FUNCTION(quanta_mon_enable);
-PHP_FUNCTION(quanta_mon_disable);
-PHP_FUNCTION(quanta_mon_sample_enable);
-PHP_FUNCTION(quanta_mon_sample_disable);
+#define QUANTA_MON_VERSION "0.10.0"
 
-#define QUANTA_MON_VERSION       "0.10.0"
+#define QUANTA_HTTP_HEADER "HTTP_X_QUANTA"
+#define QUANTA_HTTP_HEADER_MODE_MAGE "magento"
+#define QUANTA_HTTP_HEADER_MODE_FULL "full"
 
 
 /* QuantaMon maintains a stack of entries being profiled. The memory for the entry
@@ -122,6 +181,9 @@ typedef struct hp_global_t {
   /* Indicates the current quanta_mon mode or level */
   int              profiler_level;
 
+  /* The step ID to match step/scenario/site when the data come back to Quanta */
+  uint64_t         quanta_step_id;
+
   /* Top of the profile stack */
   hp_entry_t      *entries;
 
@@ -159,16 +221,16 @@ typedef struct hp_global_t {
   double *cpu_frequencies;
 
   /* The number of logical CPUs this machine has. */
-  uint32 cpu_num;
+  uint32_t cpu_num;
 
   /* The saved cpu affinity. */
   cpu_set_t prev_mask;
 
   /* The cpu id current process is bound to. (default 0) */
-  uint32 cur_cpu_id;
+  uint32_t cur_cpu_id;
 
   /* QuantaMon flags */
-  uint32 quanta_mon_flags;
+  uint32_t quanta_mon_flags;
 
   /* counter table indexed by hash value of function names. */
   uint8_t  func_hash_counters[256];
@@ -189,114 +251,22 @@ typedef struct hp_global_t {
 
 } hp_global_t;
 
-
-/*
-** CPU frequencies stuff
-*/
-#ifdef __FreeBSD__
-# if __FreeBSD_version >= 700110
-#   include <sys/resource.h>
-#   include <sys/cpuset.h>
-#   define cpu_set_t cpuset_t
-#   define SET_AFFINITY(pid, size, mask) \
-           cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, size, mask)
-#   define GET_AFFINITY(pid, size, mask) \
-           cpuset_getaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, size, mask)
-# else
-#   error "This version of FreeBSD does not support cpusets"
-# endif /* __FreeBSD_version */
-#elif __APPLE__
-/*
- * Patch for compiling in Mac OS X Leopard
- * @author Svilen Spasov <s.spasov@gmail.com>
- */
-#    include <mach/mach_init.h>
-#    include <mach/thread_policy.h>
-#    define cpu_set_t thread_affinity_policy_data_t
-#    define CPU_SET(cpu_id, new_mask) \
-        (*(new_mask)).affinity_tag = (cpu_id + 1)
-#    define CPU_ZERO(new_mask)                 \
-        (*(new_mask)).affinity_tag = THREAD_AFFINITY_TAG_NULL
-#   define SET_AFFINITY(pid, size, mask)       \
-        thread_policy_set(mach_thread_self(), THREAD_AFFINITY_POLICY, mask, \
-                          THREAD_AFFINITY_POLICY_COUNT)
-#else
-/* For sched_getaffinity, sched_setaffinity */
-# include <sched.h>
-# define SET_AFFINITY(pid, size, mask) sched_setaffinity(0, size, mask)
-# define GET_AFFINITY(pid, size, mask) sched_getaffinity(0, size, mask)
-#endif /* __FreeBSD__ */
-
-
-/*
-** Full debug mode
-*/
-#define DEBUG_QUANTA
-
-#ifdef DEBUG_QUANTA
-  #define PRINTF_QUANTA printf
-#else
-  #define PRINTF_QUANTA dummy
-#endif
-static void dummy(char *unused, ...)
-{
-  return;
-}
-
-/* Fictitious function name to represent top of the call tree. The paranthesis
- * in the name is to ensure we don't conflict with user function names.  */
-#define ROOT_SYMBOL                "main()"
-
-/* Size of a temp scratch buffer            */
-#define SCRATCH_BUF_LEN            512
-
-/* Various QUANTA_MON modes. If you are adding a new mode, register the appropriate
- * callbacks in hp_begin() */
-#define QUANTA_MON_MODE_HIERARCHICAL            1      /* Complete profiling of every single PHP calls */
-#define QUANTA_MON_MODE_SAMPLED                 2      /* Statistical sample of most PHP calls */
-#define QUANTA_MON_MODE_MAGENTO_PROFILING       3      /* Profiling of selected Magento calls (see hp_get_monitored_functions_fill) */
-#define QUANTA_MON_MODE_EVENTS_ONLY             4      /* No profiling, deal only with calls >= POS_ENTRY_EVENTS_ONLY */
-
-/* Hierarchical profiling flags.
- *
- * Note: Function call counts and wall (elapsed) time are always profiled.
- * The following optional flags can be used to control other aspects of
- * profiling.
- */
-#define QUANTA_MON_FLAGS_NO_BUILTINS   0x0001         /* do not profile builtins */
-#define QUANTA_MON_FLAGS_CPU           0x0002      /* gather CPU times for funcs */
-#define QUANTA_MON_FLAGS_MEMORY        0x0004   /* gather memory usage for funcs */
-
-/* Constants for QUANTA_MON_MODE_SAMPLED        */
-#define QUANTA_MON_SAMPLING_INTERVAL       100000      /* In microsecs        */
-
-/* Constant for ignoring functions, transparent to hierarchical profile */
-#define QUANTA_MON_MAX_IGNORED_FUNCTIONS  256
-#define QUANTA_MON_IGNORED_FUNCTION_FILTER_SIZE ((QUANTA_MON_MAX_IGNORED_FUNCTIONS + 7)/8)
-
-#define QUANTA_EXTRA_CHECKS
-#define QUANTA_MON_MAX_MONITORED_FUNCTIONS_HASH  256
-#define QUANTA_MON_MAX_MONITORED_FUNCTIONS  13
-#define QUANTA_MON_MONITORED_FUNCTION_FILTER_SIZE ((QUANTA_MON_MAX_MONITORED_FUNCTIONS_HASH + 7)/8)
-
-
-/* Bloom filter for function names to be ignored */
-#define INDEX_2_BYTE(index)  (index >> 3)
-#define INDEX_2_BIT(index)   (1 << (index & 0x7));
-
 // CPU
 int restore_cpu_affinity(cpu_set_t * prev_mask);
-int bind_to_cpu(uint32 cpu_id);
+int bind_to_cpu(uint32_t cpu_id);
 uint64_t cycle_timer();
 double get_cpu_frequency();
 void clear_frequencies();
 void get_all_cpu_frequencies();
 long get_us_interval(struct timeval *start, struct timeval *end);
 void incr_us_interval(struct timeval *start, uint64_t incr);
+float cpu_cycles_to_ms(float cpufreq, long long start, long long end);
+inline double get_us_from_tsc(uint64_t count, double cpu_frequency);
+inline uint64_t get_tsc_from_us(uint64_t usecs, double cpu_frequency);
 
 // Zval
-zval  *hp_zval_at_key(char  *key, zval  *values);
-char **hp_strings_in_zval(zval  *values);
+zval  *hp_zval_at_key(char *key, zval *values);
+char **hp_strings_in_zval(zval *values);
 
 
 // Constants
@@ -312,12 +282,71 @@ void hp_fast_free_hprof_entry(hp_entry_t *p);
 // Utils
 void   hp_array_del(char **name_array);
 inline uint8_t hp_inline_hash(char * str);
+zval * hp_hash_lookup(char *symbol  TSRMLS_DC);
+const char *hp_get_base_filename(const char *filename);
+char *hp_get_function_name(zend_op_array *ops, char **pathname TSRMLS_DC);
+size_t hp_get_function_stack(hp_entry_t *entry, int level, char *result_buf, size_t result_len);
+void hp_trunc_time(struct timeval *tv, uint64_t intr);
+
+
+// Zend hijacks
+#if PHP_VERSION_ID < 50500
+ZEND_DLEXPORT void hp_execute (zend_op_array *ops TSRMLS_DC);
+ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, int ret TSRMLS_DC);
+#else
+ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC);
+ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
+  struct _zend_fcall_info *fci, int ret TSRMLS_DC);
+#endif
+ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle, int type TSRMLS_DC);
+ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filename TSRMLS_DC);
 
 
 // Profiling
 void hp_begin(long level, long quanta_mon_flags TSRMLS_DC);
 void hp_stop(TSRMLS_D);
 void hp_end(TSRMLS_D);
+void hp_init_profiler_state(int level TSRMLS_DC);
+void hp_clean_profiler_state(TSRMLS_D);
+void hp_inc_count(zval *counts, char *name, long count TSRMLS_DC);
+size_t hp_get_entry_name(hp_entry_t  *entry, char *result_buf, size_t result_len);
+
+int hp_begin_profiling(hp_entry_t **entries, char *symbol, char *pathname, zend_execute_data *data);
+void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data *data);
+void hp_hijack_zend_execute(uint32_t flags);
+void hp_restore_original_zend_execute(void);
+void hp_sample_stack(hp_entry_t **entries  TSRMLS_DC);
+void hp_sample_check(hp_entry_t **entries  TSRMLS_DC);
+
+// Quanta stuff
+void send_metrics(void);
+int qm_extract_param_generate_block(int i, zend_execute_data *execute_data TSRMLS_DC);
+int qm_extract_this_after_tohtml_do(char *name_in_layout);
+int qm_extract_this_before_tohtml_do(const char *class_name, zend_uint class_name_len,
+  char *name_in_layout, char *template);
+int qm_extract_this_before_after_tohtml(int is_after_tohtml, zend_execute_data *execute_data TSRMLS_DC);
+int qm_extract_this_before_tohtml(zend_execute_data *execute_data TSRMLS_DC);
+int qm_after_tohmtl(zend_execute_data *execute_data TSRMLS_DC);
+int qm_record_timers_loading_time(uint8_t hash_code, char *curr_func, zend_execute_data *execute_data TSRMLS_DC);
+
+
+// Profiling callbacks
+void hp_mode_dummy_init_cb(TSRMLS_D);
+void hp_mode_dummy_exit_cb(TSRMLS_D);
+void hp_mode_dummy_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
+void hp_mode_dummy_endfn_cb(hp_entry_t **entries   TSRMLS_DC);
+void hp_mode_common_beginfn(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
+void hp_mode_common_endfn(hp_entry_t **entries, hp_entry_t *current TSRMLS_DC);
+void hp_mode_sampled_init_cb(TSRMLS_D);
+void hp_mode_hier_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
+void hp_mode_magento_profil_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
+void hp_mode_events_only_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
+void hp_mode_sampled_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
+zval * hp_mode_shared_endfn_cb(hp_entry_t *top, char *symbol  TSRMLS_DC);
+void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC);
+void hp_mode_sampled_endfn_cb(hp_entry_t **entries  TSRMLS_DC);
+void hp_mode_magento_profil_endfn_cb(hp_entry_t **entries  TSRMLS_DC);
+void hp_mode_events_only_endfn_cb(hp_entry_t **entries  TSRMLS_DC);
 
 
 // Monitored/ignored functions filter
@@ -328,6 +357,8 @@ void hp_ignored_functions_filter_init();
 
 void hp_monitored_functions_filter_clear();
 void hp_monitored_functions_filter_init();
+int  hp_ignore_entry_work(uint8_t hash_code, char *curr_func);
+inline int hp_ignore_entry(uint8_t hash_code, char *curr_func);
 
 
 // Global state
