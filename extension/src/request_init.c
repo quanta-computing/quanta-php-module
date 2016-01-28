@@ -60,12 +60,15 @@ PHP_RINIT_FUNCTION(quanta_mon) {
 // a chaque appel
 // puis remplir hp_mode_evnets_only_beginfn_cb
   int mode;
+  long flags;
 
   mode = extract_headers_info(TSRMLS_C);
+  if (mode <= QUANTA_MON_MODE_SAMPLED)
+    flags = QUANTA_MON_FLAGS_CPU | QUANTA_MON_FLAGS_MEMORY;
+  else
+    flags = 0;
   // hp_get_ignored_functions_from_arg(optional_array);
   hp_get_monitored_functions_fill();
-
-  hp_begin(mode, 0 TSRMLS_CC);
-
+  hp_begin(mode, flags TSRMLS_CC);
   return SUCCESS;
 }

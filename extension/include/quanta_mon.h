@@ -193,15 +193,6 @@ typedef struct hp_global_t {
   /* Callbacks for various quanta_mon modes */
   hp_mode_cb       mode_cb;
 
-  /* Cookie value that must be received for enabling full profiling (all PHP calls, like xhprof) */
-  char             *full_profiling_cookie_trigger;
-
-  /* Cookie value that must be received for enabling magento profiling (Magento calls listed in hp_get_monitored_functions_fill) */
-  char             *magento_profiling_cookie_trigger;
-
-  /* Path of the forwarding agent */
-  char             *path_quanta_agent_exe;
-
   /* Path of the quanta agent unix socket */
   char             *path_quanta_agent_socket;
 
@@ -247,7 +238,6 @@ typedef struct hp_global_t {
   generate_renderize_block_details *monitored_function_generate_renderize_block_first_linked_list;
   generate_renderize_block_details *monitored_function_generate_renderize_block_last_linked_list;
   generate_renderize_block_details *renderize_block_last_used;
-  uint32_t  quanta_dbg;
 
 } hp_global_t;
 

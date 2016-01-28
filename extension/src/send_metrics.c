@@ -1,87 +1,89 @@
 #include "quanta_mon.h"
-#include "send_metrics.h"
 
-// returns ouput file FD or -1
-static int init_output(char *bufout) {
-  struct timeval tv;
-  return gettimeofday(&tv, NULL) == -1 ||
-    snprintf(bufout, OUTBUF_QUANTA_SIZE, "/tmp/quanta-%d.%d-%d.txt",
-    tv.tv_sec, tv.tv_usec, getpid()) < 4 ? -1 :
-    open(bufout, O_WRONLY | O_APPEND | O_CREAT, 0644);
-}
+#define MAX_METRIC_NAME_LENGTH 1024
 
-// writes content into the output file and set the debug info if necessary
-static void output(int size, char *bufout, int fd_log_out) {
-  if (size > 0 && write(fd_log_out, bufout, size) < 0)
-    hp_globals.quanta_dbg |= 0x10000;
-}
+#define PROF_STARTS(i) i, -1
+#define PROF_STOPS(i) -1, i
 
-// begins the output
-static void begin_output(int fd_log_out) {
-  output(strlen(BEGIN_OUTPUT_JSON_FORMAT),
-    BEGIN_OUTPUT_JSON_FORMAT, fd_log_out);
-}
+static const struct {
+  char *name;
+  int8_t starts_a;
+  int8_t stops_a;
+  int8_t starts_b;
+  int8_t stops_b;
+} magento_metrics[] = {
+  {"loading_time", PROF_STARTS(0), PROF_STARTS(1)},
+  {"before_layout_loading_time", PROF_STARTS(1), PROF_STARTS(2)},
+  {"layout_loading_time", PROF_STARTS(2), PROF_STOPS(2)},
+  {"between_layout_loading_and_rendering_time", PROF_STOPS(2), PROF_STARTS(3)},
+  {"layout_rendering_time", PROF_STARTS(3), PROF_STOPS(3)},
+  {"after_layout_rendering_time", PROF_STOPS(3), PROF_STOPS(4)},
+  {"before_sending_response_time", PROF_STOPS(4), PROF_STOPS(5)},
+  {0}
+};
 
-// ouputs the profiling data
-static void profiler_output(char *bufout, int fd_log_out, struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
+static void fetch_profiler_metrics(struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
   uint64_t *starts = hp_globals.monitored_function_tsc_start;
   uint64_t *stops = hp_globals.monitored_function_tsc_stop;
-  output(snprintf(bufout, OUTBUF_QUANTA_SIZE,
-    PROFILING_OUTPUT_JSON_FORMAT,
-    cpu_cycles_to_ms(cpufreq, starts[0], starts[1]),
-    cpu_cycles_to_ms(cpufreq, starts[1], starts[2]),
-    cpu_cycles_to_ms(cpufreq, starts[2], stops[2]),
-    cpu_cycles_to_ms(cpufreq, stops[2], starts[3]),
-    cpu_cycles_to_ms(cpufreq, starts[3], stops[3]),
-    cpu_cycles_to_ms(cpufreq, stops[3], stops[4]),
-    cpu_cycles_to_ms(cpufreq, stops[4], stops[5])),
-  bufout, fd_log_out);
-  monikor_metric_list_push(metrics, monikor_metric_float(
-    "magento.loading_time", clock, cpu_cycles_to_ms(cpufreq, starts[0], starts[1]), 0)
-  );
-  monikor_metric_list_push(metrics, monikor_metric_float(
-    "magento.layout_loading_time", clock, cpu_cycles_to_ms(cpufreq, starts[2], stops[2]), 0)
-  );
-  monikor_metric_list_push(metrics, monikor_metric_float(
-    "magento.layout_rendering_time", clock, cpu_cycles_to_ms(cpufreq, starts[3], stops[3]), 0)
-  );
+  char metric_name[MAX_METRIC_NAME_LENGTH];
+  char *metric_base_end;
+  monikor_metric_t *metric;
+  size_t i;
+
+  sprintf(metric_name, "magento.%zu.", hp_globals.quanta_step_id);
+  metric_base_end = metric_name + strlen(metric_name);
+  for (i = 0; magento_metrics[i].name; i++) {
+    float a = (magento_metrics[i].starts_a != -1) ?
+      starts[magento_metrics[i].starts_a] : stops[magento_metrics[i].stops_a];
+    float b = (magento_metrics[i].starts_b != -1) ?
+      starts[magento_metrics[i].starts_b] : stops[magento_metrics[i].stops_b];
+    strcpy(metric_base_end, magento_metrics[i].name);
+    if ((metric = monikor_metric_float(metric_name, clock, cpu_cycles_to_ms(cpufreq, a, b), 0)))
+      monikor_metric_list_push(metrics, metric);
+  }
 }
 
-// outputs a single block data
-static void block_output(char *bufout, int fd_log_out,
-float cpufreq, generate_renderize_block_details *block) {
-  output(snprintf(bufout, OUTBUF_QUANTA_SIZE, BLOCK_OUTPUT_JSON_FORMAT,
-    block->name, block->type, block->template, block->class,
-    cpu_cycles_to_ms(cpufreq, block->tsc_generate_start, block->tsc_generate_stop),
-    cpu_cycles_to_ms(cpufreq, block->tsc_renderize_first_start, block->tsc_renderize_last_stop))
-  , bufout, fd_log_out);
-  if (block->name) efree(block->name);
-  if (block->type) efree(block->type);
-  if (block->template) efree(block->template);
+static void fetch_block_metrics(struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq,
+generate_renderize_block_details *block) {
+  monikor_metric_t *metric;
+  char metric_name[MAX_METRIC_NAME_LENGTH];
+  char *metric_base_end;
+
+  sprintf(metric_name, "magento.blocks.%zu.%.255s.", hp_globals.quanta_step_id, block->name);
+  metric_base_end = metric_name + strlen(metric_name);
+  strcpy(metric_base_end, "type");
+  if (block->type && (metric = monikor_metric_string(metric_name, clock, block->type)))
+    monikor_metric_list_push(metrics, metric);
+  strcpy(metric_base_end, "class");
+  if (block->class && (metric = monikor_metric_string(metric_name, clock, block->class)))
+    monikor_metric_list_push(metrics, metric);
+  strcpy(metric_base_end, "generation_time");
+  metric = monikor_metric_float(metric_name, clock, cpu_cycles_to_ms(cpufreq,
+    block->tsc_generate_start, block->tsc_generate_stop), 0);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+  strcpy(metric_base_end, "rendering_time");
+  metric = monikor_metric_float(metric_name, clock, cpu_cycles_to_ms(cpufreq,
+    block->tsc_renderize_first_start, block->tsc_renderize_last_stop), 0);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+  efree(block->name);
+  efree(block->type);
+  efree(block->template);
 }
 
-// outputs a blocks data
-static void blocks_output(char *bufout, int fd_log_out, float cpufreq) {
-  output(strlen(BLOCKS_BEGIN_OUTPUT_JSON_FORMAT),
-    BLOCKS_BEGIN_OUTPUT_JSON_FORMAT, fd_log_out);
-  generate_renderize_block_details *current_block, *prev_block;
+static void fetch_blocks_metrics(struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
+  generate_renderize_block_details *current_block;
+  generate_renderize_block_details *next_block;
+
   current_block = hp_globals.monitored_function_generate_renderize_block_first_linked_list;
   while (current_block) {
-    block_output(bufout, fd_log_out, cpufreq, prev_block = current_block);
-    current_block = current_block->next_generate_renderize_block_detail;
-    if (current_block) output(2, ", ", fd_log_out);
-    efree(prev_block);
+    next_block = current_block->next_generate_renderize_block_detail;
+    fetch_block_metrics(clock, metrics, cpufreq, current_block);
+    efree(current_block);
+    current_block = next_block;
   }
-  output(strlen(BLOCKS_END_OUTPUT_JSON_FORMAT),
-    BLOCKS_END_OUTPUT_JSON_FORMAT, fd_log_out);
 }
-
-// ends output
-static void end_output(char *bufout, int fd_log_out) {
-  output(snprintf(bufout, OUTBUF_QUANTA_SIZE, END_OUTPUT_JSON_FORMAT,
-    hp_globals.quanta_dbg), bufout, fd_log_out);
-}
-
 
 static void send_data_to_monikor(monikor_metric_list_t *metrics) {
   void *data = NULL;
@@ -110,10 +112,27 @@ static void send_data_to_monikor(monikor_metric_list_t *metrics) {
   close(sock);
 }
 
-void send_metrics(void) {
-  char  *bufout;
-  int fd_log_out;
-  float cpufreq;
+static void fetch_xhprof_metrics(struct timeval *now, monikor_metric_list_t *metrics TSRMLS_DC) {
+  zval func;
+  zval retval;
+  int ret;
+
+  INIT_ZVAL(func);
+  ZVAL_NULL(&retval);
+  ZVAL_STRING(&func, "json_encode", 1);
+  ret = call_user_function(CG(function_table), NULL, &func, &retval, 1, &hp_globals.stats_count TSRMLS_CC);
+  if (ret != SUCCESS || Z_TYPE(retval) != IS_STRING) {
+    PRINTF_QUANTA("Error: cannot json encode this shit\n :(");
+  } else {
+    monikor_metric_t *metric = monikor_metric_string("qtracer.json", clock, Z_STRVAL(retval));
+    if (metric)
+      monikor_metric_list_push(metrics, metric);
+  }
+  zval_dtor(&retval);
+  zval_dtor(&func);
+}
+
+void send_metrics(TSRMLS_D) {
   monikor_metric_list_t *metrics;
   struct timeval now;
 
@@ -122,19 +141,11 @@ void send_metrics(void) {
     PRINTF_QUANTA("Cannot initialize profiling output\n");
     return;
   }
-  if (!(bufout = emalloc(OUTBUF_QUANTA_SIZE))
-  || (fd_log_out = init_output(bufout)) == -1) {
-    efree(bufout);
-    return;
-  }
-  cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
   gettimeofday(&now, NULL);
-  begin_output(fd_log_out);
-  profiler_output(bufout, fd_log_out, &now, metrics, cpufreq);
-  blocks_output(bufout, fd_log_out, cpufreq);
-  end_output(bufout, fd_log_out);
-  close(fd_log_out);
+  fetch_profiler_metrics(&now, metrics, hp_globals.cpu_frequencies[hp_globals.cur_cpu_id]);
+  fetch_blocks_metrics(&now, metrics, hp_globals.cpu_frequencies[hp_globals.cur_cpu_id]);
+  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED)
+    fetch_xhprof_metrics(&now, metrics TSRMLS_CC);
   send_data_to_monikor(metrics);
   monikor_metric_list_free(metrics);
-  efree(bufout);
 }

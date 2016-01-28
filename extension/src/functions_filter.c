@@ -130,7 +130,7 @@ int hp_ignored_functions_filter_collision(uint8_t hash) {
  *
  * @author mpal
  */
-int  hp_ignore_entry_work(uint8_t hash_code, char *curr_func) {
+int hp_ignore_entry_work(uint8_t hash_code, char *curr_func) {
   int ignore = 0;
   if (hp_ignored_functions_filter_collision(hash_code)) {
     int i = 0;
