@@ -22,6 +22,25 @@ static const struct {
   {0}
 };
 
+/* The metric request_uri should be duplicated for each Monikor Handler which needs to check against
+** the original step URL.
+*/
+static void fetch_request_uri(struct timeval *clock, monikor_metric_list_t *metrics) {
+  monikor_metric_t *metric;
+  char metric_name[MAX_METRIC_NAME_LENGTH];
+
+  if (!hp_globals.request_uri)
+    return;
+  sprintf(metric_name, "magento.%zu.request_uri", hp_globals.quanta_step_id);
+  metric = monikor_metric_string(metric_name, clock, hp_globals.request_uri);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+  sprintf(metric_name, "qtracer.%zu.request_uri", hp_globals.quanta_step_id);
+  metric = monikor_metric_string(metric_name, clock, hp_globals.request_uri);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+}
+
 static void fetch_profiler_metrics(struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
   uint64_t *starts = hp_globals.monitored_function_tsc_start;
   uint64_t *stops = hp_globals.monitored_function_tsc_stop;
@@ -30,7 +49,7 @@ static void fetch_profiler_metrics(struct timeval *clock, monikor_metric_list_t 
   monikor_metric_t *metric;
   size_t i;
 
-  sprintf(metric_name, "magento.%zu.", hp_globals.quanta_step_id);
+  sprintf(metric_name, "magento.%zu.profiling.", hp_globals.quanta_step_id);
   metric_base_end = metric_name + strlen(metric_name);
   for (i = 0; magento_metrics[i].name; i++) {
     float a = (magento_metrics[i].starts_a != -1) ?
@@ -49,7 +68,7 @@ generate_renderize_block_details *block) {
   char metric_name[MAX_METRIC_NAME_LENGTH];
   char *metric_base_end;
 
-  sprintf(metric_name, "magento.blocks.%zu.%.255s.", hp_globals.quanta_step_id, block->name);
+  sprintf(metric_name, "magento.%zu.blocks.%.255s.", hp_globals.quanta_step_id, block->name);
   metric_base_end = metric_name + strlen(metric_name);
   strcpy(metric_base_end, "type");
   if (block->type && (metric = monikor_metric_string(metric_name, clock, block->type)))
@@ -67,9 +86,6 @@ generate_renderize_block_details *block) {
     block->tsc_renderize_first_start, block->tsc_renderize_last_stop), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
-  efree(block->name);
-  efree(block->type);
-  efree(block->template);
 }
 
 static void fetch_blocks_metrics(struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
@@ -80,6 +96,10 @@ static void fetch_blocks_metrics(struct timeval *clock, monikor_metric_list_t *m
   while (current_block) {
     next_block = current_block->next_generate_renderize_block_detail;
     fetch_block_metrics(clock, metrics, cpufreq, current_block);
+    efree(current_block->class);
+    efree(current_block->name);
+    efree(current_block->type);
+    efree(current_block->template);
     efree(current_block);
     current_block = next_block;
   }
@@ -112,7 +132,8 @@ static void send_data_to_monikor(monikor_metric_list_t *metrics) {
   close(sock);
 }
 
-static void fetch_xhprof_metrics(struct timeval *now, monikor_metric_list_t *metrics TSRMLS_DC) {
+static void fetch_xhprof_metrics(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
+  char metric_name[MAX_METRIC_NAME_LENGTH];
   zval func;
   zval retval;
   int ret;
@@ -122,9 +143,10 @@ static void fetch_xhprof_metrics(struct timeval *now, monikor_metric_list_t *met
   ZVAL_STRING(&func, "json_encode", 1);
   ret = call_user_function(CG(function_table), NULL, &func, &retval, 1, &hp_globals.stats_count TSRMLS_CC);
   if (ret != SUCCESS || Z_TYPE(retval) != IS_STRING) {
-    PRINTF_QUANTA("Error: cannot json encode this shit\n :(");
+    PRINTF_QUANTA("Error: cannot json encode xhprof output\n :(");
   } else {
-    monikor_metric_t *metric = monikor_metric_string("qtracer.json", clock, Z_STRVAL(retval));
+    sprintf(metric_name, "qtracer.%zu.json", hp_globals.quanta_step_id);
+    monikor_metric_t *metric = monikor_metric_string(metric_name, clock, Z_STRVAL(retval));
     if (metric)
       monikor_metric_list_push(metrics, metric);
   }
@@ -132,20 +154,117 @@ static void fetch_xhprof_metrics(struct timeval *now, monikor_metric_list_t *met
   zval_dtor(&func);
 }
 
+static void fetch_magento_version(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
+  char metric_name[MAX_METRIC_NAME_LENGTH];
+  char value[512];
+
+  zval func;
+  zval version;
+  zval edition;
+  int ret;
+
+  INIT_ZVAL(func);
+  ZVAL_NULL(&version);
+  ZVAL_NULL(&edition);
+  ZVAL_STRING(&func, "Mage::getVersion", 1);
+  ret = call_user_function(CG(function_table), NULL, &func, &version, 0, NULL TSRMLS_CC);
+  if (ret != SUCCESS || Z_TYPE(version) != IS_STRING) {
+    PRINTF_QUANTA("Cannot get magento version\n");
+    goto end;
+  } else {
+    PRINTF_QUANTA("Magento version: %s\n", Z_STRVAL(version));
+  }
+  ZVAL_STRING(&func, "Mage::getEdition", 1);
+  ret = call_user_function(CG(function_table), NULL, &func, &edition, 0, NULL TSRMLS_CC);
+  if (ret != SUCCESS || Z_TYPE(edition) != IS_STRING) {
+    PRINTF_QUANTA("Cannot get magento edition\n");
+    goto end;
+  } else {
+    PRINTF_QUANTA("Magento edition: %s\n", Z_STRVAL(edition));
+  }
+  if (snprintf(value, 512, "%s %s", Z_STRVAL(version), Z_STRVAL(edition)) < 512) {
+    monikor_metric_t *metric = monikor_metric_string("magento.version.magento", clock, value);
+    if (metric)
+      monikor_metric_list_push(metrics, metric);
+  }
+end:
+  zval_dtor(&version);
+  zval_dtor(&edition);
+  zval_dtor(&func);
+}
+
+static void fetch_php_version(struct timeval *clock, monikor_metric_list_t *metrics) {
+  monikor_metric_t *metric = monikor_metric_string("magento.version.php", clock, PHP_VERSION);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+}
+
+static void fetch_module_version(struct timeval *clock, monikor_metric_list_t *metrics) {
+  monikor_metric_t *metric = monikor_metric_string("magento.version.module", clock, QUANTA_MON_VERSION);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+}
+
+static void fetch_all_versions(struct timeval *clock, monikor_metric_list_t *metrics) {
+  fetch_magento_version(clock, metrics);
+  fetch_php_version(clock, metrics);
+  fetch_module_version(clock, metrics);
+}
+
+static inline const char *event_class_str(magento_event_t *event) {
+  if (event->class == MAGENTO_EVENT_CACHE_CLEAR)
+    return "cache_clear";
+  else if (event->class == MAGENTO_EVENT_REINDEX)
+    return "reindex";
+  else
+    return "unknown";
+}
+
+static void fetch_magento_events(struct timeval *clock, monikor_metric_list_t *metrics) {
+  char metric_name[MAX_METRIC_NAME_LENGTH];
+  monikor_metric_t *metric;
+  magento_event_t *event;
+  magento_event_t *prev;
+
+  event = hp_globals.magento_events;
+  while (event) {
+    prev = event->prev;
+    sprintf(metric_name, "magento.events.%s.%s", event_class_str(event), event->type);
+    if ((metric = monikor_metric_string(metric_name, clock, event->subtype)))
+      monikor_metric_list_push(metrics, metric);
+    efree(event->type);
+    efree(event->subtype);
+    efree(event);
+    event = prev;
+  }
+}
+
 void send_metrics(TSRMLS_D) {
   monikor_metric_list_t *metrics;
   struct timeval now;
 
-  if (!hp_globals.cpu_frequencies
-  || !(metrics = monikor_metric_list_new())) {
+  if (!(metrics = monikor_metric_list_new())) {
     PRINTF_QUANTA("Cannot initialize profiling output\n");
     return;
   }
   gettimeofday(&now, NULL);
-  fetch_profiler_metrics(&now, metrics, hp_globals.cpu_frequencies[hp_globals.cur_cpu_id]);
-  fetch_blocks_metrics(&now, metrics, hp_globals.cpu_frequencies[hp_globals.cur_cpu_id]);
-  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED)
-    fetch_xhprof_metrics(&now, metrics TSRMLS_CC);
-  send_data_to_monikor(metrics);
+  fetch_magento_events(&now, metrics);
+  if (hp_globals.profiler_level <= QUANTA_MON_MODE_MAGENTO_PROFILING) {
+    if (!hp_globals.cpu_frequencies) {
+      PRINTF_QUANTA("CPU frequencies not initialized, cannot profile\n");
+    } else {
+      fetch_request_uri(&now, metrics);
+      fetch_profiler_metrics(&now, metrics, hp_globals.cpu_frequencies[hp_globals.cur_cpu_id]);
+      fetch_blocks_metrics(&now, metrics, hp_globals.cpu_frequencies[hp_globals.cur_cpu_id]);
+      if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED)
+        fetch_xhprof_metrics(&now, metrics TSRMLS_CC);
+    }
+  }
+  /* We only want to provide context information such as versions when we already have some metrics
+  */
+  if (metrics->size) {
+    fetch_all_versions(&now, metrics);
+    send_data_to_monikor(metrics);
+  }
   monikor_metric_list_free(metrics);
 }

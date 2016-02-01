@@ -12,6 +12,7 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
     hp_globals.entries = NULL;
   }
   hp_globals.profiler_level  = (int) level;
+  hp_globals.magento_events = NULL;
 
   if (level != QUANTA_MON_MODE_EVENTS_ONLY) {
     /* Init stats_count */
@@ -62,6 +63,8 @@ void hp_clean_profiler_state(TSRMLS_D) {
   hp_globals.entries = NULL;
   hp_globals.profiler_level = 1;
   hp_globals.ever_enabled = 0;
+
+  efree(hp_globals.request_uri);
 
   /* Delete the array storing ignored function names */
   hp_array_del(hp_globals.ignored_function_names);

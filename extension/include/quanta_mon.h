@@ -26,7 +26,6 @@
 #include "config.h"
 #endif
 
-#include "profiler.h"
 #include "cpu.h"
 
 
@@ -79,8 +78,18 @@
 
 #define QUANTA_EXTRA_CHECKS
 #define QUANTA_MON_MAX_MONITORED_FUNCTIONS_HASH  256
-#define QUANTA_MON_MAX_MONITORED_FUNCTIONS  13
+#define QUANTA_MON_MAX_MONITORED_FUNCTIONS  14
 #define QUANTA_MON_MONITORED_FUNCTION_FILTER_SIZE ((QUANTA_MON_MAX_MONITORED_FUNCTIONS_HASH + 7)/8)
+
+/* Monitored functions positions */
+#define POS_ENTRY_GENERATEBLOCK    6
+#define POS_ENTRY_BEFORETOHTML     7
+#define POS_ENTRY_AFTERTOHTML      8
+#define POS_ENTRY_EVENTS_ONLY      9 /* Anything below won't be processed unless the special cookie is set */
+#define POS_ENTRY_EV_CACHE_FLUSH   9
+#define POS_ENTRY_EV_CLEAN_TYPE    10
+#define POS_ENTRY_EV_MAGE_CLEAN    11
+#define POS_ENTRY_EV_BEFORE_SAVE   12
 
 
 /* Bloom filter for function names to be ignored */
@@ -160,6 +169,15 @@ typedef struct generate_renderize_block_details_t {
   struct generate_renderize_block_details_t *next_generate_renderize_block_detail;
 } generate_renderize_block_details;
 
+#define MAGENTO_EVENT_CACHE_CLEAR 1
+#define MAGENTO_EVENT_REINDEX 2
+typedef struct magento_event {
+  struct magento_event *prev;
+  uint8_t class;
+  char *type;
+  char *subtype;
+} magento_event_t;
+
 /* Xhprof's global state.
  *
  * This structure is instantiated once.  Initialize defaults for attributes in
@@ -183,6 +201,9 @@ typedef struct hp_global_t {
 
   /* The step ID to match step/scenario/site when the data come back to Quanta */
   uint64_t         quanta_step_id;
+
+  /* Extracted from _SERVER['REQUEST_URI'] */
+  char            *request_uri;
 
   /* Top of the profile stack */
   hp_entry_t      *entries;
@@ -238,7 +259,7 @@ typedef struct hp_global_t {
   generate_renderize_block_details *monitored_function_generate_renderize_block_first_linked_list;
   generate_renderize_block_details *monitored_function_generate_renderize_block_last_linked_list;
   generate_renderize_block_details *renderize_block_last_used;
-
+  magento_event_t *magento_events;
 } hp_global_t;
 
 // CPU
