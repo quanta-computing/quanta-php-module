@@ -1,6 +1,45 @@
 #include "quanta_mon.h"
 
 
+static void extract_request_uri(HashTable *_SERVER TSRMLS_DC) {
+  zval **data;
+
+  if (zend_hash_find(_SERVER, "REQUEST_URI", strlen("REQUEST_URI") + 1, (void **)&data) == FAILURE
+  || Z_TYPE_PP(data) != IS_STRING) {
+    PRINTF_QUANTA("NO REQUEST URI\n");
+    hp_globals.request_uri = NULL;
+  } else {
+    hp_globals.request_uri = estrdup(Z_STRVAL_PP(data));
+  }
+}
+
+static int extract_step_and_mode(HashTable *_SERVER TSRMLS_DC) {
+  zval **data;
+  char *quanta_header;
+  char *quanta_mode;
+
+  if (zend_hash_find(_SERVER, QUANTA_HTTP_HEADER, strlen(QUANTA_HTTP_HEADER) + 1, (void **)&data) == FAILURE
+  || Z_TYPE_PP(data) != IS_STRING) {
+    PRINTF_QUANTA("NO QUANTA HEADER\n");
+    return QUANTA_MON_MODE_EVENTS_ONLY;
+  }
+  quanta_header = Z_STRVAL_PP(data);
+  PRINTF_QUANTA("QUANTA HEADER: %s\n", quanta_header);
+  hp_globals.quanta_step_id = strtoull(quanta_header, &quanta_mode, 10);
+  if (quanta_mode == quanta_header) {
+    PRINTF_QUANTA("WRONG FORMAT %s for step_id\n", quanta_header);
+    return QUANTA_MON_MODE_EVENTS_ONLY;
+  }
+  while (*quanta_mode == ' ')
+    quanta_mode++;
+  if (!*quanta_mode || !strcmp(quanta_mode, QUANTA_HTTP_HEADER_MODE_MAGE))
+    return QUANTA_MON_MODE_MAGENTO_PROFILING;
+  else if (!strcmp(quanta_mode, QUANTA_HTTP_HEADER_MODE_FULL))
+    return QUANTA_MON_MODE_HIERARCHICAL;
+  else
+    return QUANTA_MON_MODE_EVENTS_ONLY;
+}
+
 /* We get needed informations in http header QUANTA_HTTP_HEADER:
 ** Which should contains the step id and the (optional) profiling mode which defaults to magento
 ** profiling only
@@ -11,9 +50,6 @@
 static int extract_headers_info(TSRMLS_D) {
   HashTable *_SERVER;
   zval **arr;
-  zval **data;
-  char *quanta_header;
-  char *quanta_mode;
 
   /* _SERVER is lazy-initialized, force population
   */
@@ -29,36 +65,14 @@ static int extract_headers_info(TSRMLS_D) {
     return QUANTA_MON_MODE_EVENTS_ONLY;
   }
   _SERVER = Z_ARRVAL_P(*arr);
-  if (zend_hash_find(_SERVER, QUANTA_HTTP_HEADER, strlen(QUANTA_HTTP_HEADER) + 1, (void **)&data) == FAILURE
-  || Z_TYPE_PP(data) != IS_STRING) {
-    PRINTF_QUANTA("NO QUANTA HEADER\n");
-    return QUANTA_MON_MODE_EVENTS_ONLY;
-  }
-  quanta_header = Z_STRVAL_PP(data);
-  PRINTF_QUANTA("QUANTA HEADER: %s\n", quanta_header);
-  hp_globals.quanta_step_id = strtoull(quanta_header, &quanta_mode, 10);
-  if (quanta_mode == quanta_header) {
-    PRINTF_QUANTA("WRONG FORMAT %s for step_id\n", quanta_header);
-    return QUANTA_MON_MODE_EVENTS_ONLY;
-  }
-  while (*quanta_mode == ' ')
-    quanta_mode++;
-  PRINTF_QUANTA("QUANTA STEP_ID %zu, mode %s\n", hp_globals.quanta_step_id, quanta_mode);
-  if (!*quanta_mode || !strcmp(quanta_mode, QUANTA_HTTP_HEADER_MODE_MAGE))
-    return QUANTA_MON_MODE_MAGENTO_PROFILING;
-  else if (!strcmp(quanta_mode, QUANTA_HTTP_HEADER_MODE_FULL))
-    return QUANTA_MON_MODE_HIERARCHICAL;
-  else
-    return QUANTA_MON_MODE_EVENTS_ONLY;
+  extract_request_uri(_SERVER);
+  return extract_step_and_mode(_SERVER);
 }
 
 /**
  * Request init callback.
  */
 PHP_RINIT_FUNCTION(quanta_mon) {
-// xxx VERIFIER qu'on puisse bien faire un hp_begin avec des param differents
-// a chaque appel
-// puis remplir hp_mode_evnets_only_beginfn_cb
   int mode;
   long flags;
 
