@@ -171,7 +171,7 @@ void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data 
       qm_after_tohmtl(data);
     }
   }
-  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {
+  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED && *entries) {
     hp_entry_t *cur_entry;
     /* Call the mode's endfn callback. */
     /* NOTE(cjiang): we want to call this 'end_fn_cb' before */

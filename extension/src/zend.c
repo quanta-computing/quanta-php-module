@@ -103,9 +103,7 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
 #else
   _zend_execute_ex(execute_data TSRMLS_CC);
 #endif
-  if (hp_globals.entries) {
-    hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data);
-  }
+  hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data);
   efree(func);
 }
 
@@ -192,9 +190,7 @@ struct _zend_fcall_info *fci, int ret TSRMLS_DC) {
   }
 
   if (func) {
-    if (hp_globals.entries) {
-      hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data);
-    }
+    hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data);
     efree(func);
   }
 
@@ -220,9 +216,7 @@ ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle, int 
 
   hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, filename, NULL);
   ret = _zend_compile_file(file_handle, type TSRMLS_CC);
-  if (hp_globals.entries) {
-    hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL);
-  }
+  hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL);
 
   efree(func);
   return ret;
@@ -244,10 +238,7 @@ ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filena
 
     hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, filename, NULL);
     ret = _zend_compile_string(source_string, filename TSRMLS_CC);
-    if (hp_globals.entries) {
-        hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL);
-    }
-
+    hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL);
     efree(func);
     return ret;
 }
