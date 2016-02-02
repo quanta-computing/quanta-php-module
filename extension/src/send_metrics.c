@@ -19,6 +19,7 @@ static const struct {
   {"layout_rendering_time", PROF_STARTS(3), PROF_STOPS(3)},
   {"after_layout_rendering_time", PROF_STOPS(3), PROF_STOPS(4)},
   {"before_sending_response_time", PROF_STOPS(4), PROF_STOPS(5)},
+  {"total_time", PROF_STARTS(0), PROF_STOPS(5)},
   {0}
 };
 
@@ -155,7 +156,6 @@ static void fetch_xhprof_metrics(struct timeval *clock, monikor_metric_list_t *m
 }
 
 static void fetch_magento_version(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
-  char metric_name[MAX_METRIC_NAME_LENGTH];
   char value[512];
 
   zval func;
@@ -186,6 +186,8 @@ static void fetch_magento_version(struct timeval *clock, monikor_metric_list_t *
     monikor_metric_t *metric = monikor_metric_string("magento.version.magento", clock, value);
     if (metric)
       monikor_metric_list_push(metrics, metric);
+  } else {
+    PRINTF_QUANTA("Cannot format magento version\n");
   }
 end:
   zval_dtor(&version);
