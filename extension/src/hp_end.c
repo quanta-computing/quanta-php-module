@@ -24,15 +24,13 @@ void hp_end(TSRMLS_D) {
  * hp_begin() and restores the original values.
  */
 void hp_stop(TSRMLS_D) {
-  int   hp_profile_flag = 1;
-
   /* End any unfinished calls */
   while (hp_globals.entries)
-    hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL);
+    hp_end_profiling(&hp_globals.entries, -1, NULL);
+  send_metrics(TSRMLS_C);
   hp_restore_original_zend_execute();
   /* Resore cpu affinity. */
   restore_cpu_affinity(&hp_globals.prev_mask);
   /* Stop profiling */
   hp_globals.enabled = 0;
-  send_metrics(TSRMLS_C);
 }
