@@ -81,7 +81,8 @@ int qm_extract_param_generate_block(int i, zend_execute_data *execute_data TSRML
       PRINTF_QUANTA ("_generateBlock: Object doesn't contain an array, skipping... (type=%d)\n", Z_TYPE_PP(data));
       continue;
     }
-    current_gen_block_details = ecalloc(1, sizeof(generate_renderize_block_details));
+    if (!(current_gen_block_details = ecalloc(1, sizeof(generate_renderize_block_details))))
+      return -1;
 
     if (hp_globals.monitored_function_generate_renderize_block_first_linked_list == NULL)
       hp_globals.monitored_function_generate_renderize_block_first_linked_list = current_gen_block_details;
