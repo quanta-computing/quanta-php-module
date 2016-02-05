@@ -202,6 +202,9 @@ typedef struct hp_global_t {
   /* The step ID to match step/scenario/site when the data come back to Quanta */
   uint64_t         quanta_step_id;
 
+  /* The reference clock to map the metrics to */
+  uint64_t         quanta_clock;
+
   /* Extracted from _SERVER['REQUEST_URI'] */
   char            *request_uri;
 

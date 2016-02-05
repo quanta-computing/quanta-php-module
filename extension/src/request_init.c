@@ -13,10 +13,11 @@ static void extract_request_uri(HashTable *_SERVER TSRMLS_DC) {
   }
 }
 
-static int extract_step_and_mode(HashTable *_SERVER TSRMLS_DC) {
+static int extract_step_clock_and_mode(HashTable *_SERVER TSRMLS_DC) {
   zval **data;
   char *quanta_header;
   char *quanta_mode;
+  char *quanta_clock;
 
   if (zend_hash_find(_SERVER, QUANTA_HTTP_HEADER, strlen(QUANTA_HTTP_HEADER) + 1, (void **)&data) == FAILURE
   || Z_TYPE_PP(data) != IS_STRING) {
@@ -25,9 +26,14 @@ static int extract_step_and_mode(HashTable *_SERVER TSRMLS_DC) {
   }
   quanta_header = Z_STRVAL_PP(data);
   PRINTF_QUANTA("QUANTA HEADER: %s\n", quanta_header);
-  hp_globals.quanta_step_id = strtoull(quanta_header, &quanta_mode, 10);
-  if (quanta_mode == quanta_header) {
+  hp_globals.quanta_step_id = strtoull(quanta_header, &quanta_clock, 10);
+  if (quanta_clock == quanta_header) {
     PRINTF_QUANTA("WRONG FORMAT %s for step_id\n", quanta_header);
+    return QUANTA_MON_MODE_EVENTS_ONLY;
+  }
+  hp_globals.quanta_clock = strtoull(quanta_clock, &quanta_mode, 10);
+  if (quanta_mode == quanta_clock) {
+    PRINTF_QUANTA("WRONG FORMAT %s for clock\n", quanta_header);
     return QUANTA_MON_MODE_EVENTS_ONLY;
   }
   while (*quanta_mode == ' ')
@@ -60,13 +66,14 @@ static int extract_headers_info(TSRMLS_D) {
         auto_global->name_len TSRMLS_CC);
     }
   }
+  hp_globals.quanta_clock = 0;
   if (zend_hash_find(&EG(symbol_table), "_SERVER", 8, (void**)&arr) == FAILURE) {
     PRINTF_QUANTA("NO _SERVER\n");
     return QUANTA_MON_MODE_EVENTS_ONLY;
   }
   _SERVER = Z_ARRVAL_P(*arr);
   extract_request_uri(_SERVER);
-  return extract_step_and_mode(_SERVER);
+  return extract_step_clock_and_mode(_SERVER);
 }
 
 /**

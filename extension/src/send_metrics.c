@@ -249,7 +249,11 @@ void send_metrics(TSRMLS_D) {
     PRINTF_QUANTA("Cannot initialize profiling output\n");
     return;
   }
+  /* We get the clock from gettimeofday and override only the seconds if quanta_clock is set. this
+  ** might be useful later to identify the different requests */
   gettimeofday(&now, NULL);
+  if (hp_globals.quanta_clock)
+    now.tv_sec = hp_globals.quanta_clock;
   fetch_magento_events(&now, metrics);
   if (hp_globals.profiler_level <= QUANTA_MON_MODE_MAGENTO_PROFILING) {
     if (!hp_globals.cpu_frequencies) {
