@@ -37,11 +37,14 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
   /* Call current mode's init cb */
   hp_globals.mode_cb.init_cb(TSRMLS_C);
 
+  hp_globals.block_stack = NULL;
+
   /* Set up filter of functions which may be ignored during profiling */
   hp_ignored_functions_filter_init();
 
   /* Set up filter of functions which are monitored */
   hp_monitored_functions_filter_init();
+  hp_globals.current_monitored_function = -1;
 }
 
 
@@ -65,6 +68,9 @@ void hp_clean_profiler_state(TSRMLS_D) {
   hp_globals.ever_enabled = 0;
 
   efree(hp_globals.request_uri);
+
+  /* Pop all blocks still present in the stack */
+  while (block_stack_pop());
 
   /* Delete the array storing ignored function names */
   hp_array_del(hp_globals.ignored_function_names);
@@ -164,11 +170,15 @@ int hp_begin_profiling(hp_entry_t **entries, char *symbol, char *pathname, zend_
 void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data *data) {
   if (profile_curr >= 0) {
     hp_globals.monitored_function_tsc_stop[profile_curr] = cycle_timer();
+    if (profile_curr != POS_ENTRY_PDO_EXECUTE)
+      hp_globals.current_monitored_function = -1;
     if (profile_curr == POS_ENTRY_GENERATEBLOCK) {
       hp_globals.monitored_function_generate_renderize_block_last_linked_list->tsc_generate_stop =
         hp_globals.monitored_function_tsc_stop[profile_curr];
     } else if (profile_curr == POS_ENTRY_AFTERTOHTML) {
       qm_after_tohmtl(data);
+    } else if (profile_curr == POS_ENTRY_PDO_EXECUTE) {
+      qm_record_sql_timers();
     }
   }
   if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED && *entries) {

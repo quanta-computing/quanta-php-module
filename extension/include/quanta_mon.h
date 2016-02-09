@@ -78,18 +78,19 @@
 
 #define QUANTA_EXTRA_CHECKS
 #define QUANTA_MON_MAX_MONITORED_FUNCTIONS_HASH  256
-#define QUANTA_MON_MAX_MONITORED_FUNCTIONS  14
+#define QUANTA_MON_MAX_MONITORED_FUNCTIONS  22
 #define QUANTA_MON_MONITORED_FUNCTION_FILTER_SIZE ((QUANTA_MON_MAX_MONITORED_FUNCTIONS_HASH + 7)/8)
 
 /* Monitored functions positions */
-#define POS_ENTRY_GENERATEBLOCK    6
-#define POS_ENTRY_BEFORETOHTML     7
-#define POS_ENTRY_AFTERTOHTML      8
-#define POS_ENTRY_EVENTS_ONLY      9 /* Anything below won't be processed unless the special cookie is set */
-#define POS_ENTRY_EV_CACHE_FLUSH   9
-#define POS_ENTRY_EV_CLEAN_TYPE    10
-#define POS_ENTRY_EV_MAGE_CLEAN    11
-#define POS_ENTRY_EV_BEFORE_SAVE   12
+#define POS_ENTRY_GENERATEBLOCK    13
+#define POS_ENTRY_BEFORETOHTML     14
+#define POS_ENTRY_AFTERTOHTML      15
+#define POS_ENTRY_PDO_EXECUTE      16
+#define POS_ENTRY_EVENTS_ONLY      17 /* Anything below won't be processed unless the special cookie is set */
+#define POS_ENTRY_EV_CACHE_FLUSH   17
+#define POS_ENTRY_EV_CLEAN_TYPE    18
+#define POS_ENTRY_EV_MAGE_CLEAN    19
+#define POS_ENTRY_EV_BEFORE_SAVE   20
 
 
 /* Bloom filter for function names to be ignored */
@@ -162,12 +163,19 @@ typedef struct generate_renderize_block_details_t {
   uint64_t  tsc_generate_stop;
   uint64_t  tsc_renderize_first_start; /* Might be re-entrant, record the first call */
   uint64_t  tsc_renderize_last_stop;   /* Always record the latest timestamp */
+  uint64_t  sql_cpu_cycles;
+  uint64_t  sql_queries_count;
   char    *type;
   char    *name;
   char    *class;
   char    *template;
   struct generate_renderize_block_details_t *next_generate_renderize_block_detail;
 } generate_renderize_block_details;
+
+typedef struct block_stack {
+  struct block_stack *prev;
+  generate_renderize_block_details *block;
+} block_stack_t;
 
 #define MAGENTO_EVENT_CACHE_CLEAR 1
 #define MAGENTO_EVENT_REINDEX 2
@@ -259,9 +267,15 @@ typedef struct hp_global_t {
   uint8_t   monitored_function_filter[QUANTA_MON_MONITORED_FUNCTION_FILTER_SIZE];
   uint64_t  monitored_function_tsc_start[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
   uint64_t  monitored_function_tsc_stop[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
+  uint64_t  monitored_function_sql_cpu_cycles[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
+  uint64_t  monitored_function_sql_queries_count[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
+
+  int current_monitored_function;
   generate_renderize_block_details *monitored_function_generate_renderize_block_first_linked_list;
   generate_renderize_block_details *monitored_function_generate_renderize_block_last_linked_list;
   generate_renderize_block_details *renderize_block_last_used;
+  block_stack_t *block_stack;
+
   magento_event_t *magento_events;
 } hp_global_t;
 
@@ -274,7 +288,8 @@ void clear_frequencies();
 void get_all_cpu_frequencies();
 long get_us_interval(struct timeval *start, struct timeval *end);
 void incr_us_interval(struct timeval *start, uint64_t incr);
-float cpu_cycles_to_ms(float cpufreq, long long start, long long end);
+float cpu_cycles_range_to_ms(float cpufreq, long long start, long long end);
+float cpu_cycles_to_ms(float cpufreq, uint64_t count);
 inline double get_us_from_tsc(uint64_t count, double cpu_frequency);
 inline uint64_t get_tsc_from_us(uint64_t usecs, double cpu_frequency);
 
@@ -373,6 +388,12 @@ void hp_monitored_functions_filter_clear();
 void hp_monitored_functions_filter_init();
 int  hp_ignore_entry_work(uint8_t hash_code, char *curr_func);
 inline int hp_ignore_entry(uint8_t hash_code, char *curr_func);
+
+
+// Block stack
+generate_renderize_block_details *block_stack_pop(void);
+void block_stack_push(generate_renderize_block_details *block);
+generate_renderize_block_details *block_stack_top(void);
 
 
 // Global state

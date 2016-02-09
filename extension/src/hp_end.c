@@ -1,5 +1,4 @@
 #include "quanta_mon.h"
-#include "send_metrics.h"
 
 /**
  * Called at request shutdown time. Cleans the profiler's global state.

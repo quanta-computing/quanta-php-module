@@ -151,11 +151,21 @@ int qm_extract_param_generate_block(int i, zend_execute_data *execute_data TSRML
       tmpstrbuf[index] = 0;
 
       switch (typekey) {
-        case 1:  current_gen_block_details->type = tmpstrbuf;  break;
-        case 2:  current_gen_block_details->name = tmpstrbuf;  break;
-        case 3:  current_gen_block_details->class = tmpstrbuf;  break;
-        case 4:  current_gen_block_details->template = tmpstrbuf;  break;
-        default: PRINTF_QUANTA ("_generateBlock: ** BAD ** Unknown typekey (%d)\n", typekey); break;
+        case 1:
+          current_gen_block_details->type = tmpstrbuf;
+          break;
+        case 2:
+          current_gen_block_details->name = tmpstrbuf;
+          break;
+        case 3:
+          current_gen_block_details->class = tmpstrbuf;
+          break;
+        case 4:
+          current_gen_block_details->template = tmpstrbuf;
+          break;
+        default:
+          PRINTF_QUANTA ("_generateBlock: ** BAD ** Unknown typekey (%d)\n", typekey);
+          break;
       }
     } /* for - inner data */
   } /* for - outer data */
@@ -165,6 +175,7 @@ int qm_extract_param_generate_block(int i, zend_execute_data *execute_data TSRML
 int qm_extract_this_after_tohtml_do(char *name_in_layout) {
   generate_renderize_block_details *current_render_block_details;
 
+  block_stack_pop();
   if (hp_globals.renderize_block_last_used) {
     /* Check if the last linked list is still the correct one */
     if (!strcmp(hp_globals.renderize_block_last_used->name, name_in_layout)) {
@@ -226,11 +237,13 @@ char *name_in_layout, char *template) {
       #ifdef _QUANTA_MODULE_ULTRA_VERBOSE
         PRINTF_QUANTA ("_beforeToHtml: Block name '%s' found in the _generateBlock list at position %d\n", name_in_layout, linked_list_pos);
       #endif
+      block_stack_push(current_render_block_details);
       return 1;
     }
     linked_list_pos++;
     current_render_block_details = current_render_block_details->next_generate_renderize_block_detail;
   }
+
   /* Sometimes we get ANONYMOUS_xx blocks, ignore them */
   if (strlen(name_in_layout) > 10 && !strncmp(name_in_layout, "ANONYMOUS_", 10))
     return 0;
@@ -478,6 +491,30 @@ int qm_record_reindex_event(int profile_curr, zend_execute_data *execute_data TS
     return -1;
 }
 
+int qm_record_sql_timers(void) {
+  generate_renderize_block_details *block;
+  uint64_t cycles = hp_globals.monitored_function_tsc_stop[POS_ENTRY_PDO_EXECUTE]
+    - hp_globals.monitored_function_tsc_start[POS_ENTRY_PDO_EXECUTE];
+
+  hp_globals.monitored_function_sql_cpu_cycles[0] += cycles;
+  hp_globals.monitored_function_sql_queries_count[0]++;
+  if ((block = block_stack_top())) {
+    PRINTF_QUANTA("SQL QUERY IN BLOCK %s\n", block->name);
+    block->sql_cpu_cycles += cycles;
+    block->sql_queries_count++;
+    return 0;
+  } else if (hp_globals.current_monitored_function > 0
+  && hp_globals.current_monitored_function < QUANTA_MON_MAX_MONITORED_FUNCTIONS) {
+    PRINTF_QUANTA("SQL QUERY IN %s\n", hp_globals.monitored_function_names[hp_globals.current_monitored_function]);
+    hp_globals.monitored_function_sql_cpu_cycles[hp_globals.current_monitored_function] += cycles;
+    hp_globals.monitored_function_sql_queries_count[hp_globals.current_monitored_function]++;
+    return 0;
+  } else {
+    PRINTF_QUANTA("SQL QUERY OUT OF NOWHERE\n");
+    return -1;
+  }
+}
+
 /**
  * Check if this entry should be ignored, first with a conservative Bloomish
  * filter then with an exact check against the function names.
@@ -507,7 +544,11 @@ int qm_record_timers_loading_time(uint8_t hash_code, char *curr_func, zend_execu
   if (hp_globals.monitored_function_names[i] == NULL)
     return -1; /* False match, we have nothing */
 
+  PRINTF_QUANTA("HOOK %s\n", hp_globals.monitored_function_names[i]);
   hp_globals.monitored_function_tsc_start[i] = cycle_timer();
+
+  if (i != POS_ENTRY_PDO_EXECUTE)
+    hp_globals.current_monitored_function = i;
 
   if (i == POS_ENTRY_BEFORETOHTML)
     return qm_extract_this_before_tohtml(execute_data TSRMLS_CC);
