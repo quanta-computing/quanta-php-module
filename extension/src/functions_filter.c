@@ -15,23 +15,35 @@
 void hp_get_monitored_functions_fill() {
   /* Already initialized ? */
   if (hp_globals.monitored_function_names[0] != NULL) {
-  return;
+    return;
   }
   hp_globals.monitored_function_names[0]  = "Mage::run";
-  hp_globals.monitored_function_names[1]  = "Mage_Core_Controller_Varien_Action::preDispatch";
-  hp_globals.monitored_function_names[2]  = "Mage_Core_Controller_Varien_Action::loadLayoutUpdates";
-  hp_globals.monitored_function_names[3]  = "Mage_Core_Controller_Varien_Action::renderLayout";
-  hp_globals.monitored_function_names[4]  = "Mage_Core_Controller_Varien_Action::postDispatch";
-  hp_globals.monitored_function_names[5]  = "Mage_Core_Controller_Response_Http::sendResponse";
-  hp_globals.monitored_function_names[6]  = "Mage_Core_Model_Layout::_generateBlock";
-  hp_globals.monitored_function_names[7]  = "Mage_Core_Block_Abstract::_beforeToHtml";
-  hp_globals.monitored_function_names[8]  = "Mage_Core_Block_Abstract::_afterToHtml";
+  hp_globals.monitored_function_names[1]  = "Mage_Core_Model_App::_initBaseConfig";
+  hp_globals.monitored_function_names[2]  = "Mage_Core_Model_App::_initCache";
+  hp_globals.monitored_function_names[3]  = "Mage_Core_Model_Config::loadModules";
+  hp_globals.monitored_function_names[4]  = "Mage_Core_Model_Resource_Setup::applyAllUpdates";
+  hp_globals.monitored_function_names[5]  = "Mage_Core_Model_Config::loadDb";
+  hp_globals.monitored_function_names[6]  = "Mage_Core_Model_App::_initStores";
+  hp_globals.monitored_function_names[7]  = "Mage_Core_Model_App::_initFrontController";
+
+  hp_globals.monitored_function_names[8]  = "Mage_Core_Controller_Varien_Action::preDispatch";
+  hp_globals.monitored_function_names[9]  = "Mage_Core_Controller_Varien_Action::loadLayoutUpdates";
+  hp_globals.monitored_function_names[10]  = "Mage_Core_Controller_Varien_Action::renderLayout";
+  hp_globals.monitored_function_names[11]  = "Mage_Core_Controller_Varien_Action::postDispatch";
+  hp_globals.monitored_function_names[12]  = "Mage_Core_Controller_Response_Http::sendResponse";
+
+  hp_globals.monitored_function_names[13]  = "Mage_Core_Model_Layout::_generateBlock";
+  hp_globals.monitored_function_names[14]  = "Mage_Core_Block_Abstract::_beforeToHtml";
+  hp_globals.monitored_function_names[15]  = "Mage_Core_Block_Abstract::_afterToHtml";
+
+  hp_globals.monitored_function_names[16]  = "PDOStatement::execute";
+
   /* POS_ENTRY_EVENTS_ONLY */
-  hp_globals.monitored_function_names[9]  = "Mage_Core_Model_Cache::flush";
-  hp_globals.monitored_function_names[10] = "Mage_Core_Model_Cache::cleanType";
-  hp_globals.monitored_function_names[11] = "Mage_Adminhtml_CacheController::flushSystemAction";
-  hp_globals.monitored_function_names[12] = "Mage_Index_Model_Event::_beforeSave";
-  hp_globals.monitored_function_names[13] = NULL;
+  hp_globals.monitored_function_names[17]  = "Mage_Core_Model_Cache::flush";
+  hp_globals.monitored_function_names[18] = "Mage_Core_Model_Cache::cleanType";
+  hp_globals.monitored_function_names[19] = "Mage_Adminhtml_CacheController::flushSystemAction";
+  hp_globals.monitored_function_names[20] = "Mage_Index_Model_Event::_beforeSave";
+  hp_globals.monitored_function_names[21] = NULL;
   // Don't forget to change QUANTA_MON_MAX_MONITORED_FUNCTIONS. It must be equal to the last entry ([x] = NULL) + 1
 }
 
