@@ -499,18 +499,15 @@ int qm_record_sql_timers(void) {
   hp_globals.monitored_function_sql_cpu_cycles[0] += cycles;
   hp_globals.monitored_function_sql_queries_count[0]++;
   if ((block = block_stack_top())) {
-    PRINTF_QUANTA("SQL QUERY IN BLOCK %s\n", block->name);
     block->sql_cpu_cycles += cycles;
     block->sql_queries_count++;
     return 0;
   } else if (hp_globals.current_monitored_function > 0
   && hp_globals.current_monitored_function < QUANTA_MON_MAX_MONITORED_FUNCTIONS) {
-    PRINTF_QUANTA("SQL QUERY IN %s\n", hp_globals.monitored_function_names[hp_globals.current_monitored_function]);
     hp_globals.monitored_function_sql_cpu_cycles[hp_globals.current_monitored_function] += cycles;
     hp_globals.monitored_function_sql_queries_count[hp_globals.current_monitored_function]++;
     return 0;
   } else {
-    PRINTF_QUANTA("SQL QUERY OUT OF NOWHERE\n");
     return -1;
   }
 }
@@ -544,7 +541,6 @@ int qm_record_timers_loading_time(uint8_t hash_code, char *curr_func, zend_execu
   if (hp_globals.monitored_function_names[i] == NULL)
     return -1; /* False match, we have nothing */
 
-  PRINTF_QUANTA("HOOK %s\n", hp_globals.monitored_function_names[i]);
   hp_globals.monitored_function_tsc_start[i] = cycle_timer();
 
   if (i != POS_ENTRY_PDO_EXECUTE)

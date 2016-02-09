@@ -12,11 +12,10 @@ static void fetch_request_uri(struct timeval *clock, monikor_metric_list_t *metr
 
   if (!hp_globals.request_uri)
     return;
-  sprintf(metric_name, "magento.%zu.request_uri", hp_globals.quanta_step_id);
-  metric = monikor_metric_string(metric_name, clock, hp_globals.request_uri);
-  if (metric)
-    monikor_metric_list_push(metrics, metric);
-  sprintf(metric_name, "qtracer.%zu.request_uri", hp_globals.quanta_step_id);
+  if (hp_globals.profiler_level == QUANTA_MON_MODE_MAGENTO_PROFILING)
+    sprintf(metric_name, "magento.%zu.request_uri", hp_globals.quanta_step_id);
+  else
+    sprintf(metric_name, "qtracer.%zu.request_uri", hp_globals.quanta_step_id);
   metric = monikor_metric_string(metric_name, clock, hp_globals.request_uri);
   if (metric)
     monikor_metric_list_push(metrics, metric);
@@ -28,6 +27,8 @@ static void fetch_xhprof_metrics(struct timeval *clock, monikor_metric_list_t *m
   zval retval;
   int ret;
 
+  if (hp_globals.profiler_level > QUANTA_MON_MODE_SAMPLED)
+    return;
   INIT_ZVAL(func);
   ZVAL_NULL(&retval);
   ZVAL_STRING(&func, "json_encode", 1);
@@ -182,6 +183,8 @@ static void fetch_profiler_metrics(struct timeval *clock, monikor_metric_list_t 
   monikor_metric_t *metric;
   size_t i;
 
+  if (hp_globals.profiler_level != QUANTA_MON_MODE_MAGENTO_PROFILING)
+    return;
   sprintf(metric_name, "magento.%zu.profiling.", hp_globals.quanta_step_id);
   metric_base_end = metric_name + strlen(metric_name);
   for (i = 0; magento_metrics[i].name; i++) {
@@ -305,7 +308,8 @@ static void fetch_blocks_metrics(struct timeval *clock, monikor_metric_list_t *m
   current_block = hp_globals.monitored_function_generate_renderize_block_first_linked_list;
   while (current_block) {
     next_block = current_block->next_generate_renderize_block_detail;
-    fetch_block_metrics(clock, metrics, cpufreq, current_block);
+    if (hp_globals.profiler_level == QUANTA_MON_MODE_MAGENTO_PROFILING)
+      fetch_block_metrics(clock, metrics, cpufreq, current_block);
     efree(current_block->class);
     efree(current_block->name);
     efree(current_block->type);
@@ -365,8 +369,7 @@ void send_metrics(TSRMLS_D) {
       fetch_request_uri(&now, metrics);
       fetch_profiler_metrics(&now, metrics, cpufreq);
       fetch_blocks_metrics(&now, metrics, cpufreq);
-      if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED)
-        fetch_xhprof_metrics(&now, metrics TSRMLS_CC);
+      fetch_xhprof_metrics(&now, metrics TSRMLS_CC);
     }
   }
   /* We only want to provide context information such as versions when we already have some metrics
