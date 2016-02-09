@@ -38,6 +38,14 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
   hp_globals.mode_cb.init_cb(TSRMLS_C);
 
   hp_globals.block_stack = NULL;
+  memset(hp_globals.monitored_function_tsc_start, 0,
+    sizeof(hp_globals.monitored_function_tsc_start));
+  memset(hp_globals.monitored_function_tsc_stop, 0,
+    sizeof(hp_globals.monitored_function_tsc_stop));
+  memset(hp_globals.monitored_function_sql_cpu_cycles, 0,
+    sizeof(hp_globals.monitored_function_sql_cpu_cycles));
+  memset(hp_globals.monitored_function_sql_queries_count, 0,
+    sizeof(hp_globals.monitored_function_sql_queries_count));
 
   /* Set up filter of functions which may be ignored during profiling */
   hp_ignored_functions_filter_init();
@@ -69,7 +77,7 @@ void hp_clean_profiler_state(TSRMLS_D) {
 
   efree(hp_globals.request_uri);
 
-  /* Pop all blocks still present in the stack */
+  /* Pop all blocks still present in the stack (should be zero) */
   while (block_stack_pop());
 
   /* Delete the array storing ignored function names */

@@ -130,8 +130,6 @@ void hp_ignored_functions_filter_init() {
       hp_globals.ignored_function_filter[idx] |= INDEX_2_BIT(hash);
     }
   }
-  memset(hp_globals.monitored_function_tsc_start, 0, sizeof(hp_globals.monitored_function_tsc_start));
-  memset(hp_globals.monitored_function_tsc_stop, 0, sizeof(hp_globals.monitored_function_tsc_stop));
 }
 
 /**
