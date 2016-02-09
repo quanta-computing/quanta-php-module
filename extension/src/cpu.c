@@ -123,7 +123,12 @@ void get_all_cpu_frequencies() {
 }
 
 
-float cpu_cycles_to_ms(float cpufreq, long long start, long long end) {
+float cpu_cycles_to_ms(float cpufreq, uint64_t count) {
+  return count / (cpufreq * 1000000) * 1000;
+}
+
+
+float cpu_cycles_range_to_ms(float cpufreq, long long start, long long end) {
   // TODO check if it doesnt exceed long max value
   if (!start && !end)
      return -1.0;
@@ -131,7 +136,7 @@ float cpu_cycles_to_ms(float cpufreq, long long start, long long end) {
     return -2.0;
   if (!end)
     return -3.0;
-  return (end - start) / (cpufreq * 1000000) * 1000;
+  return cpu_cycles_to_ms(cpufreq, end - start);
 }
 
 /**
