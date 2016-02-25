@@ -49,25 +49,8 @@ zval * hp_hash_lookup(char *symbol  TSRMLS_DC) {
  * (d/foo.php) in the same string.
  */
 const char *hp_get_base_filename(const char *filename) {
-  const char *ptr;
-  int   found = 0;
-
   if (!filename)
     return "";
-
-  /* ch: we want the complete path, so return directly */
-  /* reverse search for "/" and return a ptr to the next char */
-  /*
-  for (ptr = filename + strlen(filename) - 1; ptr >= filename; ptr--) {
-    if (*ptr == '/') {
-      found++;
-    }
-    if (found == 2) {
-      return ptr + 1;
-    }
-  }
-  */
-  /* no "/" char found, so return the whole string */
   return filename;
 }
 
@@ -82,7 +65,6 @@ char *hp_get_function_name(zend_op_array *ops, char **pathname TSRMLS_DC) {
   const char        *func = NULL;
   const char        *cls = NULL;
   char              *ret = NULL;
-  int                len;
   zend_function      *curr_func;
 
   *pathname = "BUG";

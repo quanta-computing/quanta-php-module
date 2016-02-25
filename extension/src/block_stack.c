@@ -1,7 +1,7 @@
 #include "quanta_mon.h"
 
-generate_renderize_block_details *block_stack_pop(void) {
-  generate_renderize_block_details *block;
+magento_block_t *block_stack_pop(void) {
+  magento_block_t *block;
   block_stack_t *stack;
 
   stack = hp_globals.block_stack;
@@ -13,7 +13,7 @@ generate_renderize_block_details *block_stack_pop(void) {
   return block;
 }
 
-void block_stack_push(generate_renderize_block_details *block) {
+void block_stack_push(magento_block_t *block) {
   block_stack_t *stack;
 
   if (!(stack = ecalloc(1, sizeof(*stack))))
@@ -23,7 +23,7 @@ void block_stack_push(generate_renderize_block_details *block) {
   hp_globals.block_stack = stack;
 }
 
-generate_renderize_block_details *block_stack_top(void) {
+magento_block_t *block_stack_top(void) {
   if (!hp_globals.block_stack)
     return NULL;
   else

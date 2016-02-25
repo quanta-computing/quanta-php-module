@@ -4,7 +4,7 @@
  * Parse the list of monitored functions from the zval argument.
  *
  * #define POS_ENTRY_GENERATEBLOCK    6
- * #define POS_ENTRY_BEFORETOHTML     7
+ * #define POS_ENTRY_TOHTML     7
  * #define POS_ENTRY_AFTERTOHTML      8
  * #define POS_ENTRY_EV_CACHE_FLUSH   9
  * #define POS_ENTRY_EV_CLEAN_TYPE    10
@@ -20,11 +20,11 @@ void hp_get_monitored_functions_fill() {
   hp_globals.monitored_function_names[0]  = "Mage::run";
   hp_globals.monitored_function_names[1]  = "Mage_Core_Model_App::_initBaseConfig";
   hp_globals.monitored_function_names[2]  = "Mage_Core_Model_App::_initCache";
-  hp_globals.monitored_function_names[3]  = "Mage_Core_Model_Config::loadModules";
-  hp_globals.monitored_function_names[4]  = "Mage_Core_Model_Resource_Setup::applyAllUpdates";
-  hp_globals.monitored_function_names[5]  = "Mage_Core_Model_Config::loadDb";
-  hp_globals.monitored_function_names[6]  = "Mage_Core_Model_App::_initStores";
-  hp_globals.monitored_function_names[7]  = "Mage_Core_Model_App::_initFrontController";
+  hp_globals.monitored_function_names[3]  = "Mage_Core_Model_Config::loadModulesCache";
+  hp_globals.monitored_function_names[4]  = "Mage_Core_Model_Config::loadModules";
+  hp_globals.monitored_function_names[5]  = "Mage_Core_Model_Resource_Setup::applyAllUpdates";
+  hp_globals.monitored_function_names[6]  = "Mage_Core_Model_Config::loadDb";
+  hp_globals.monitored_function_names[7]  = "Mage_Core_Model_App::_initStores";
 
   hp_globals.monitored_function_names[8]  = "Mage_Core_Controller_Varien_Action::preDispatch";
   hp_globals.monitored_function_names[9]  = "Mage_Core_Controller_Varien_Action::loadLayoutUpdates";
@@ -33,8 +33,8 @@ void hp_get_monitored_functions_fill() {
   hp_globals.monitored_function_names[12]  = "Mage_Core_Controller_Response_Http::sendResponse";
 
   hp_globals.monitored_function_names[13]  = "Mage_Core_Model_Layout::_generateBlock";
-  hp_globals.monitored_function_names[14]  = "Mage_Core_Block_Abstract::_beforeToHtml";
-  hp_globals.monitored_function_names[15]  = "Mage_Core_Block_Abstract::_afterToHtml";
+  hp_globals.monitored_function_names[14]  = "Mage_Core_Block_Abstract::toHtml";
+  hp_globals.monitored_function_names[15]  = "";//Mage_Core_Block_Abstract::_afterToHtml";
 
   hp_globals.monitored_function_names[16]  = "PDOStatement::execute";
 
@@ -70,8 +70,7 @@ void hp_monitored_functions_filter_init() {
       int   idx  = INDEX_2_BYTE(hash);
       hp_globals.monitored_function_filter[idx] |= INDEX_2_BIT(hash);
     }
-    hp_globals.monitored_function_generate_renderize_block_first_linked_list = NULL;
-    hp_globals.renderize_block_last_used = NULL;
+    hp_globals.magento_blocks_first = NULL;
 }
 
 /**

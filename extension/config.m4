@@ -27,12 +27,15 @@ if test "$PHP_QUANTAMON" != "no"; then
     src/hp_begin.c \
     src/hp_end.c \
     src/hp_list.c \
+    src/mage.c \
     src/module_info.c \
     src/module_init.c \
     src/module_shutdown.c \
     src/profiler_callbacks.c \
     src/profiler_sample.c \
     src/profiler.c \
+    src/quanta_blocks.c \
+    src/quanta_events.c \
     src/quanta_mon.c \
     src/quanta.c \
     src/request_init.c \

@@ -159,7 +159,7 @@ int hp_begin_profiling(hp_entry_t **entries, char *symbol, char *pathname, zend_
     profile_curr = -1;
   else
     profile_curr = qm_record_timers_loading_time(hash_code, symbol, data);
-  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) { //TODO! Check profile_curr too
+  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {
     hp_entry_t *cur_entry = hp_fast_alloc_hprof_entry(); //TODO! Check NULL pointers here
     cur_entry->hash_code = hash_code;
     cur_entry->name_hprof = symbol;
@@ -180,11 +180,8 @@ void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data 
     hp_globals.monitored_function_tsc_stop[profile_curr] = cycle_timer();
     if (profile_curr != POS_ENTRY_PDO_EXECUTE)
       hp_globals.current_monitored_function = -1;
-    if (profile_curr == POS_ENTRY_GENERATEBLOCK) {
-      hp_globals.monitored_function_generate_renderize_block_last_linked_list->tsc_generate_stop =
-        hp_globals.monitored_function_tsc_stop[profile_curr];
-    } else if (profile_curr == POS_ENTRY_AFTERTOHTML) {
-      qm_after_tohmtl(data);
+    if (profile_curr == POS_ENTRY_TOHTML) {
+      qm_after_tohtml(data TSRMLS_CC);
     } else if (profile_curr == POS_ENTRY_PDO_EXECUTE) {
       qm_record_sql_timers();
     }
