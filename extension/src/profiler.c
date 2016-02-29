@@ -46,6 +46,10 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
     sizeof(hp_globals.monitored_function_sql_cpu_cycles));
   memset(hp_globals.monitored_function_sql_queries_count, 0,
     sizeof(hp_globals.monitored_function_sql_queries_count));
+  memset(hp_globals.monitored_function_sql_cpu_cycles_after, 0,
+    sizeof(hp_globals.monitored_function_sql_cpu_cycles_after));
+  memset(hp_globals.monitored_function_sql_queries_count_after, 0,
+    sizeof(hp_globals.monitored_function_sql_queries_count_after));
 
   /* Set up filter of functions which may be ignored during profiling */
   hp_ignored_functions_filter_init();
@@ -53,6 +57,7 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
   /* Set up filter of functions which are monitored */
   hp_monitored_functions_filter_init();
   hp_globals.current_monitored_function = -1;
+  hp_globals.last_monitored_function = -1;
 }
 
 
@@ -151,14 +156,14 @@ size_t hp_get_entry_name(hp_entry_t  *entry, char *result_buf, size_t result_len
   return strlen(result_buf);
 }
 
-int hp_begin_profiling(hp_entry_t **entries, char *symbol, char *pathname, zend_execute_data *data) {
+int hp_begin_profiling(hp_entry_t **entries, char *symbol, char *pathname, zend_execute_data *data TSRMLS_DC) {
   uint8_t hash_code = hp_inline_hash(symbol);
   int profile_curr;
 
   if(hp_ignore_entry(hash_code, symbol))
     profile_curr = -1;
   else
-    profile_curr = qm_record_timers_loading_time(hash_code, symbol, data);
+    profile_curr = qm_begin_profiling(hash_code, symbol, data TSRMLS_CC);
   if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {
     hp_entry_t *cur_entry = hp_fast_alloc_hprof_entry(); //TODO! Check NULL pointers here
     cur_entry->hash_code = hash_code;
@@ -175,18 +180,11 @@ int hp_begin_profiling(hp_entry_t **entries, char *symbol, char *pathname, zend_
   return profile_curr;
 }
 
-void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data *data) {
+void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data *data TSRMLS_DC) {
   if (profile_curr >= 0) {
-    hp_globals.monitored_function_tsc_stop[profile_curr] = cycle_timer();
-    if (profile_curr != POS_ENTRY_PDO_EXECUTE)
-      hp_globals.current_monitored_function = -1;
-    if (profile_curr == POS_ENTRY_TOHTML) {
-      qm_after_tohtml(data TSRMLS_CC);
-    } else if (profile_curr == POS_ENTRY_PDO_EXECUTE) {
-      qm_record_sql_timers();
-    }
+    qm_end_profiling(profile_curr, data TSRMLS_CC);
   }
-  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED && *entries) {
+  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED && entries && *entries) {
     hp_entry_t *cur_entry;
     /* Call the mode's endfn callback. */
     /* NOTE(cjiang): we want to call this 'end_fn_cb' before */

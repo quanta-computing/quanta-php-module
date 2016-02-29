@@ -3,13 +3,6 @@
 /**
  * Parse the list of monitored functions from the zval argument.
  *
- * #define POS_ENTRY_GENERATEBLOCK    6
- * #define POS_ENTRY_TOHTML     7
- * #define POS_ENTRY_AFTERTOHTML      8
- * #define POS_ENTRY_EV_CACHE_FLUSH   9
- * #define POS_ENTRY_EV_CLEAN_TYPE    10
- * #define POS_ENTRY_EV_MAGE_CLEAN    11
- * #define POS_ENTRY_EV_BEFORE_SAVE   12
  * @author ch
  */
 void hp_get_monitored_functions_fill() {
@@ -27,19 +20,19 @@ void hp_get_monitored_functions_fill() {
   hp_globals.monitored_function_names[7]  = "Mage_Core_Model_App::_initStores";
 
   hp_globals.monitored_function_names[8]  = "Mage_Core_Controller_Varien_Action::preDispatch";
-  hp_globals.monitored_function_names[9]  = "Mage_Core_Controller_Varien_Action::loadLayoutUpdates";
-  hp_globals.monitored_function_names[10]  = "Mage_Core_Controller_Varien_Action::renderLayout";
-  hp_globals.monitored_function_names[11]  = "Mage_Core_Controller_Varien_Action::postDispatch";
-  hp_globals.monitored_function_names[12]  = "Mage_Core_Controller_Response_Http::sendResponse";
+  hp_globals.monitored_function_names[9] = "Mage_Core_Controller_Varien_Action::loadLayoutUpdates";
+  hp_globals.monitored_function_names[10] = "Mage_Core_Controller_Varien_Action::renderLayout";
+  hp_globals.monitored_function_names[11] = "Mage_Core_Controller_Varien_Action::postDispatch";
+  hp_globals.monitored_function_names[12] = "Mage_Core_Controller_Response_Http::sendResponse";
 
-  hp_globals.monitored_function_names[13]  = "Mage_Core_Model_Layout::_generateBlock";
-  hp_globals.monitored_function_names[14]  = "Mage_Core_Block_Abstract::toHtml";
-  hp_globals.monitored_function_names[15]  = "";//Mage_Core_Block_Abstract::_afterToHtml";
+  hp_globals.monitored_function_names[13] = "";
+  hp_globals.monitored_function_names[14] = "";
+  hp_globals.monitored_function_names[15] = "Mage_Core_Block_Abstract::toHtml";
 
-  hp_globals.monitored_function_names[16]  = "PDOStatement::execute";
+  hp_globals.monitored_function_names[16] = "PDOStatement::execute";
 
   /* POS_ENTRY_EVENTS_ONLY */
-  hp_globals.monitored_function_names[17]  = "Mage_Core_Model_Cache::flush";
+  hp_globals.monitored_function_names[17] = "Mage_Core_Model_Cache::flush";
   hp_globals.monitored_function_names[18] = "Mage_Core_Model_Cache::cleanType";
   hp_globals.monitored_function_names[19] = "Mage_Adminhtml_CacheController::flushSystemAction";
   hp_globals.monitored_function_names[20] = "Mage_Index_Model_Event::_beforeSave";

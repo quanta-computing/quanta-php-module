@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/types.h>
-#include <sys/types.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
 #include <arpa/inet.h>
@@ -23,7 +23,7 @@
 #include <monikor/metric.h>
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+# include "config.h"
 #endif
 
 #include "cpu.h"
@@ -35,9 +35,9 @@
 #define DEBUG_QUANTA
 
 #ifdef DEBUG_QUANTA
-  #define PRINTF_QUANTA printf
+# define PRINTF_QUANTA printf
 #else
-  #define PRINTF_QUANTA dummy_printf
+# define PRINTF_QUANTA dummy_printf
   static void dummy_printf(char *unused, ...)
   {
     (void)unused;
@@ -82,9 +82,7 @@
 #define QUANTA_MON_MONITORED_FUNCTION_FILTER_SIZE ((QUANTA_MON_MAX_MONITORED_FUNCTIONS_HASH + 7)/8)
 
 /* Monitored functions positions */
-#define POS_ENTRY_GENERATEBLOCK    13
-#define POS_ENTRY_TOHTML     14
-// #define POS_ENTRY_AFTERTOHTML      15
+#define POS_ENTRY_TOHTML     15
 #define POS_ENTRY_PDO_EXECUTE      16
 #define POS_ENTRY_EVENTS_ONLY      17 /* Anything below won't be processed unless the special cookie is set */
 #define POS_ENTRY_EV_CACHE_FLUSH   17
@@ -102,13 +100,13 @@ extern zend_module_entry quanta_mon_module_entry;
 #define phpext_quanta_mon_ptr &quanta_mon_module_entry
 
 #ifdef PHP_WIN32
-#define PHP_QUANTA_MON_API __declspec(dllexport)
+# define PHP_QUANTA_MON_API __declspec(dllexport)
 #else
-#define PHP_QUANTA_MON_API
+# define PHP_QUANTA_MON_API
 #endif
 
 #ifdef ZTS
-#include "TSRM.h"
+# include "TSRM.h"
 #endif
 
 PHP_MINIT_FUNCTION(quanta_mon);
@@ -122,6 +120,8 @@ PHP_MINFO_FUNCTION(quanta_mon);
 #define QUANTA_HTTP_HEADER "HTTP_X_QUANTA"
 #define QUANTA_HTTP_HEADER_MODE_MAGE "magento"
 #define QUANTA_HTTP_HEADER_MODE_FULL "full"
+
+#define SEND_METRICS_TIMEOUT_US 50000
 
 
 /* QuantaMon maintains a stack of entries being profiled. The memory for the entry
@@ -261,14 +261,17 @@ typedef struct hp_global_t {
   uint8_t   ignored_function_filter[QUANTA_MON_IGNORED_FUNCTION_FILTER_SIZE];
 
   /* Table of monitored function names and their filter */
-  char   *monitored_function_names[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
-  uint8_t   monitored_function_filter[QUANTA_MON_MONITORED_FUNCTION_FILTER_SIZE];
-  uint64_t  monitored_function_tsc_start[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
-  uint64_t  monitored_function_tsc_stop[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
-  uint64_t  monitored_function_sql_cpu_cycles[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
-  uint64_t  monitored_function_sql_queries_count[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
+  char     *monitored_function_names[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
+  uint8_t  monitored_function_filter[QUANTA_MON_MONITORED_FUNCTION_FILTER_SIZE];
+  uint64_t monitored_function_tsc_start[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
+  uint64_t monitored_function_tsc_stop[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
+  uint64_t monitored_function_sql_cpu_cycles[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
+  uint64_t monitored_function_sql_queries_count[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
+  uint64_t monitored_function_sql_cpu_cycles_after[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
+  uint64_t monitored_function_sql_queries_count_after[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
 
   int current_monitored_function;
+  int last_monitored_function;
   magento_block_t *magento_blocks_first;
   magento_block_t *magento_blocks_last;
   block_stack_t *block_stack;
@@ -346,13 +349,8 @@ void hp_sample_check(hp_entry_t **entries  TSRMLS_DC);
 
 // Quanta stuff
 void send_metrics(void);
-// int qm_extract_param_generate_block(int i, zend_execute_data *execute_data TSRMLS_DC);
-// int qm_extract_this_after_tohtml_do(char *name_in_layout);
-// int qm_extract_this_before_tohtml_do(const char *class_name, zend_uint class_name_len,
-//   char *name_in_layout, char *template);
-// int qm_extract_this_before_after_tohtml(int is_after_tohtml, zend_execute_data *execute_data TSRMLS_DC);
-// int qm_extract_this_before_tohtml(zend_execute_data *execute_data TSRMLS_DC);
-int qm_record_timers_loading_time(uint8_t hash_code, char *curr_func, zend_execute_data *execute_data TSRMLS_DC);
+int qm_begin_profiling(uint8_t hash_code, char *curr_func, zend_execute_data *execute_data TSRMLS_DC);
+int qm_end_profiling(int profile_curr, zend_execute_data *execute_data TSRMLS_DC);
 int qm_before_tohtml(int profile_curr, zend_execute_data *execute_data TSRMLS_DC);
 int qm_after_tohtml(zend_execute_data *execute_data TSRMLS_DC);
 int qm_record_reindex_event(int profile_curr, zend_execute_data *execute_data TSRMLS_DC);
@@ -360,7 +358,6 @@ int qm_record_cache_system_flush_event(int profile_curr, zend_execute_data *exec
 int qm_record_cache_flush_event(int profile_curr, zend_execute_data *execute_data TSRMLS_DC);
 int qm_record_cache_clean_event(int profile_curr, zend_execute_data *execute_data TSRMLS_DC);
 int qm_record_sql_timers(void);
-
 
 
 // Profiling callbacks

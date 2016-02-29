@@ -163,22 +163,47 @@ static const struct {
 };
 
 static void fetch_profiler_sql_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
-float cpufreq, size_t metric_idx, size_t func_idx) {
+float cpufreq, size_t metric_idx) {
   char metric_name[MAX_METRIC_NAME_LENGTH];
   char *metric_base_end;
   monikor_metric_t *metric;
+  uint64_t sql_cycles;
+  uint64_t sql_count;
+  size_t start;
+  size_t stop;
+  size_t i;
 
+  start = magento_metrics[metric_idx].starts_a == -1 ?
+    magento_metrics[metric_idx].stops_a + 1: magento_metrics[metric_idx].starts_a;
+  stop = magento_metrics[metric_idx].starts_b == -1 ?
+    magento_metrics[metric_idx].stops_b + 1: magento_metrics[metric_idx].starts_b;
+  /* Mage::run has all queries, so ignore it unless we are counting queries for the total */
+  if (!start && strcmp(magento_metrics[metric_idx].name, "total"))
+    start = 1;
+  if (magento_metrics[metric_idx].starts_a == -1) {
+    sql_cycles = hp_globals.monitored_function_sql_cpu_cycles_after[magento_metrics[metric_idx].stops_a];
+    sql_count = hp_globals.monitored_function_sql_queries_count_after[magento_metrics[metric_idx].stops_a];
+  } else {
+    sql_cycles = 0;
+    sql_count = 0;
+  }
+  for (i = start; i < stop; i++) {
+    sql_cycles += hp_globals.monitored_function_sql_cpu_cycles[i];
+    sql_count += hp_globals.monitored_function_sql_queries_count[i];
+    if (i != stop -1 || magento_metrics[metric_idx].starts_b != -1) {
+      sql_cycles += hp_globals.monitored_function_sql_cpu_cycles_after[i];
+      sql_count += hp_globals.monitored_function_sql_queries_count_after[i];
+    }
+  }
   sprintf(metric_name, "magento.%zu.profiling.%s.sql.", hp_globals.quanta_step_id,
     magento_metrics[metric_idx].name);
   metric_base_end = metric_name + strlen(metric_name);
   strcpy(metric_base_end, "count");
-  metric = monikor_metric_integer(metric_name, clock,
-    hp_globals.monitored_function_sql_queries_count[func_idx], 0);
+  metric = monikor_metric_integer(metric_name, clock, sql_count, 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
   strcpy(metric_base_end, "time");
-  metric = monikor_metric_float(metric_name, clock, cpu_cycles_to_ms(cpufreq,
-    hp_globals.monitored_function_sql_cpu_cycles[func_idx]), 0);
+  metric = monikor_metric_float(metric_name, clock, cpu_cycles_to_ms(cpufreq, sql_cycles), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
 }
@@ -205,11 +230,7 @@ static void fetch_profiler_metrics(struct timeval *clock, monikor_metric_list_t 
     metric = monikor_metric_float(metric_name, clock, cpu_cycles_range_to_ms(cpufreq, a, b), 0);
     if (metric)
       monikor_metric_list_push(metrics, metric);
-
-    /* We can add SQL timers only if we are profiling only one function in this timer */
-    if (magento_metrics[i].starts_a != -1
-    && magento_metrics[i].starts_a == magento_metrics[i].stops_b)
-      fetch_profiler_sql_metrics(clock, metrics, cpufreq, i, magento_metrics[i].starts_a);
+    fetch_profiler_sql_metrics(clock, metrics, cpufreq, i);
   }
 }
 
@@ -323,29 +344,49 @@ static void fetch_blocks_metrics(struct timeval *clock, monikor_metric_list_t *m
 
 static void send_data_to_monikor(monikor_metric_list_t *metrics) {
   void *data = NULL;
-  int sock;
+  int sock = -1;
+  int flags;
+  int result;
+  socklen_t result_len = sizeof(result);
   size_t size;
   struct sockaddr_un addr;
+  fd_set wrfds;
+  struct timeval timeout;
 
   if (!hp_globals.path_quanta_agent_socket) {
     PRINTF_QUANTA("Cannot send data to monikor: socket not configured\n");
     return;
   }
-
+  PRINTF_QUANTA("Sending data to monikor\n");
   addr.sun_family = AF_UNIX;
   strcpy(addr.sun_path, hp_globals.path_quanta_agent_socket);
   if (monikor_metric_list_serialize(metrics, &data, &size)) {
     PRINTF_QUANTA("Cannot send data to monikor: cannot serialize metrics\n");
-    free(data);
-    return;
+    goto end;
   }
   if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1
-  || connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == -1
+  || (flags = fcntl(sock, F_GETFL, 0)) == -1 || fcntl(sock, F_SETFL, flags | O_NONBLOCK) == -1
+  || (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == -1 && errno != EINPROGRESS)
+  || fcntl(sock, F_SETFL, flags & ~O_NONBLOCK) == -1) {
+    PRINTF_QUANTA("Cannot send data to monikor (socket creation error): %s\n", strerror(errno));
+    goto end;
+  }
+  FD_ZERO(&wrfds);
+  FD_SET(sock, &wrfds);
+  timeout.tv_sec = 0;
+  timeout.tv_usec = SEND_METRICS_TIMEOUT_US;
+  if (select(sock + 1, NULL, &wrfds, NULL, &timeout) <= 0
+  || getsockopt(sock, SOL_SOCKET, SO_ERROR, &result, &result_len) == -1 || result != 0
   || write(sock, data, size) == -1) {
     PRINTF_QUANTA("Cannot send data to monikor: %s\n", strerror(errno));
+    goto end;
   }
+  PRINTF_QUANTA("Data sent to monikor\n");
+
+end:
   free(data);
-  close(sock);
+  if (sock != -1)
+    close(sock);
 }
 
 void send_metrics(TSRMLS_D) {
@@ -374,7 +415,7 @@ void send_metrics(TSRMLS_D) {
       fetch_xhprof_metrics(&now, metrics TSRMLS_CC);
     }
   }
-  /* We only want to provide context information such as versions when we already have some metrics
+  /* We only want to provide context information such as versions when we actually have some metrics
   */
   if (metrics->size) {
     fetch_all_versions(&now, metrics);
