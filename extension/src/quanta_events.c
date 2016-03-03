@@ -86,8 +86,8 @@ int qm_record_reindex_event(int profile_curr, zend_execute_data *execute_data TS
   }
   attributes = Z_OBJPROP_P(this);
   /* If we want to get a count : array_count = zend_hash_num_elements(arr_hash); */
-  entity = get_mage_model_data(attributes, "entity");
-  type = get_mage_model_data(attributes, "type");
+  entity = get_mage_model_data(attributes, "entity" TSRMLS_CC);
+  type = get_mage_model_data(attributes, "type" TSRMLS_CC);
   PRINTF_QUANTA("reindex '%s' on entity '%s'\n", type, entity);
   if (!entity || !type) {
     PRINTF_QUANTA("reindex: Entity or type is NULL\n");

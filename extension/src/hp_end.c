@@ -25,7 +25,7 @@ void hp_end(TSRMLS_D) {
 void hp_stop(TSRMLS_D) {
   /* End any unfinished calls */
   while (hp_globals.entries)
-    hp_end_profiling(&hp_globals.entries, -1, NULL);
+    hp_end_profiling(&hp_globals.entries, -1, NULL TSRMLS_CC);
   send_metrics(TSRMLS_C);
   hp_restore_original_zend_execute();
   /* Resore cpu affinity. */

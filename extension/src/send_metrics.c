@@ -93,8 +93,8 @@ static void fetch_module_version(struct timeval *clock, monikor_metric_list_t *m
     monikor_metric_list_push(metrics, metric);
 }
 
-static void fetch_all_versions(struct timeval *clock, monikor_metric_list_t *metrics) {
-  fetch_magento_version(clock, metrics);
+static void fetch_all_versions(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
+  fetch_magento_version(clock, metrics TSRMLS_CC);
   fetch_php_version(clock, metrics);
   fetch_module_version(clock, metrics);
 }
@@ -141,15 +141,10 @@ static const struct {
   {"loading", PROF_STARTS(0), PROF_STARTS(8)},
   {"before_init_config", PROF_STARTS(0), PROF_STARTS(1)},
   {"init_config", PROF_STARTS(1), PROF_STOPS(1)},
-  {"between_init_config_init_cache", PROF_STOPS(1), PROF_STARTS(2)},
   {"init_cache", PROF_STARTS(2), PROF_STOPS(2)},
-  {"between_init_cache_load_modules", PROF_STOPS(2), PROF_STARTS(3)},
   {"load_modules", PROF_STARTS(3), PROF_STOPS(4)},
-  {"between_load_modules_db_updates", PROF_STOPS(4), PROF_STARTS(5)},
   {"db_updates", PROF_STARTS(5), PROF_STOPS(5)},
-  {"between_db_updates_load_db", PROF_STOPS(5), PROF_STARTS(6)},
   {"load_db", PROF_STARTS(6), PROF_STOPS(6)},
-  {"between_load_db_init_stores", PROF_STOPS(6), PROF_STARTS(7)},
   {"init_stores", PROF_STARTS(7), PROF_STOPS(7)},
   {"routing", PROF_STOPS(7), PROF_STARTS(8)},
   {"before_layout_loading", PROF_STARTS(8), PROF_STARTS(9)},
@@ -235,7 +230,7 @@ static void fetch_profiler_metrics(struct timeval *clock, monikor_metric_list_t 
 }
 
 static void fetch_block_class_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
-magento_block_t *block) {
+magento_block_t *block TSRMLS_DC) {
   char metric_name[MAX_METRIC_NAME_LENGTH];
   char *metric_base_end;
   monikor_metric_t *metric;
@@ -305,14 +300,14 @@ float cpufreq, magento_block_t *block) {
 }
 
 static void fetch_block_metrics(struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq,
-magento_block_t *block) {
+magento_block_t *block TSRMLS_DC) {
   monikor_metric_t *metric;
   char metric_name[MAX_METRIC_NAME_LENGTH];
   char *metric_base_end;
 
   sprintf(metric_name, "magento.%zu.blocks.%.255s.", hp_globals.quanta_step_id, block->name);
   metric_base_end = metric_name + strlen(metric_name);
-  fetch_block_class_metrics(clock, metrics, block);
+  fetch_block_class_metrics(clock, metrics, block TSRMLS_CC);
   fetch_block_template_metrics(clock, metrics, block);
   fetch_block_sql_metrics(clock, metrics, cpufreq, block);
   strcpy(metric_base_end, "rendering_time");
@@ -325,7 +320,7 @@ magento_block_t *block) {
     monikor_metric_list_push(metrics, metric);
 }
 
-static void fetch_blocks_metrics(struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
+static void fetch_blocks_metrics(struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq TSRMLS_DC) {
   magento_block_t *current_block;
   magento_block_t *next_block;
 
@@ -333,7 +328,7 @@ static void fetch_blocks_metrics(struct timeval *clock, monikor_metric_list_t *m
   while (current_block) {
     next_block = current_block->next;
     if (hp_globals.profiler_level == QUANTA_MON_MODE_MAGENTO_PROFILING)
-      fetch_block_metrics(clock, metrics, cpufreq, current_block);
+      fetch_block_metrics(clock, metrics, cpufreq, current_block TSRMLS_CC);
     efree(current_block->class);
     efree(current_block->name);
     efree(current_block->template);
@@ -411,14 +406,14 @@ void send_metrics(TSRMLS_D) {
 
       fetch_request_uri(&now, metrics);
       fetch_profiler_metrics(&now, metrics, cpufreq);
-      fetch_blocks_metrics(&now, metrics, cpufreq);
+      fetch_blocks_metrics(&now, metrics, cpufreq TSRMLS_CC);
       fetch_xhprof_metrics(&now, metrics TSRMLS_CC);
     }
   }
   /* We only want to provide context information such as versions when we actually have some metrics
   */
   if (metrics->size) {
-    fetch_all_versions(&now, metrics);
+    fetch_all_versions(&now, metrics TSRMLS_CC);
     send_data_to_monikor(metrics);
   }
   monikor_metric_list_free(metrics);

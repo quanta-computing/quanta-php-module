@@ -340,15 +340,15 @@ void hp_clean_profiler_state(TSRMLS_D);
 void hp_inc_count(zval *counts, char *name, long count TSRMLS_DC);
 size_t hp_get_entry_name(hp_entry_t  *entry, char *result_buf, size_t result_len);
 
-int hp_begin_profiling(hp_entry_t **entries, char *symbol, char *pathname, zend_execute_data *data);
-void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data *data);
+int hp_begin_profiling(hp_entry_t **entries, char *symbol, char *pathname, zend_execute_data *data TSRMLS_DC);
+void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data *data TSRMLS_DC);
 void hp_hijack_zend_execute(uint32_t flags);
 void hp_restore_original_zend_execute(void);
 void hp_sample_stack(hp_entry_t **entries  TSRMLS_DC);
 void hp_sample_check(hp_entry_t **entries  TSRMLS_DC);
 
 // Quanta stuff
-void send_metrics(void);
+void send_metrics(TSRMLS_D);
 int qm_begin_profiling(uint8_t hash_code, char *curr_func, zend_execute_data *execute_data TSRMLS_DC);
 int qm_end_profiling(int profile_curr, zend_execute_data *execute_data TSRMLS_DC);
 int qm_before_tohtml(int profile_curr, zend_execute_data *execute_data TSRMLS_DC);

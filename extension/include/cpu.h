@@ -31,12 +31,18 @@
 #   define SET_AFFINITY(pid, size, mask)       \
         thread_policy_set(mach_thread_self(), THREAD_AFFINITY_POLICY, mask, \
                           THREAD_AFFINITY_POLICY_COUNT)
-#else
+
+#endif
+
 /* For sched_getaffinity, sched_setaffinity */
+# ifndef _GNU_SOURCE
+#  define _GNU_SOURCE
+# endif
+
 # include <sched.h>
 # define SET_AFFINITY(pid, size, mask) sched_setaffinity(0, size, mask)
 # define GET_AFFINITY(pid, size, mask) sched_getaffinity(0, size, mask)
-#endif /* __FreeBSD__ */
+// #endif /* __FreeBSD__ */
 
 
 #endif /* end of include guard: QUANTA_MON_CPU_H_ */

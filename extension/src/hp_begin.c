@@ -54,6 +54,6 @@ void hp_begin(long level, long quanta_mon_flags TSRMLS_DC) {
     hp_init_profiler_state(level TSRMLS_CC);
 
     /* start profiling from fictitious main() */
-    hp_begin_profiling(&hp_globals.entries, ROOT_SYMBOL, "main", NULL);
+    hp_begin_profiling(&hp_globals.entries, ROOT_SYMBOL, "main", NULL TSRMLS_CC);
   }
 }

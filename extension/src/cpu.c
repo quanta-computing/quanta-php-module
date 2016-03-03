@@ -1,3 +1,4 @@
+#include "cpu.h"
 #include "quanta_mon.h"
 
 

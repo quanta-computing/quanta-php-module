@@ -97,13 +97,13 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
     return;
   }
 
-  hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, pathname, execute_data);
+  hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, pathname, execute_data TSRMLS_CC);
 #if PHP_VERSION_ID < 50500
   _zend_execute(ops TSRMLS_CC);
 #else
   _zend_execute_ex(execute_data TSRMLS_CC);
 #endif
-  hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data);
+  hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data TSRMLS_CC);
   efree(func);
 }
 
@@ -135,7 +135,7 @@ struct _zend_fcall_info *fci, int ret TSRMLS_DC) {
   current_data = EG(current_execute_data);
   func = hp_get_function_name(current_data->op_array, &pathname TSRMLS_CC);
   if (func) {
-    hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, pathname, execute_data);
+    hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, pathname, execute_data TSRMLS_CC);
   }
 
   if (!_zend_execute_internal) {
@@ -190,7 +190,7 @@ struct _zend_fcall_info *fci, int ret TSRMLS_DC) {
   }
 
   if (func) {
-    hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data);
+    hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data TSRMLS_CC);
     efree(func);
   }
 
@@ -214,9 +214,9 @@ ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle, int 
   func      = (char *)emalloc(len);
   snprintf(func, len, "load::%s", filename);
 
-  hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, filename, NULL);
+  hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, filename, NULL TSRMLS_CC);
   ret = _zend_compile_file(file_handle, type TSRMLS_CC);
-  hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL);
+  hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL TSRMLS_CC);
 
   efree(func);
   return ret;
@@ -236,9 +236,9 @@ ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filena
     func = (char *)emalloc(len);
     snprintf(func, len, "eval::%s", filename);
 
-    hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, filename, NULL);
+    hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, filename, NULL TSRMLS_CC);
     ret = _zend_compile_string(source_string, filename TSRMLS_CC);
-    hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL);
+    hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL TSRMLS_CC);
     efree(func);
     return ret;
 }

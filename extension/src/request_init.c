@@ -72,8 +72,8 @@ static int extract_headers_info(TSRMLS_D) {
     return QUANTA_MON_MODE_EVENTS_ONLY;
   }
   _SERVER = Z_ARRVAL_P(*arr);
-  extract_request_uri(_SERVER);
-  return extract_step_clock_and_mode(_SERVER);
+  extract_request_uri(_SERVER TSRMLS_CC);
+  return extract_step_clock_and_mode(_SERVER TSRMLS_CC);
 }
 
 /**
