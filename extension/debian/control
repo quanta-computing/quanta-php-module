@@ -1,0 +1,15 @@
+Maintainer: Matthieu ROSINSKI <support@quanta-computing.com>
+Section: php
+Priority: optional
+Build-Depends: debhelper (>= 9), dh-exec, dh-autoreconf, autotools-dev, libmonikor-dev, php5-dev
+Standards-Version: 3.9.5
+Source: php5-quanta-mon
+
+Package: php5-quanta-mon
+Architecture: any
+Depends: ${misc:Depends}, libmonikor (= 0.0.1), libc6 (>= 2.2.5), php5-common (>= 5.2.0), php5-common (<< 6.0.0), phpapi-20100525, ucf
+Recommends: monikor
+Pre-Depends: ${misc:Pre-Depends}
+Description: This PHP extension provides a profiler for Magento
+ The extension will trigger on custom http headers and send metrics to
+ Quanta over the quanta-agent.
