@@ -5,7 +5,6 @@ if test "$PHP_QUANTAMON" != "no"; then
   LIBMONIKOR=monikor
   LIBMONIKOR_SYM=monikor_metric_list_push
 
-  PHP_ADD_LIBPATH(/monikor/lib/monikor)
   PHP_CHECK_LIBRARY($LIBMONIKOR,$LIBMONIKOR_SYM,
   [
     PHP_ADD_LIBRARY($LIBMONIKOR,,QUANTA_MON_SHARED_LIBADD)
@@ -43,5 +42,5 @@ if test "$PHP_QUANTAMON" != "no"; then
     src/send_metrics.c \
     src/utils.c \
     src/zend.c \
-    src/zval.c, $ext_shared,,-W -Wall)
+    src/zval.c, $ext_shared,,-W -Wall -D_GNU_SOURCE)
 fi
