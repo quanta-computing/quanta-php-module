@@ -147,6 +147,7 @@ static const struct {
   {"load_db", PROF_STARTS(6), PROF_STOPS(6)},
   {"init_stores", PROF_STARTS(7), PROF_STOPS(7)},
   {"routing", PROF_STOPS(7), PROF_STARTS(8)},
+  {"controller", PROF_STARTS(8), PROF_STOPS(11)},
   {"before_layout_loading", PROF_STARTS(8), PROF_STARTS(9)},
   {"layout_loading", PROF_STARTS(9), PROF_STOPS(9)},
   {"between_layout_loading_and_rendering", PROF_STOPS(9), PROF_STARTS(10)},
