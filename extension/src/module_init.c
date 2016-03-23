@@ -39,6 +39,8 @@ PHP_MINIT_FUNCTION(quanta_mon) {
   hp_globals.cur_cpu_id = 0;
 
   hp_globals.stats_count = NULL;
+  hp_globals.ever_enabled = 0;
+  hp_globals.enabled = 0;
 
   /* no free hp_entry_t structures to start with */
   hp_globals.entry_free_list = NULL;

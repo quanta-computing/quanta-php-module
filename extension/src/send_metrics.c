@@ -1,4 +1,5 @@
 #include "quanta_mon.h"
+#include <inttypes.h>
 
 #define MAX_METRIC_NAME_LENGTH 1024
 
@@ -153,6 +154,7 @@ static const struct {
   {"between_layout_loading_and_rendering", PROF_STOPS(9), PROF_STARTS(10)},
   {"layout_rendering", PROF_STARTS(10), PROF_STOPS(10)},
   {"after_layout_rendering", PROF_STOPS(10), PROF_STOPS(11)},
+  //TODO! Check if it shouldnt be PROF_STARTS(12)
   {"before_sending_response", PROF_STOPS(11), PROF_STOPS(12)},
   {"total", PROF_STARTS(0), PROF_STOPS(0)},
   {0}
@@ -217,12 +219,14 @@ static void fetch_profiler_metrics(struct timeval *clock, monikor_metric_list_t 
   sprintf(metric_name, "magento.%zu.profiling.", hp_globals.quanta_step_id);
   metric_base_end = metric_name + strlen(metric_name);
   for (i = 0; magento_metrics[i].name; i++) {
-    float a = (magento_metrics[i].starts_a != -1) ?
+    uint64_t a = (magento_metrics[i].starts_a != -1) ?
       starts[magento_metrics[i].starts_a] : stops[magento_metrics[i].stops_a];
-    float b = (magento_metrics[i].starts_b != -1) ?
+    uint64_t b = (magento_metrics[i].starts_b != -1) ?
       starts[magento_metrics[i].starts_b] : stops[magento_metrics[i].stops_b];
     strcpy(metric_base_end, magento_metrics[i].name);
     strcpy(metric_base_end + strlen(magento_metrics[i].name), ".time");
+    PRINTF_QUANTA("METRIC %s: a: %"PRIu64" b: %"PRIu64" = %f ms\n", metric_name, a, b,
+      cpu_cycles_range_to_ms(cpufreq, a, b));
     metric = monikor_metric_float(metric_name, clock, cpu_cycles_range_to_ms(cpufreq, a, b), 0);
     if (metric)
       monikor_metric_list_push(metrics, metric);

@@ -28,6 +28,29 @@ int qm_record_sql_timers(void) {
   }
 }
 
+static int match_function_and_class(int start, zend_execute_data *data, char *name TSRMLS_DC) {
+  const char *class_name = NULL;
+  size_t class_name_len;
+
+  if (!data || !name)
+    return QUANTA_MON_MAX_MONITORED_FUNCTIONS -1;
+  if (data->function_state.function->common.scope) {
+    class_name = data->function_state.function->common.scope->name;
+  } else if (data->object) {
+    class_name = Z_OBJCE(*data->object)->name;
+  }
+  if (!class_name)
+    return QUANTA_MON_MAX_MONITORED_FUNCTIONS -1;
+  class_name_len = strlen(class_name);
+  for (; hp_globals.monitored_function_names[start]; start++) {
+    if (!strncmp(class_name, hp_globals.monitored_function_names[start], class_name_len)
+    && !strncmp(hp_globals.monitored_function_names[start] + class_name_len, "::", 2)
+    && !strcmp(name, hp_globals.monitored_function_names[start] + class_name_len + 2))
+      return start;
+  }
+  return start;
+}
+
 /**
  * Check if this entry should be ignored, first with a conservative Bloomish
  * filter then with an exact check against the function names.
@@ -39,23 +62,19 @@ int qm_begin_profiling(uint8_t hash_code, char *curr_func, zend_execute_data *ex
   int i;
 
   /* Search quickly if we may have a match */
-  if (!hp_monitored_functions_filter_collision(hash_code))
+  if (!hp_monitored_functions_filter_collision(hash_code)) {
     return -1;
+  }
 
   if (hp_globals.profiler_level == QUANTA_MON_MODE_EVENTS_ONLY)
     i = POS_ENTRY_EVENTS_ONLY;
   else
     i = 0;
 
-  /* We MAY have a match, enumerate the function array for an exact match */
-  for (; hp_globals.monitored_function_names[i] != NULL; i++) {
-    char *name = hp_globals.monitored_function_names[i];
-    if (!strcmp(curr_func, name))
-      break;
-  }
-
-  if (hp_globals.monitored_function_names[i] == NULL)
+  i = match_function_and_class(i, execute_data, curr_func TSRMLS_CC);
+  if (!hp_globals.monitored_function_names[i] || !*hp_globals.monitored_function_names[i]) {
     return -1; /* False match, we have nothing */
+  }
 
   hp_globals.monitored_function_tsc_start[i] = cycle_timer();
 

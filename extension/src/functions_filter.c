@@ -58,8 +58,10 @@ void hp_monitored_functions_filter_clear() {
 void hp_monitored_functions_filter_init() {
     int i = 0;
     for(; hp_globals.monitored_function_names[i] != NULL; i++) {
-      char *str  = hp_globals.monitored_function_names[i];
-      uint8_t hash = hp_inline_hash(str);
+      if (!*hp_globals.monitored_function_names[i])
+        continue;
+      char *str  = strstr(hp_globals.monitored_function_names[i], "::");
+      uint8_t hash = hp_inline_hash(str ? str + 2 : hp_globals.monitored_function_names[i]);
       int   idx  = INDEX_2_BYTE(hash);
       hp_globals.monitored_function_filter[idx] |= INDEX_2_BIT(hash);
     }
