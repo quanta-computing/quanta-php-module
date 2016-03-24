@@ -12,10 +12,8 @@ void hp_end(TSRMLS_D) {
   /* Stop profiler if enabled */
   if (hp_globals.enabled) {
     hp_stop(TSRMLS_C);
+    hp_clean_profiler_state(TSRMLS_C);
   }
-
-  /* Clean up state */
-  hp_clean_profiler_state(TSRMLS_C);
 }
 
 /**

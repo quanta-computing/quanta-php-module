@@ -37,7 +37,7 @@ void hp_begin(long level, long quanta_mon_flags TSRMLS_DC) {
 
     /* Replace various zend functions with our proxies
     */
-    hp_hijack_zend_execute((uint32_t)quanta_mon_flags);
+    hp_hijack_zend_execute((uint32_t)quanta_mon_flags, level);
 
     /* Initialize with the dummy mode first Having these dummy callbacks saves
      * us from checking if any of the callbacks are NULL everywhere. */
@@ -54,6 +54,6 @@ void hp_begin(long level, long quanta_mon_flags TSRMLS_DC) {
     hp_init_profiler_state(level TSRMLS_CC);
 
     /* start profiling from fictitious main() */
-    hp_begin_profiling(&hp_globals.entries, ROOT_SYMBOL, "main", NULL TSRMLS_CC);
+    hp_begin_profiling(&hp_globals.entries, ROOT_SYMBOL, NULL TSRMLS_CC);
   }
 }

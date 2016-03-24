@@ -28,7 +28,7 @@ int qm_record_sql_timers(void) {
   }
 }
 
-static int match_function_and_class(int start, zend_execute_data *data, char *name TSRMLS_DC) {
+static int match_function_and_class(int start, zend_execute_data *data, const char *name TSRMLS_DC) {
   const char *class_name = NULL;
   size_t class_name_len;
 
@@ -58,7 +58,7 @@ static int match_function_and_class(int start, zend_execute_data *data, char *na
  * @author ch
  * return -1 if we don't monitor specifically this function, -2 if we don't monitor at all
  */
-int qm_begin_profiling(uint8_t hash_code, char *curr_func, zend_execute_data *execute_data TSRMLS_DC) {
+int qm_begin_profiling(uint8_t hash_code, const char *curr_func, zend_execute_data *execute_data TSRMLS_DC) {
   int i;
 
   /* Search quickly if we may have a match */

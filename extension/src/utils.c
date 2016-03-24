@@ -54,21 +54,21 @@ const char *hp_get_base_filename(const char *filename) {
   return filename;
 }
 
+char *hp_get_function_name_fast(zend_execute_data *execute_data TSRMLS_DC) {
+  return execute_data ? execute_data->function_state.function->common.function_name : NULL;
+}
+
 /**
  * Get the name of the current function. The name is qualified with
  * the class name if the function is in a class.
  *
  * @author kannan, hzhao
  */
-char *hp_get_function_name(zend_op_array *ops, char **pathname TSRMLS_DC) {
-  zend_execute_data *data;
+char *hp_get_function_name(zend_execute_data *data TSRMLS_DC) {
   const char        *func = NULL;
   const char        *cls = NULL;
   char              *ret = NULL;
   zend_function      *curr_func;
-
-  *pathname = "BUG";
-  data = EG(current_execute_data);
 
   if (data) {
     /* shared meta data for function on the call stack */
@@ -92,13 +92,7 @@ char *hp_get_function_name(zend_op_array *ops, char **pathname TSRMLS_DC) {
       }
 
       if (cls) {
-        const char *filename;
         int   len;
-        if (ops)
-          filename = hp_get_base_filename(ops->filename);
-        else
-           filename = "null";
-        *pathname = strdup(filename);
         len = strlen(cls) + strlen(func) + 8;
         ret = (char*)emalloc(len);
         snprintf(ret, len, "%s::%s", cls, func);
@@ -160,7 +154,6 @@ char *hp_get_function_name(zend_op_array *ops, char **pathname TSRMLS_DC) {
         len      = strlen("run_init") + strlen(filename) + 3;
         ret      = (char *)emalloc(len);
         snprintf(ret, len, "run_init::%s", filename);
-        *pathname = strdup(filename);
       } else {
         ret = estrdup(func);
       }
@@ -183,14 +176,11 @@ inline uint8_t hp_inline_hash(char * str) {
   uint i = 0;
   uint8_t res = 0;
 
-  while (*str) {
-    h += (h << 5);
-    h ^= (ulong) *str++;
-  }
+  while (*str)
+    h = (h + (h << 5)) ^ (ulong)*str++;
 
-  for (i = 0; i < sizeof(ulong); i++) {
+  for (i = 0; i < sizeof(ulong); i++)
     res += ((uint8_t *)&h)[i];
-  }
   return res;
 }
 

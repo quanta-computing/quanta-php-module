@@ -32,6 +32,7 @@
 /*
 ** Full debug mode
 */
+
 #define DEBUG_QUANTA
 
 #ifdef DEBUG_QUANTA
@@ -120,6 +121,7 @@ PHP_MINFO_FUNCTION(quanta_mon);
 #define QUANTA_HTTP_HEADER "HTTP_X_QUANTA"
 #define QUANTA_HTTP_HEADER_MODE_MAGE "magento"
 #define QUANTA_HTTP_HEADER_MODE_FULL "full"
+#define QUANTA_MON_DEFAULT_ADMIN_URL "/admin/"
 
 #define SEND_METRICS_TIMEOUT_US 50000
 
@@ -133,7 +135,6 @@ PHP_MINFO_FUNCTION(quanta_mon);
  * profiled. */
 typedef struct hp_entry_t {
   char                   *name_hprof;                       /* function name */
-  char                   *pathname_hprof;                /* path of the file */
   int                     rlvl_hprof;        /* recursion level for function */
   uint64_t                  tsc_start;         /* start value for TSC counter  */
   long int                mu_start_hprof;                    /* memory usage */
@@ -213,6 +214,7 @@ typedef struct hp_global_t {
 
   /* Extracted from _SERVER['REQUEST_URI'] */
   char            *request_uri;
+  char            *admin_url;
 
   /* Top of the profile stack */
   hp_entry_t      *entries;
@@ -313,7 +315,8 @@ void   hp_array_del(char **name_array);
 inline uint8_t hp_inline_hash(char * str);
 zval * hp_hash_lookup(char *symbol  TSRMLS_DC);
 const char *hp_get_base_filename(const char *filename);
-char *hp_get_function_name(zend_op_array *ops, char **pathname TSRMLS_DC);
+char *hp_get_function_name(zend_execute_data *data TSRMLS_DC);
+char *hp_get_function_name_fast(zend_execute_data *execute_data TSRMLS_DC);
 size_t hp_get_function_stack(hp_entry_t *entry, int level, char *result_buf, size_t result_len);
 void hp_trunc_time(struct timeval *tv, uint64_t intr);
 char *get_mage_model_data(HashTable *attrs, char *key TSRMLS_DC);
@@ -340,16 +343,16 @@ void hp_clean_profiler_state(TSRMLS_D);
 void hp_inc_count(zval *counts, char *name, long count TSRMLS_DC);
 size_t hp_get_entry_name(hp_entry_t  *entry, char *result_buf, size_t result_len);
 
-int hp_begin_profiling(hp_entry_t **entries, char *symbol, char *pathname, zend_execute_data *data TSRMLS_DC);
+int hp_begin_profiling(hp_entry_t **entries, const char *symbol, zend_execute_data *data TSRMLS_DC);
 void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data *data TSRMLS_DC);
-void hp_hijack_zend_execute(uint32_t flags);
+void hp_hijack_zend_execute(uint32_t flags, long level);
 void hp_restore_original_zend_execute(void);
 void hp_sample_stack(hp_entry_t **entries  TSRMLS_DC);
 void hp_sample_check(hp_entry_t **entries  TSRMLS_DC);
 
 // Quanta stuff
 void send_metrics(TSRMLS_D);
-int qm_begin_profiling(uint8_t hash_code, char *curr_func, zend_execute_data *execute_data TSRMLS_DC);
+int qm_begin_profiling(uint8_t hash_code, const char *curr_func, zend_execute_data *execute_data TSRMLS_DC);
 int qm_end_profiling(int profile_curr, zend_execute_data *execute_data TSRMLS_DC);
 int qm_before_tohtml(int profile_curr, zend_execute_data *execute_data TSRMLS_DC);
 int qm_after_tohtml(zend_execute_data *execute_data TSRMLS_DC);

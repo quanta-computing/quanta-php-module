@@ -30,21 +30,15 @@ void hp_restore_original_zend_execute(void) {
   #else
     zend_execute_ex       = _zend_execute_ex;
   #endif
-    // zend_execute_internal = _zend_execute_internal;
-    // zend_compile_file     = _zend_compile_file;
-    // zend_compile_string   = _zend_compile_string;
+    zend_execute_internal = _zend_execute_internal;
+    zend_compile_file     = _zend_compile_file;
+    zend_compile_string   = _zend_compile_string;
 }
 
-void hp_hijack_zend_execute(uint32_t flags) {
-  /* Replace zend_compile with our proxy */
-  // _zend_compile_file = zend_compile_file;
-  // zend_compile_file  = hp_compile_file;
+void hp_hijack_zend_execute(uint32_t flags, long level) {
+  _zend_compile_file = zend_compile_file;
+  _zend_compile_string = zend_compile_string;
 
-  /* Replace zend_compile_string with our proxy */
-  // _zend_compile_string = zend_compile_string;
-  // zend_compile_string = hp_compile_string;
-
-  /* Replace zend_execute with our proxy */
 #if PHP_VERSION_ID < 50500
   _zend_execute = zend_execute;
   zend_execute  = hp_execute;
@@ -53,13 +47,17 @@ void hp_hijack_zend_execute(uint32_t flags) {
   zend_execute_ex  = hp_execute_ex;
 #endif
 
-  /* Replace zend_execute_internal with our proxy */
-  // _zend_execute_internal = zend_execute_internal;
+  _zend_execute_internal = zend_execute_internal;
   if (!(flags & QUANTA_MON_FLAGS_NO_BUILTINS)) {
     /* if NO_BUILTINS is not set (i.e. user wants to profile builtins),
      * then we intercept internal (builtin) function calls.
      */
-    // zend_execute_internal = hp_execute_internal;
+    zend_execute_internal = hp_execute_internal;
+  }
+
+  if (level <= QUANTA_MON_MODE_SAMPLED) {
+    zend_compile_string = hp_compile_string;
+    zend_compile_file  = hp_compile_file;
   }
 }
 
@@ -69,35 +67,35 @@ void hp_hijack_zend_execute(uint32_t flags) {
  * ***************************
  */
 
-static char *hp_get_function_name_fast(zend_op_array *ops, zend_execute_data *data TSRMLS_DC) {
-  static char ret[1024] = {0};
-  const char *func = NULL;
-  const char *cls = NULL;
-  zend_function      *curr_func;
-
-  if (!data)
-    return NULL;
-
-  /* shared meta data for function on the call stack */
-  curr_func = data->function_state.function;
-
-  /* extract function name from the meta info */
-  func = curr_func->common.function_name;
-
-  if (!func)
-    return NULL;
-  if (curr_func->common.scope) {
-    cls = curr_func->common.scope->name;
-  } else if (data->object) {
-    cls = Z_OBJCE(*data->object)->name;
-  }
-  if (cls) {
-    snprintf(ret, 1024, "%s::%s", cls, func);
-  } else {
-    return func;
-  }
-  return ret;
-}
+// static char *hp_get_function_name_fast(zend_op_array *ops, zend_execute_data *data TSRMLS_DC) {
+//   static char ret[1024] = {0};
+//   const char *func = NULL;
+//   const char *cls = NULL;
+//   zend_function      *curr_func;
+//
+//   if (!data)
+//     return NULL;
+//
+//   /* shared meta data for function on the call stack */
+//   curr_func = data->function_state.function;
+//
+//   /* extract function name from the meta info */
+//   func = curr_func->common.function_name;
+//
+//   if (!func)
+//     return NULL;
+//   if (curr_func->common.scope) {
+//     cls = curr_func->common.scope->name;
+//   } else if (data->object) {
+//     cls = Z_OBJCE(*data->object)->name;
+//   }
+//   if (cls) {
+//     snprintf(ret, 1024, "%s::%s", cls, func);
+//   } else {
+//     return func;
+//   }
+//   return ret;
+// }
 
 /**
  * QuantaMon enable replaced the zend_execute function with this
@@ -111,15 +109,16 @@ ZEND_DLEXPORT void hp_execute (zend_op_array *ops TSRMLS_DC) {
   zend_execute_data *execute_data = EG(current_execute_data);
 #else
 ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
-  zend_op_array *ops = execute_data->op_array;
 #endif
-  char          *func = NULL;
-  char          *pathname = NULL;
+  char *func = NULL;
   int hp_profile_flag = 1;
 
 
-  func = execute_data ? execute_data->function_state.function->common.function_name : NULL;
-  // func = hp_get_function_name_fast(ops, execute_data TSRMLS_CC);
+  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {
+    func = hp_get_function_name(execute_data TSRMLS_CC);
+  } else {
+    func = hp_get_function_name_fast(execute_data TSRMLS_CC);
+  }
   if (!func) {
 #if PHP_VERSION_ID < 50500
     _zend_execute(ops TSRMLS_CC);
@@ -129,14 +128,15 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
     return;
   }
 
-  hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, pathname, execute_data TSRMLS_CC);
+  hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, execute_data TSRMLS_CC);
 #if PHP_VERSION_ID < 50500
   _zend_execute(ops TSRMLS_CC);
 #else
   _zend_execute_ex(execute_data TSRMLS_CC);
 #endif
   hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data TSRMLS_CC);
-  // efree(func);
+  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED)
+    efree(func);
 }
 
 #undef EX
@@ -159,15 +159,16 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, int ret 
 ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
 struct _zend_fcall_info *fci, int ret TSRMLS_DC) {
 #endif
-  zend_execute_data *current_data;
-  char             *func = NULL;
-  char             *pathname;
-  int    hp_profile_flag = 1;
+  char *func = NULL;
+  int hp_profile_flag = -1;
 
-  current_data = EG(current_execute_data);
-  func = hp_get_function_name(current_data->op_array, &pathname TSRMLS_CC);
+  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {
+    func = hp_get_function_name(execute_data TSRMLS_CC);
+  } else {
+    func = hp_get_function_name_fast(execute_data TSRMLS_CC);
+  }
   if (func) {
-    hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, pathname, execute_data TSRMLS_CC);
+    hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, execute_data TSRMLS_CC);
   }
 
   if (!_zend_execute_internal) {
@@ -223,9 +224,9 @@ struct _zend_fcall_info *fci, int ret TSRMLS_DC) {
 
   if (func) {
     hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data TSRMLS_CC);
-    efree(func);
   }
-
+  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED)
+    efree(func);
 }
 
 /**
@@ -235,18 +236,18 @@ struct _zend_fcall_info *fci, int ret TSRMLS_DC) {
  */
 ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle, int type TSRMLS_DC) {
 
-  char           *filename;
+  const char     *filename;
   char           *func;
   int             len;
   zend_op_array  *ret;
   int             hp_profile_flag = 1;
 
-  filename = strdup(hp_get_base_filename(file_handle->filename));
-  len      = strlen("load") + strlen(filename) + 3;
-  func      = (char *)emalloc(len);
+  filename = hp_get_base_filename(file_handle->filename);
+  len = strlen("load") + strlen(filename) + 3;
+  func = (char *)emalloc(len);
   snprintf(func, len, "load::%s", filename);
 
-  hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, filename, NULL TSRMLS_CC);
+  hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, NULL TSRMLS_CC);
   ret = _zend_compile_file(file_handle, type TSRMLS_CC);
   hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL TSRMLS_CC);
 
@@ -268,7 +269,7 @@ ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filena
     func = (char *)emalloc(len);
     snprintf(func, len, "eval::%s", filename);
 
-    hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, filename, NULL TSRMLS_CC);
+    hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, NULL TSRMLS_CC);
     ret = _zend_compile_string(source_string, filename TSRMLS_CC);
     hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL TSRMLS_CC);
     efree(func);

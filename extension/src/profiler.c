@@ -156,20 +156,17 @@ size_t hp_get_entry_name(hp_entry_t  *entry, char *result_buf, size_t result_len
   return strlen(result_buf);
 }
 
-// if(hp_ignore_entry(hash_code, symbol))
-//   profile_curr = -1;
-// else
-
-int hp_begin_profiling(hp_entry_t **entries, char *symbol, char *pathname, zend_execute_data *data TSRMLS_DC) {
+int hp_begin_profiling(hp_entry_t **entries, const char *symbol, zend_execute_data *data TSRMLS_DC) {
   uint8_t hash_code = hp_inline_hash(symbol);
   int profile_curr;
 
   profile_curr = qm_begin_profiling(hash_code, symbol, data TSRMLS_CC);
   if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {
-    hp_entry_t *cur_entry = hp_fast_alloc_hprof_entry(); //TODO! Check NULL pointers here
+    hp_entry_t *cur_entry = hp_fast_alloc_hprof_entry();
+    if (!cur_entry)
+      return profile_curr;
     cur_entry->hash_code = hash_code;
     cur_entry->name_hprof = symbol;
-    cur_entry->pathname_hprof = pathname;
     cur_entry->prev_hprof = *entries;
     /* Call the universal callback */
     hp_mode_common_beginfn(entries, cur_entry TSRMLS_CC);

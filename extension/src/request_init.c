@@ -22,19 +22,19 @@ static int extract_step_clock_and_mode(HashTable *_SERVER TSRMLS_DC) {
   if (zend_hash_find(_SERVER, QUANTA_HTTP_HEADER, strlen(QUANTA_HTTP_HEADER) + 1, (void **)&data) == FAILURE
   || Z_TYPE_PP(data) != IS_STRING) {
     PRINTF_QUANTA("NO QUANTA HEADER\n");
-    return QUANTA_MON_MODE_EVENTS_ONLY;
+    return -1;
   }
   quanta_header = Z_STRVAL_PP(data);
   PRINTF_QUANTA("QUANTA HEADER: %s\n", quanta_header);
   hp_globals.quanta_step_id = strtoull(quanta_header, &quanta_clock, 10);
   if (quanta_clock == quanta_header) {
     PRINTF_QUANTA("WRONG FORMAT %s for step_id\n", quanta_header);
-    return QUANTA_MON_MODE_EVENTS_ONLY;
+    return -1;
   }
   hp_globals.quanta_clock = strtoull(quanta_clock, &quanta_mode, 10);
   if (quanta_mode == quanta_clock) {
     PRINTF_QUANTA("WRONG FORMAT %s for clock\n", quanta_header);
-    return QUANTA_MON_MODE_EVENTS_ONLY;
+    return -1;
   }
   while (*quanta_mode == ' ')
     quanta_mode++;
@@ -43,19 +43,19 @@ static int extract_step_clock_and_mode(HashTable *_SERVER TSRMLS_DC) {
   else if (!strcmp(quanta_mode, QUANTA_HTTP_HEADER_MODE_FULL))
     return QUANTA_MON_MODE_HIERARCHICAL;
   else
-    return QUANTA_MON_MODE_EVENTS_ONLY;
+    return -1;
 }
 
 /* We get needed informations in http header QUANTA_HTTP_HEADER:
-** Which should contains the step id and the (optional) profiling mode which defaults to magento
+** It should contains the step id and the (optional) profiling mode which defaults to magento
 ** profiling only
-** If an error occurs, we assume QUANTA_MON_EVENTS_ONLY profiling mode
 **
 ** @returns: the profiled mode
 */
 static int extract_headers_info(TSRMLS_D) {
   HashTable *_SERVER;
   zval **arr;
+  int mode;
 
   /* _SERVER is lazy-initialized, force population
   */
@@ -69,11 +69,22 @@ static int extract_headers_info(TSRMLS_D) {
   hp_globals.quanta_clock = 0;
   if (zend_hash_find(&EG(symbol_table), "_SERVER", 8, (void**)&arr) == FAILURE) {
     PRINTF_QUANTA("NO _SERVER\n");
-    return QUANTA_MON_MODE_EVENTS_ONLY;
+    return -1;
   }
   _SERVER = Z_ARRVAL_P(*arr);
   extract_request_uri(_SERVER TSRMLS_CC);
-  return extract_step_clock_and_mode(_SERVER TSRMLS_CC);
+  mode = extract_step_clock_and_mode(_SERVER TSRMLS_CC);
+  if (mode == -1) {
+    if (hp_globals.request_uri && strstr(hp_globals.request_uri, hp_globals.admin_url)) {
+      return QUANTA_MON_MODE_EVENTS_ONLY;
+    } else {
+      efree(hp_globals.request_uri);
+      hp_globals.request_uri = NULL;
+      return -1;
+    }
+  } else {
+    return mode;
+  }
 }
 
 /**
@@ -84,11 +95,15 @@ PHP_RINIT_FUNCTION(quanta_mon) {
   long flags;
 
   mode = extract_headers_info(TSRMLS_C);
+  if (mode == -1) {
+    PRINTF_QUANTA("PROFILER NOT ENABLED\n");
+    return SUCCESS;
+  }
+  PRINTF_QUANTA("PROFILER ENABLED WITH MODE %d\n", mode);
   if (mode <= QUANTA_MON_MODE_SAMPLED)
     flags = QUANTA_MON_FLAGS_CPU | QUANTA_MON_FLAGS_MEMORY;
   else
     flags = 0;
-  // hp_get_ignored_functions_from_arg(optional_array);
   hp_get_monitored_functions_fill();
   hp_begin(mode, flags TSRMLS_CC);
   return SUCCESS;
