@@ -112,9 +112,19 @@ extension/run-tests.php
 
 # Magento test stuff
 /magento
+/magento-backup
+/xhprof
 
 # Packaging stuff
 extension/debian/autoreconf.*
 extension/debian/files
 extension/debian/php5-quanta-mon/
 extension/debian/php5-quanta-mon.substvars
+extension/debian/php5*-quanta-mon/
+extension/debian/php5*-quanta-mon.substvars
+*.dsc
+*.tar.gz
+*.build
+*.changes
+*.deb
+*.upload

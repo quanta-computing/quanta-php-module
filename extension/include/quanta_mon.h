@@ -33,7 +33,7 @@
 ** Full debug mode
 */
 
-#define DEBUG_QUANTA
+//#define DEBUG_QUANTA
 
 #ifdef DEBUG_QUANTA
 # define PRINTF_QUANTA printf
@@ -116,7 +116,7 @@ PHP_RINIT_FUNCTION(quanta_mon);
 PHP_RSHUTDOWN_FUNCTION(quanta_mon);
 PHP_MINFO_FUNCTION(quanta_mon);
 
-#define QUANTA_MON_VERSION "0.10.0"
+#define QUANTA_MON_VERSION "1.0.0"
 
 #define QUANTA_HTTP_HEADER "HTTP_X_QUANTA"
 #define QUANTA_HTTP_HEADER_MODE_MAGE "magento"
