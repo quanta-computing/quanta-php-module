@@ -157,6 +157,9 @@ static const struct {
   //TODO! Check if it shouldnt be PROF_STARTS(12)
   {"before_sending_response", PROF_STOPS(11), PROF_STOPS(12)},
   {"total", PROF_STARTS(0), PROF_STOPS(0)},
+  {"before_all", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STARTS(0)},
+  {"after_all", PROF_STOPS(0), PROF_STOPS(POS_ENTRY_PHP_TOTAL)},
+  {"php_total", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STOPS(POS_ENTRY_PHP_TOTAL)},
   {0}
 };
 

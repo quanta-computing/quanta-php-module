@@ -36,7 +36,8 @@ void hp_get_monitored_functions_fill() {
   hp_globals.monitored_function_names[18] = "Mage_Core_Model_Cache::cleanType";
   hp_globals.monitored_function_names[19] = "Mage_Adminhtml_CacheController::flushSystemAction";
   hp_globals.monitored_function_names[20] = "Mage_Index_Model_Event::_beforeSave";
-  hp_globals.monitored_function_names[21] = NULL;
+  hp_globals.monitored_function_names[21] = ""; // PHP total time
+  hp_globals.monitored_function_names[22] = NULL;
   // Don't forget to change QUANTA_MON_MAX_MONITORED_FUNCTIONS. It must be equal to the last entry ([x] = NULL) + 1
 }
 

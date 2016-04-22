@@ -22,6 +22,7 @@ void hp_end(TSRMLS_D) {
  */
 void hp_stop(TSRMLS_D) {
   /* End any unfinished calls */
+  hp_globals.monitored_function_tsc_stop[POS_ENTRY_PHP_TOTAL] = cycle_timer();
   while (hp_globals.entries)
     hp_end_profiling(&hp_globals.entries, -1, NULL TSRMLS_CC);
   send_metrics(TSRMLS_C);
