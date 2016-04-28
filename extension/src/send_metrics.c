@@ -131,7 +131,6 @@ static void fetch_magento_events(struct timeval *clock, monikor_metric_list_t *m
 #define PROF_STARTS(i) i, -1
 #define PROF_STOPS(i) -1, i
 
-//TODO! remove between on magento loading time
 static const struct {
   char *name;
   int8_t starts_a;
@@ -154,11 +153,10 @@ static const struct {
   {"between_layout_loading_and_rendering", PROF_STOPS(9), PROF_STARTS(10)},
   {"layout_rendering", PROF_STARTS(10), PROF_STOPS(10)},
   {"after_layout_rendering", PROF_STOPS(10), PROF_STOPS(11)},
-  //TODO! Check if it shouldnt be PROF_STARTS(12)
-  {"before_sending_response", PROF_STOPS(11), PROF_STOPS(12)},
+  {"before_sending_response", PROF_STOPS(11), PROF_STARTS(12)},
   {"total", PROF_STARTS(0), PROF_STOPS(0)},
-  {"before_all", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STARTS(0)},
-  {"after_all", PROF_STOPS(0), PROF_STOPS(POS_ENTRY_PHP_TOTAL)},
+  {"before_magento", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STARTS(0)},
+  {"after_magento", PROF_STOPS(0), PROF_STOPS(POS_ENTRY_PHP_TOTAL)},
   {"php_total", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STOPS(POS_ENTRY_PHP_TOTAL)},
   {0}
 };
@@ -174,6 +172,9 @@ float cpufreq, size_t metric_idx) {
   size_t stop;
   size_t i;
 
+  // Ignore if we have no Magento time
+  if (hp_globals.monitored_function_tsc_start[0] <= 0)
+    return;
   start = magento_metrics[metric_idx].starts_a == -1 ?
     magento_metrics[metric_idx].stops_a + 1: magento_metrics[metric_idx].starts_a;
   stop = magento_metrics[metric_idx].starts_b == -1 ?
@@ -231,7 +232,9 @@ static void fetch_profiler_metrics(struct timeval *clock, monikor_metric_list_t 
     PRINTF_QUANTA("METRIC %s: a: %"PRIu64" b: %"PRIu64" = %f ms\n", metric_name, a, b,
       cpu_cycles_range_to_ms(cpufreq, a, b));
     metric = monikor_metric_float(metric_name, clock, cpu_cycles_range_to_ms(cpufreq, a, b), 0);
-    if (metric)
+    // Ignore if this is a Magento metric and we have no magento total time
+    if (metric && (hp_globals.monitored_function_tsc_start[0] > 0
+    || !strcmp("php_total", magento_metrics[i].name)))
       monikor_metric_list_push(metrics, metric);
     fetch_profiler_sql_metrics(clock, metrics, cpufreq, i);
   }
