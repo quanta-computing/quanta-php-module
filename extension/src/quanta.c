@@ -75,7 +75,6 @@ int qm_begin_profiling(uint8_t hash_code, const char *curr_func, zend_execute_da
 
   i = match_function_and_class(i, execute_data, curr_func TSRMLS_CC);
   if (!hp_globals_monitored_function_names()[i] || !*hp_globals_monitored_function_names()[i]) {
-    PRINTF_QUANTA("FALSE MATCH FOR %s\n", curr_func);
     return -1; /* False match, we have nothing */
   }
 
