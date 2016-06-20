@@ -42,10 +42,12 @@ static int match_function_and_class(int start, zend_execute_data *data, const ch
   if (!class_name)
     return QUANTA_MON_MAX_MONITORED_FUNCTIONS -1;
   class_name_len = strlen(class_name);
-  for (; hp_globals.monitored_function_names[start]; start++) {
-    if (!strncmp(class_name, hp_globals.monitored_function_names[start], class_name_len)
-    && !strncmp(hp_globals.monitored_function_names[start] + class_name_len, "::", 2)
-    && !strcmp(name, hp_globals.monitored_function_names[start] + class_name_len + 2))
+  // PRINTF_QUANTA("Function %s::%s matched (maybe)\n", class_name, name);
+  for (; hp_globals_monitored_function_names()[start]; start++) {
+    // PRINTF_QUANTA("CHECKING %s::%s against %s\n", class_name, name, hp_globals_monitored_function_names()[start]);
+    if (!strncmp(class_name, hp_globals_monitored_function_names()[start], class_name_len)
+    && !strncmp(hp_globals_monitored_function_names()[start] + class_name_len, "::", 2)
+    && !strcmp(name, hp_globals_monitored_function_names()[start] + class_name_len + 2))
       return start;
   }
   return start;
@@ -72,14 +74,15 @@ int qm_begin_profiling(uint8_t hash_code, const char *curr_func, zend_execute_da
     i = 0;
 
   i = match_function_and_class(i, execute_data, curr_func TSRMLS_CC);
-  if (!hp_globals.monitored_function_names[i] || !*hp_globals.monitored_function_names[i]) {
+  if (!hp_globals_monitored_function_names()[i] || !*hp_globals_monitored_function_names()[i]) {
+    PRINTF_QUANTA("FALSE MATCH FOR %s\n", curr_func);
     return -1; /* False match, we have nothing */
   }
 
   hp_globals.monitored_function_tsc_start[i] = cycle_timer();
 
-  if (i != POS_ENTRY_PDO_EXECUTE && i != POS_ENTRY_TOHTML && *hp_globals.monitored_function_names[i]) {
-    PRINTF_QUANTA("BEGIN FUNCTION %d %s\n", i, hp_globals.monitored_function_names[i]);
+  if (i != POS_ENTRY_PDO_EXECUTE && i != POS_ENTRY_TOHTML && *hp_globals_monitored_function_names()[i]) {
+    PRINTF_QUANTA("BEGIN FUNCTION %d %s\n", i, hp_globals_monitored_function_names()[i]);
     hp_globals.current_monitored_function = i;
     hp_globals.last_monitored_function = -1;
   }
@@ -103,8 +106,8 @@ int qm_begin_profiling(uint8_t hash_code, const char *curr_func, zend_execute_da
 int qm_end_profiling(int profile_curr, zend_execute_data *execute_data TSRMLS_DC) {
   hp_globals.monitored_function_tsc_stop[profile_curr] = cycle_timer();
 
-  if (profile_curr != POS_ENTRY_PDO_EXECUTE && profile_curr != POS_ENTRY_TOHTML && *hp_globals.monitored_function_names[profile_curr]) {
-    PRINTF_QUANTA("END FUNCTION %d %s\n", profile_curr, hp_globals.monitored_function_names[profile_curr]);
+  if (profile_curr != POS_ENTRY_PDO_EXECUTE && profile_curr != POS_ENTRY_TOHTML && *hp_globals_monitored_function_names()[profile_curr]) {
+    PRINTF_QUANTA("END FUNCTION %d %s\n", profile_curr, hp_globals_monitored_function_names()[profile_curr]);
     hp_globals.current_monitored_function = -1;
     hp_globals.last_monitored_function = profile_curr;
   }

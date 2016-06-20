@@ -4,11 +4,14 @@
  * Called at request shutdown time. Cleans the profiler's global state.
  */
 void hp_end(TSRMLS_D) {
+  PRINTF_QUANTA("hp_end();\n");
+  PRINTF_QUANTA("hp_end => hp_globals.ever_enabled:%d;\n", hp_globals.ever_enabled);
   /* Bail if not ever enabled */
   if (!hp_globals.ever_enabled) {
     return;
   }
 
+  PRINTF_QUANTA("hp_end => hp_globals.enabled:%d;\n", hp_globals.enabled);
   /* Stop profiler if enabled */
   if (hp_globals.enabled) {
     hp_stop(TSRMLS_C);
@@ -31,4 +34,5 @@ void hp_stop(TSRMLS_D) {
   restore_cpu_affinity(&hp_globals.prev_mask);
   /* Stop profiling */
   hp_globals.enabled = 0;
+  PRINTF_QUANTA("hp_stop();\n");
 }

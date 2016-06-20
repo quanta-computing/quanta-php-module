@@ -28,15 +28,14 @@
 
 #include "cpu.h"
 
-
 /*
 ** Full debug mode
 */
 
-//#define DEBUG_QUANTA
+#define DEBUG_QUANTA
 
 #ifdef DEBUG_QUANTA
-# define PRINTF_QUANTA printf
+# define PRINTF_QUANTA(...) dprintf(1, __VA_ARGS__)
 #else
 # define PRINTF_QUANTA dummy_printf
   static void dummy_printf(char *unused, ...)
@@ -81,6 +80,8 @@
 #define QUANTA_MON_MAX_MONITORED_FUNCTIONS_HASH  256
 #define QUANTA_MON_MAX_MONITORED_FUNCTIONS  23
 #define QUANTA_MON_MONITORED_FUNCTION_FILTER_SIZE ((QUANTA_MON_MAX_MONITORED_FUNCTIONS_HASH + 7)/8)
+
+#define QUANTA_MAGENTO_VERSION_INDEX 1
 
 /* Monitored functions positions */
 #define POS_ENTRY_TOHTML     15
@@ -264,7 +265,7 @@ typedef struct hp_global_t {
   uint8_t   ignored_function_filter[QUANTA_MON_IGNORED_FUNCTION_FILTER_SIZE];
 
   /* Table of monitored function names and their filter */
-  char     *monitored_function_names[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
+  char     *monitored_function_names[2][QUANTA_MON_MAX_MONITORED_FUNCTIONS];
   uint8_t  monitored_function_filter[QUANTA_MON_MONITORED_FUNCTION_FILTER_SIZE];
   uint64_t monitored_function_tsc_start[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
   uint64_t monitored_function_tsc_stop[QUANTA_MON_MAX_MONITORED_FUNCTIONS];
@@ -343,6 +344,7 @@ void hp_init_profiler_state(int level TSRMLS_DC);
 void hp_clean_profiler_state(TSRMLS_D);
 void hp_inc_count(zval *counts, char *name, long count TSRMLS_DC);
 size_t hp_get_entry_name(hp_entry_t  *entry, char *result_buf, size_t result_len);
+char **hp_globals_monitored_function_names(void);
 
 int hp_begin_profiling(hp_entry_t **entries, const char *symbol, zend_execute_data *data TSRMLS_DC);
 void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data *data TSRMLS_DC);

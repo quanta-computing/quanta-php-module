@@ -7,38 +7,73 @@
  */
 void hp_get_monitored_functions_fill() {
   /* Already initialized ? */
-  if (hp_globals.monitored_function_names[0] != NULL) {
+  if (hp_globals.monitored_function_names[0][0] != NULL) {
     return;
   }
-  hp_globals.monitored_function_names[0]  = "Mage::run";
-  hp_globals.monitored_function_names[1]  = "Mage_Core_Model_App::_initBaseConfig";
-  hp_globals.monitored_function_names[2]  = "Mage_Core_Model_App::_initCache";
-  hp_globals.monitored_function_names[3]  = "Mage_Core_Model_Config::loadModulesCache";
-  hp_globals.monitored_function_names[4]  = "Mage_Core_Model_Config::loadModules";
-  hp_globals.monitored_function_names[5]  = "Mage_Core_Model_Resource_Setup::applyAllUpdates";
-  hp_globals.monitored_function_names[6]  = "Mage_Core_Model_Config::loadDb";
-  hp_globals.monitored_function_names[7]  = "Mage_Core_Model_App::_initStores";
+  hp_globals.monitored_function_names[0][0] = "Mage::run";
+  hp_globals.monitored_function_names[0][1] = "Mage_Core_Model_App::_initBaseConfig";
+  hp_globals.monitored_function_names[0][2] = "Mage_Core_Model_App::_initCache";
+  hp_globals.monitored_function_names[0][3] = "Mage_Core_Model_Config::loadModulesCache";
+  hp_globals.monitored_function_names[0][4] = "Mage_Core_Model_Config::loadModules";
+  hp_globals.monitored_function_names[0][5] = "Mage_Core_Model_Resource_Setup::applyAllUpdates";
+  hp_globals.monitored_function_names[0][6] = "Mage_Core_Model_Config::loadDb";
+  hp_globals.monitored_function_names[0][7] = "Mage_Core_Model_App::_initStores";
 
-  hp_globals.monitored_function_names[8]  = "Mage_Core_Controller_Varien_Action::preDispatch";
-  hp_globals.monitored_function_names[9] = "Mage_Core_Controller_Varien_Action::loadLayoutUpdates";
-  hp_globals.monitored_function_names[10] = "Mage_Core_Controller_Varien_Action::renderLayout";
-  hp_globals.monitored_function_names[11] = "Mage_Core_Controller_Varien_Action::postDispatch";
-  hp_globals.monitored_function_names[12] = "Mage_Core_Controller_Response_Http::sendResponse";
+  hp_globals.monitored_function_names[0][8] = "Mage_Core_Controller_Varien_Action::preDispatch";
+  hp_globals.monitored_function_names[0][9] = "Mage_Core_Controller_Varien_Action::loadLayoutUpdates";
+  hp_globals.monitored_function_names[0][10] = "Mage_Core_Controller_Varien_Action::renderLayout";
+  hp_globals.monitored_function_names[0][11] = "Mage_Core_Controller_Varien_Action::postDispatch";
+  hp_globals.monitored_function_names[0][12] = "Mage_Core_Controller_Response_Http::sendResponse";
 
-  hp_globals.monitored_function_names[13] = "";
-  hp_globals.monitored_function_names[14] = "";
-  hp_globals.monitored_function_names[15] = "Mage_Core_Block_Abstract::toHtml";
+  hp_globals.monitored_function_names[0][13] = "";
+  hp_globals.monitored_function_names[0][14] = "";
+  hp_globals.monitored_function_names[0][15] = "Mage_Core_Block_Abstract::toHtml";
 
-  hp_globals.monitored_function_names[16] = "PDOStatement::execute";
+  hp_globals.monitored_function_names[0][16] = "PDOStatement::execute";
 
   /* POS_ENTRY_EVENTS_ONLY */
-  hp_globals.monitored_function_names[17] = "Mage_Core_Model_Cache::flush";
-  hp_globals.monitored_function_names[18] = "Mage_Core_Model_Cache::cleanType";
-  hp_globals.monitored_function_names[19] = "Mage_Adminhtml_CacheController::flushSystemAction";
-  hp_globals.monitored_function_names[20] = "Mage_Index_Model_Event::_beforeSave";
-  hp_globals.monitored_function_names[21] = ""; // PHP total time
-  hp_globals.monitored_function_names[22] = NULL;
+  hp_globals.monitored_function_names[0][17] = "Mage_Core_Model_Cache::flush";
+  hp_globals.monitored_function_names[0][18] = "Mage_Core_Model_Cache::cleanType";
+  hp_globals.monitored_function_names[0][19] = "Mage_Adminhtml_CacheController::flushSystemAction";
+  hp_globals.monitored_function_names[0][20] = "Mage_Index_Model_Event::_beforeSave";
+  hp_globals.monitored_function_names[0][21] = ""; // PHP total time
+  hp_globals.monitored_function_names[0][22] = NULL;
+
+  // MAGENTO 2
+  hp_globals.monitored_function_names[1][0] = "Magento\\Framework\\App\\Bootstrap::run";
+  hp_globals.monitored_function_names[1][1] = "";
+  hp_globals.monitored_function_names[1][2] = "";
+  hp_globals.monitored_function_names[1][3] = "";
+  hp_globals.monitored_function_names[1][4] = "";
+  hp_globals.monitored_function_names[1][5] = "";
+  hp_globals.monitored_function_names[1][6] = "";
+  hp_globals.monitored_function_names[1][7] = "";
+
+  hp_globals.monitored_function_names[1][8] = "Magento\\Framework\\App\\FrontController::dispatch";
+  hp_globals.monitored_function_names[1][9] = "Magento\\Framework\\View\\Page\\Builder::loadLayoutUpdates";
+  hp_globals.monitored_function_names[1][10] = "Magento\\Framework\\View\\Page\\Builder::generateLayoutBlocks";
+  hp_globals.monitored_function_names[1][11] = "";
+  hp_globals.monitored_function_names[1][12] = "Magento\\Framework\\App\\Response\\Http::sendResponse";
+
+  hp_globals.monitored_function_names[1][13] = "";
+  hp_globals.monitored_function_names[1][14] = "";
+  hp_globals.monitored_function_names[1][15] = "";
+
+  hp_globals.monitored_function_names[1][16] = "";
+
+  /* POS_ENTRY_EVENTS_ONLY */
+  hp_globals.monitored_function_names[1][17] = "";
+  hp_globals.monitored_function_names[1][18] = "";
+  hp_globals.monitored_function_names[1][19] = "";
+  hp_globals.monitored_function_names[1][20] = "";
+  hp_globals.monitored_function_names[1][21] = "";
+  hp_globals.monitored_function_names[1][22] = "";
+
   // Don't forget to change QUANTA_MON_MAX_MONITORED_FUNCTIONS. It must be equal to the last entry ([x] = NULL) + 1
+}
+
+char **hp_globals_monitored_function_names(void) {
+  return hp_globals.monitored_function_names[QUANTA_MAGENTO_VERSION_INDEX];
 }
 
 /**
@@ -58,11 +93,11 @@ void hp_monitored_functions_filter_clear() {
  */
 void hp_monitored_functions_filter_init() {
     int i = 0;
-    for(; hp_globals.monitored_function_names[i] != NULL; i++) {
-      if (!*hp_globals.monitored_function_names[i])
+    for(; hp_globals_monitored_function_names()[i] != NULL; i++) {
+      if (!*hp_globals_monitored_function_names()[i])
         continue;
-      char *str  = strstr(hp_globals.monitored_function_names[i], "::");
-      uint8_t hash = hp_inline_hash(str ? str + 2 : hp_globals.monitored_function_names[i]);
+      char *str  = strstr(hp_globals_monitored_function_names()[i], "::");
+      uint8_t hash = hp_inline_hash(str ? str + 2 : hp_globals_monitored_function_names()[i]);
       int   idx  = INDEX_2_BYTE(hash);
       hp_globals.monitored_function_filter[idx] |= INDEX_2_BIT(hash);
     }

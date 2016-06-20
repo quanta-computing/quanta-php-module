@@ -46,26 +46,39 @@ static void fetch_xhprof_metrics(struct timeval *clock, monikor_metric_list_t *m
   zval_dtor(&func);
 }
 
-static void fetch_magento_version(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
-  char value[512];
-  zval func;
-  zval version;
-  zval edition;
+static int call_function(char *function_name, zval *ret_val) {
   int ret;
+  zval *params[1];
+  zval is_callable, func;
 
   INIT_ZVAL(func);
+  MAKE_STD_ZVAL(params[0]);
+  ZVAL_NULL(&is_callable);
+  ZVAL_STRING(params[0], function_name, 1);
+  ZVAL_STRING(&func, "is_callable", 1);
+  ret = call_user_function(CG(function_table), NULL, &func, &is_callable, 1, params TSRMLS_CC);
+  FREE_ZVAL(params[0]);
+  if (ret != SUCCESS || Z_TYPE(is_callable) != IS_BOOL || !Z_BVAL(is_callable))
+    return -1;
+  ZVAL_STRING(&func, function_name, 1);
+  ret = call_user_function(CG(function_table), NULL, &func, ret_val, 0, NULL TSRMLS_CC);
+  zval_dtor(&func);
+  return ret != SUCCESS ? -1 : 0;
+}
+
+static void fetch_magento_version(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
+  char value[512];
+  zval version;
+  zval edition;
+
   ZVAL_NULL(&version);
   ZVAL_NULL(&edition);
-  ZVAL_STRING(&func, "Mage::getVersion", 1);
-  ret = call_user_function(CG(function_table), NULL, &func, &version, 0, NULL TSRMLS_CC);
-  if (ret != SUCCESS || Z_TYPE(version) != IS_STRING) {
-    PRINTF_QUANTA("Cannot get magento version\n");
+  if (call_function("Mage::getVersion", &version) || Z_TYPE(version) != IS_STRING) {
+    PRINTF_QUANTA("Could not get magento version\n");
     goto end;
   }
-  ZVAL_STRING(&func, "Mage::getEdition", 1);
-  ret = call_user_function(CG(function_table), NULL, &func, &edition, 0, NULL TSRMLS_CC);
-  if (ret != SUCCESS || Z_TYPE(edition) != IS_STRING) {
-    PRINTF_QUANTA("Cannot get magento edition\n");
+  if (call_function("Mage::getEdition", &edition) || Z_TYPE(edition) != IS_STRING) {
+    PRINTF_QUANTA("Could not get magento edition\n");
     goto end;
   }
   if (snprintf(value, 512, "%s %s", Z_STRVAL(version), Z_STRVAL(edition)) < 512) {
@@ -79,7 +92,6 @@ static void fetch_magento_version(struct timeval *clock, monikor_metric_list_t *
 end:
   zval_dtor(&version);
   zval_dtor(&edition);
-  zval_dtor(&func);
 }
 
 static void fetch_php_version(struct timeval *clock, monikor_metric_list_t *metrics) {

@@ -10,6 +10,7 @@ static void extract_request_uri(HashTable *_SERVER TSRMLS_DC) {
     hp_globals.request_uri = NULL;
   } else {
     hp_globals.request_uri = estrdup(Z_STRVAL_PP(data));
+    PRINTF_QUANTA("REQUEST URI: %s\n", hp_globals.request_uri);
   }
 }
 

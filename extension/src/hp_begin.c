@@ -31,6 +31,7 @@ static void register_appropriate_callbacks(long level) {
  */
 void hp_begin(long level, long quanta_mon_flags TSRMLS_DC) {
   if (!hp_globals.enabled) {
+    PRINTF_QUANTA("hp_begin();\n");
 
     hp_globals.enabled      = 1;
     hp_globals.quanta_mon_flags = (uint32_t)quanta_mon_flags;
