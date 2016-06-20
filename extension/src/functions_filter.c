@@ -67,7 +67,7 @@ void hp_get_monitored_functions_fill() {
   hp_globals.monitored_function_names[1][19] = "";
   hp_globals.monitored_function_names[1][20] = "";
   hp_globals.monitored_function_names[1][21] = "";
-  hp_globals.monitored_function_names[1][22] = "";
+  hp_globals.monitored_function_names[1][22] = NULL;
 
   // Don't forget to change QUANTA_MON_MAX_MONITORED_FUNCTIONS. It must be equal to the last entry ([x] = NULL) + 1
 }
