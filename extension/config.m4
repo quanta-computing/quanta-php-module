@@ -20,6 +20,7 @@ if test "$PHP_QUANTAMON" != "no"; then
   PHP_SUBST(QUANTA_MON_SHARED_LIBADD)
   PHP_NEW_EXTENSION(quanta_mon,
     src/block_stack.c \
+    src/call_function_helpers.c \
     src/constants.c \
     src/cpu.c \
     src/functions_filter.c \
