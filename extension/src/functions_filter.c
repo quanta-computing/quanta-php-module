@@ -39,6 +39,8 @@ void hp_get_monitored_functions_fill() {
   hp_globals.monitored_function_names[0][21] = ""; // PHP total time
   hp_globals.monitored_function_names[0][22] = NULL;
 
+
+
   // MAGENTO 2
   hp_globals.monitored_function_names[1][0] = "Magento\\Framework\\App\\Bootstrap::run";
   hp_globals.monitored_function_names[1][1] = "";
@@ -57,9 +59,9 @@ void hp_get_monitored_functions_fill() {
 
   hp_globals.monitored_function_names[1][13] = "";
   hp_globals.monitored_function_names[1][14] = "";
-  hp_globals.monitored_function_names[1][15] = "";
+  hp_globals.monitored_function_names[1][15] = "Magento\\Framework\\View\\Element\\AbstractBlock::toHtml";
 
-  hp_globals.monitored_function_names[1][16] = "";
+  hp_globals.monitored_function_names[1][16] = "PDOStatement::execute";
 
   /* POS_ENTRY_EVENTS_ONLY */
   hp_globals.monitored_function_names[1][17] = "";

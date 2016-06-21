@@ -19,7 +19,7 @@ static char *get_block_attr(const char *key, size_t key_len, zval *this TSRMLS_D
   block = Z_OBJPROP_P(this);
   if (zend_hash_find(block, key, key_len, (void **)&data) == FAILURE
   || Z_TYPE_PP(data) != IS_STRING) {
-    PRINTF_QUANTA("Cannot extract attr %s from block\n", key + 3);
+    // PRINTF_QUANTA("Cannot extract attr %s from block\n", key + 3);
     return NULL;
   } else {
     return estrdup(Z_STRVAL_PP(data));
@@ -46,14 +46,15 @@ int qm_before_tohtml(int profile_curr, zend_execute_data *execute_data TSRMLS_DC
   block->name = get_block_attr("\0*\0_nameInLayout", 17, this TSRMLS_CC);
   block->template = get_block_attr("\0*\0_template", 13, this TSRMLS_CC);
   if (!block->name) {
-    PRINTF_QUANTA("Block does not have a nameInLayout (template: %s / class: %s)\n",
-      block->template, block->class);
+    // PRINTF_QUANTA("Block does not have a nameInLayout (template: %s / class: %s)\n",
+    //   block->template, block->class);
     efree(block->name);
     efree(block->class);
     efree(block->template);
     efree(block);
     return -1;
   }
+  PRINTF_QUANTA("BLOCK FOUND %s, %s, %s\n", block->name, block->template, block->class);
   block_stack_push(block);
   if (hp_globals.magento_blocks_first == NULL)
     hp_globals.magento_blocks_first = block;
@@ -72,7 +73,7 @@ int qm_after_tohtml(zend_execute_data *execute_data TSRMLS_DC) {
 
   if (!(this = get_this(execute_data TSRMLS_CC))
   || !(name = get_block_attr("\0*\0_nameInLayout", 17, this TSRMLS_CC))) {
-    PRINTF_QUANTA("nameInLayout not found in afterToHtml\n");
+    // PRINTF_QUANTA("nameInLayout not found in afterToHtml\n");
     return -1;
   }
   if (!(block = block_stack_pop())) {
