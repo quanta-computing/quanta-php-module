@@ -27,7 +27,9 @@ size_t call_params_count, zval **call_params TSRMLS_DC) {
   ret = call_user_function(object ? NULL : CG(function_table), object ? &object : NULL,
     &func, ret_val, call_params_count, call_params TSRMLS_CC);
   zval_dtor(&func);
-  return ret != SUCCESS || Z_TYPE_P(ret_val) != ret_type ? -1 : 0;
+  // TODO!
+  // return ret != SUCCESS || Z_TYPE_P(ret_val) != ret_type ? -1 : 0;
+  return ret != SUCCESS ? -1 : 0;
 }
 
 int safe_call_function(char *function, zval *ret, int ret_type,
