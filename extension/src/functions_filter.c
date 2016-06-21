@@ -51,6 +51,10 @@ void hp_get_monitored_functions_fill() {
   hp_globals.monitored_function_names[1][6] = "";
   hp_globals.monitored_function_names[1][7] = "";
 
+  // REMOVE THOSE 2,3,5,6,7
+  hp_globals.monitored_function_names[1][2] = "Magento\\Framework\\App\\ObjectManagerFactory::create";
+  hp_globals.monitored_function_names[1][3] = "Magento\\Framework\\App\\ObjectManager\\Environment\\Developer::getObjectManagerFactory";
+
   hp_globals.monitored_function_names[1][8] = "Magento\\Framework\\App\\FrontController::dispatch";
   hp_globals.monitored_function_names[1][9] = "Magento\\Framework\\View\\Page\\Builder::loadLayoutUpdates";
   hp_globals.monitored_function_names[1][10] = "Magento\\Framework\\View\\Page\\Builder::generateLayoutBlocks";
