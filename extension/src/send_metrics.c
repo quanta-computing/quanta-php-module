@@ -24,70 +24,88 @@ static void fetch_request_uri(struct timeval *clock, monikor_metric_list_t *metr
 
 static void fetch_xhprof_metrics(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
   char metric_name[MAX_METRIC_NAME_LENGTH];
-  zval func;
-  zval retval;
-  int ret;
+  zval encoded;
 
   if (hp_globals.profiler_level > QUANTA_MON_MODE_SAMPLED)
     return;
-  INIT_ZVAL(func);
-  ZVAL_NULL(&retval);
-  ZVAL_STRING(&func, "json_encode", 1);
-  ret = call_user_function(CG(function_table), NULL, &func, &retval, 1, &hp_globals.stats_count TSRMLS_CC);
-  if (ret != SUCCESS || Z_TYPE(retval) != IS_STRING) {
-    PRINTF_QUANTA("Error: cannot json encode xhprof output\n :(");
+  ZVAL_NULL(&encoded);
+  if (safe_call_function("json_encode", &encoded, IS_STRING, 1, &hp_globals.stats_count TSRMLS_CC)) {
+    PRINTF_QUANTA("Error: cannot json encode xhprof output\n");
   } else {
     sprintf(metric_name, "qtracer.%zu.json", hp_globals.quanta_step_id);
-    monikor_metric_t *metric = monikor_metric_string(metric_name, clock, Z_STRVAL(retval));
+    monikor_metric_t *metric = monikor_metric_string(metric_name, clock, Z_STRVAL(encoded));
     if (metric)
       monikor_metric_list_push(metrics, metric);
   }
-  zval_dtor(&retval);
-  zval_dtor(&func);
+  zval_dtor(&encoded);
 }
 
-static int call_function(char *function_name, zval *ret_val) {
-  int ret;
-  zval *params[1];
-  zval is_callable, func;
+static void push_magento_version_metric(struct timeval *clock, monikor_metric_list_t *metrics,
+char *version, char *edition) {
+  char value[512];
 
-  INIT_ZVAL(func);
+  if (snprintf(value, 512, "%s %s", version, edition) < 512) {
+    monikor_metric_t *metric = monikor_metric_string("magento.version.magento", clock, value);
+    if (metric) {
+      monikor_metric_list_push(metrics, metric);
+      PRINTF_QUANTA("Magento version %s\n", value);
+    }
+  } else {
+    PRINTF_QUANTA("Cannot format magento version\n");
+  }
+}
+
+static void fetch_magento2_version(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
+  zval *objectManager;
+  zval *productMetaData;
+  zval version;
+  zval edition;
+  zval *params[1];
+  int ret;
+
+  MAKE_STD_ZVAL(objectManager);
+  MAKE_STD_ZVAL(productMetaData);
   MAKE_STD_ZVAL(params[0]);
-  ZVAL_NULL(&is_callable);
-  ZVAL_STRING(params[0], function_name, 1);
-  ZVAL_STRING(&func, "is_callable", 1);
-  ret = call_user_function(CG(function_table), NULL, &func, &is_callable, 1, params TSRMLS_CC);
+  ZVAL_NULL(&version);
+  ZVAL_NULL(&edition);
+  ret = safe_call_function("Magento\\Framework\\App\\ObjectManager::getInstance",
+    objectManager, IS_OBJECT, 0, NULL TSRMLS_CC);
+  if (ret) {
+    PRINTF_QUANTA("Cannot get Magento\\Framework\\App\\ObjectManager\n");
+    goto end;
+  }
+  ZVAL_STRING(params[0], "Magento\\Framework\\App\\ProductMetadataInterface", 1);
+  if (safe_call_method(objectManager, "get", productMetaData, IS_OBJECT, 1, params TSRMLS_CC)) {
+    PRINTF_QUANTA("Cannot get Magento\\Framework\\App\\ProductMetaData\n");
+    goto end;
+  }
+  if (safe_call_method(productMetaData, "getVersion", &version, IS_STRING, 0, NULL TSRMLS_CC)
+  || safe_call_method(productMetaData, "getEdition", &edition, IS_STRING, 0, NULL TSRMLS_CC)) {
+    PRINTF_QUANTA("Cannot get magento2 version\n");
+    goto end;
+  }
+  push_magento_version_metric(clock, metrics, Z_STRVAL(version), Z_STRVAL(edition));
+
+end:
+  FREE_ZVAL(objectManager);
+  FREE_ZVAL(productMetaData);
   FREE_ZVAL(params[0]);
-  if (ret != SUCCESS || Z_TYPE(is_callable) != IS_BOOL || !Z_BVAL(is_callable))
-    return -1;
-  ZVAL_STRING(&func, function_name, 1);
-  ret = call_user_function(CG(function_table), NULL, &func, ret_val, 0, NULL TSRMLS_CC);
-  zval_dtor(&func);
-  return ret != SUCCESS ? -1 : 0;
+  zval_dtor(&version);
+  zval_dtor(&edition);
 }
 
 static void fetch_magento_version(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
-  char value[512];
   zval version;
   zval edition;
 
   ZVAL_NULL(&version);
   ZVAL_NULL(&edition);
-  if (call_function("Mage::getVersion", &version) || Z_TYPE(version) != IS_STRING) {
+  if (safe_call_function("Mage::getVersion", &version, IS_STRING, 0, NULL TSRMLS_CC)
+  || safe_call_function("Mage::getEdition", &edition, IS_STRING, 0, NULL)) {
     PRINTF_QUANTA("Could not get magento version\n");
     goto end;
   }
-  if (call_function("Mage::getEdition", &edition) || Z_TYPE(edition) != IS_STRING) {
-    PRINTF_QUANTA("Could not get magento edition\n");
-    goto end;
-  }
-  if (snprintf(value, 512, "%s %s", Z_STRVAL(version), Z_STRVAL(edition)) < 512) {
-    monikor_metric_t *metric = monikor_metric_string("magento.version.magento", clock, value);
-    if (metric)
-      monikor_metric_list_push(metrics, metric);
-  } else {
-    PRINTF_QUANTA("Cannot format magento version\n");
-  }
+  push_magento_version_metric(clock, metrics, Z_STRVAL(version), Z_STRVAL(edition));
 
 end:
   zval_dtor(&version);
@@ -108,6 +126,7 @@ static void fetch_module_version(struct timeval *clock, monikor_metric_list_t *m
 
 static void fetch_all_versions(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
   fetch_magento_version(clock, metrics TSRMLS_CC);
+  fetch_magento2_version(clock, metrics TSRMLS_CC);
   fetch_php_version(clock, metrics);
   fetch_module_version(clock, metrics);
 }
@@ -257,11 +276,8 @@ magento_block_t *block TSRMLS_DC) {
   char metric_name[MAX_METRIC_NAME_LENGTH];
   char *metric_base_end;
   monikor_metric_t *metric;
-  zval func;
-  zval retval;
-  zval class_name;
-  zval *params;
-  int ret;
+  zval class_file;
+  zval *params[1];
 
   if (!block->class)
     return;
@@ -270,23 +286,18 @@ magento_block_t *block TSRMLS_DC) {
   strcpy(metric_base_end, "class");
   if ((metric = monikor_metric_string(metric_name, clock, block->class)))
     monikor_metric_list_push(metrics, metric);
-  INIT_ZVAL(func);
-  INIT_ZVAL(class_name);
-  ZVAL_NULL(&retval);
-  ZVAL_STRING(&func, "mageFindClassFile", 1);
-  ZVAL_STRING(&class_name, block->class, 1);
-  params = &class_name;
-  ret = call_user_function(CG(function_table), NULL, &func, &retval, 1, &params TSRMLS_CC);
-  if (ret != SUCCESS || Z_TYPE(retval) != IS_STRING) {
+  MAKE_STD_ZVAL(params[0]);
+  ZVAL_NULL(&class_file);
+  ZVAL_STRING(params[0], block->class, 1);
+  if (safe_call_function("mageFindClassFile", &class_file, IS_STRING, 1, params TSRMLS_CC)) {
     PRINTF_QUANTA("Error: cannot get class_file for block %s\n", block->name);
   } else {
     strcpy(metric_base_end, "class_file");
-    if ((metric = monikor_metric_string(metric_name, clock, Z_STRVAL(retval))))
+    if ((metric = monikor_metric_string(metric_name, clock, Z_STRVAL(class_file))))
       monikor_metric_list_push(metrics, metric);
   }
-  zval_dtor(&class_name);
-  zval_dtor(&retval);
-  zval_dtor(&func);
+  FREE_ZVAL(params[0]);
+  zval_dtor(&class_file);
 }
 
 static void fetch_block_template_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
