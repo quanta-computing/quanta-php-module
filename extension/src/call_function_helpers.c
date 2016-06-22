@@ -27,9 +27,7 @@ size_t call_params_count, zval **call_params TSRMLS_DC) {
   ret = call_user_function(object ? NULL : CG(function_table), object ? &object : NULL,
     &func, ret_val, call_params_count, call_params TSRMLS_CC);
   zval_dtor(&func);
-  // TODO!
-  // return ret != SUCCESS || Z_TYPE_P(ret_val) != ret_type ? -1 : 0;
-  return ret != SUCCESS ? -1 : 0;
+  return ret != SUCCESS || Z_TYPE_P(ret_val) != ret_type ? -1 : 0;
 }
 
 int safe_call_function(char *function, zval *ret, int ret_type,
@@ -40,4 +38,22 @@ size_t params_count, zval **params TSRMLS_DC) {
 int safe_call_method(zval *object, char *method, zval *ret, int ret_type,
 size_t params_count, zval **params TSRMLS_DC) {
   return _safe_call_function(method, object, ret, ret_type, params_count, params TSRMLS_CC);
+}
+
+zval *safe_new(char *class, int params_count, zval **params TSRMLS_DC) {
+  zend_class_entry *ce;
+  zval *object;
+  zval dummy;
+
+  ZVAL_NULL(&dummy);
+  MAKE_STD_ZVAL(object);
+  if (!(ce = zend_fetch_class(class, strlen(class), ZEND_FETCH_CLASS_SILENT))
+  || object_init_ex(object, ce)
+  || safe_call_method(object, "__construct", &dummy, IS_NULL, params_count, params TSRMLS_CC)) {
+    zval_dtor(&dummy);
+    FREE_ZVAL(object);
+    return NULL;
+  }
+  zval_dtor(&dummy);
+  return object;
 }

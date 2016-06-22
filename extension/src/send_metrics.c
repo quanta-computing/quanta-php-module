@@ -271,79 +271,50 @@ static void fetch_profiler_metrics(struct timeval *clock, monikor_metric_list_t 
   }
 }
 
-static void fetch_block_magento2_class_metric(struct timeval *clock, monikor_metric_list_t *metrics,
+// TODO! Check if it still works with Magento 1
+static void fetch_block_class_file_metric(struct timeval *clock, monikor_metric_list_t *metrics,
 magento_block_t *block) {
   monikor_metric_t *metric;
-  zend_class_entry *reflection_ce;
   zval *reflection;
   zval *params[1];
   zval class_file;
-  zval dummy;
   char metric_name[MAX_METRIC_NAME_LENGTH];
 
-  sprintf(metric_name, "magento.%zu.blocks.%.255s.class_file",
-    hp_globals.quanta_step_id, block->name);
-  reflection_ce = zend_fetch_class("ReflectionClass", strlen("ReflectionClass"), 0);
   ZVAL_NULL(&class_file);
-  ZVAL_NULL(&dummy);
-  MAKE_STD_ZVAL(reflection);
   MAKE_STD_ZVAL(params[0]);
   ZVAL_STRING(params[0], block->class, 1);
-  object_init_ex(reflection, reflection_ce);
-  if (safe_call_method(reflection, "__construct", &dummy, IS_OBJECT, 1, params TSRMLS_CC)) {
-    PRINTF_QUANTA("Cannot construct ReflectionClass('%s')\n", block->class);
-  }
-  PRINTF_QUANTA("RET TYPE %d\n", Z_TYPE(dummy));
-  if (safe_call_method(reflection, "getFileName", &class_file, IS_STRING, 0, NULL TSRMLS_CC)) {
+  if (!(reflection = safe_new("ReflectionClass", 1, params TSRMLS_CC))
+  || safe_call_method(reflection, "getFileName", &class_file, IS_STRING, 0, NULL TSRMLS_CC)) {
     PRINTF_QUANTA("Cannot get file for class %s\n", block->class);
-  } else {
-    PRINTF_QUANTA("Class file for %s: %s\n", block->class, Z_STRVAL(class_file));
+    goto end;
   }
-  // char class_file[1024];
-  // char *tmp;
-  // bzero(class_file, 1024);
-  // strncpy(class_file, block->class, 1019);
-  // if ((tmp = strstr(class_file, "\\Interceptor")))
-  //   *tmp = 0;
-  // strcat(class_file, ".php");
-  // while ((tmp = strchr(class_file, '\\')))
-  //   *tmp = '/';
-  // PRINTF_QUANTA("BLOCK CLASS FILE %s\n", class_file);
-  // if ((metric = monikor_metric_string(metric_name, clock, class_file)))
-  //   monikor_metric_list_push(metrics, metric);
-  // TODO! check destruction
-  FREE_ZVAL(reflection);
+  PRINTF_QUANTA("Block %s class file: %s\n", block->name, Z_STRVAL(class_file));
+  sprintf(metric_name, "magento.%zu.blocks.%.255s.class_file",
+    hp_globals.quanta_step_id, block->name);
+  if ((metric = monikor_metric_string(metric_name, clock, Z_STRVAL(class_file))))
+    monikor_metric_list_push(metrics, metric);
+
+end:
+  zval_dtor(&class_file);
   FREE_ZVAL(params[0]);
+  if (reflection)
+    FREE_ZVAL(reflection);
 }
 
-static void fetch_block_class_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
+static void fetch_block_class_metric(struct timeval *clock, monikor_metric_list_t *metrics,
 magento_block_t *block TSRMLS_DC) {
   char metric_name[MAX_METRIC_NAME_LENGTH];
-  char *metric_base_end;
   monikor_metric_t *metric;
-  zval class_file;
   zval *params[1];
 
   if (!block->class)
     return;
-  sprintf(metric_name, "magento.%zu.blocks.%.255s.", hp_globals.quanta_step_id, block->name);
-  metric_base_end = metric_name + strlen(metric_name);
-  strcpy(metric_base_end, "class");
+  sprintf(metric_name, "magento.%zu.blocks.%.255s.class", hp_globals.quanta_step_id, block->name);
   if ((metric = monikor_metric_string(metric_name, clock, block->class)))
     monikor_metric_list_push(metrics, metric);
   MAKE_STD_ZVAL(params[0]);
-  ZVAL_NULL(&class_file);
   ZVAL_STRING(params[0], block->class, 1);
-  if (safe_call_function("mageFindClassFile", &class_file, IS_STRING, 1, params TSRMLS_CC)) {
-    PRINTF_QUANTA("Error: cannot get class_file for block %s\n", block->name);
-    fetch_block_magento2_class_metric(clock, metrics, block);
-  } else {
-    strcpy(metric_base_end, "class_file");
-    if ((metric = monikor_metric_string(metric_name, clock, Z_STRVAL(class_file))))
-      monikor_metric_list_push(metrics, metric);
-  }
   FREE_ZVAL(params[0]);
-  zval_dtor(&class_file);
 }
 
 static void fetch_block_template_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
@@ -387,7 +358,8 @@ magento_block_t *block TSRMLS_DC) {
 
   sprintf(metric_name, "magento.%zu.blocks.%.255s.", hp_globals.quanta_step_id, block->name);
   metric_base_end = metric_name + strlen(metric_name);
-  fetch_block_class_metrics(clock, metrics, block TSRMLS_CC);
+  fetch_block_class_metric(clock, metrics, block TSRMLS_CC);
+  fetch_block_class_file_metric(clock, metrics, block TSRMLS_CC);
   fetch_block_template_metrics(clock, metrics, block);
   fetch_block_sql_metrics(clock, metrics, cpufreq, block);
   strcpy(metric_base_end, "rendering_time");
