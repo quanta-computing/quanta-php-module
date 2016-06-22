@@ -54,7 +54,7 @@ int qm_before_tohtml(int profile_curr, zend_execute_data *execute_data TSRMLS_DC
     efree(block);
     return -1;
   }
-  PRINTF_QUANTA("BLOCK FOUND %s, %s, %s\n", block->name, block->template, block->class);
+  // PRINTF_QUANTA("BLOCK FOUND %s, %s, %s\n", block->name, block->template, block->class);
   block_stack_push(block);
   if (hp_globals.magento_blocks_first == NULL)
     hp_globals.magento_blocks_first = block;

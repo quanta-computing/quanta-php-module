@@ -6,7 +6,9 @@
     - send response
 - Magento\Framework\App\FrontController::dispatch
 - Magento\Framework\App\Action\Action::dispatch
-- Magento\Framework\View\Page\Builder::loadLayoutUpdates
-- Magento\Framework\View\Page\Builder::generateLayoutXml
+- Magento\Framework\View\Page\Builder::loadLayoutUpdates: C'est ou ? Pas la.
+- Magento\Framework\View\Page\Builder::generateLayoutXml: C'est ou ? Pas la.
 - Magento\Framework\View\Page\Builder::generateLayoutBlocks
 - Magento\Framework\View\Element\AbstractBlock::toHtml
+
+fwrite(fopen('/php-module/debug-magento.log', 'w+'), "END hasPlugins for " . $type . " @" . microtime(true) . "\n");
