@@ -177,7 +177,6 @@ static const struct {
   {"db_updates", PROF_STARTS(5), PROF_STOPS(5)},
   {"load_db", PROF_STARTS(6), PROF_STOPS(6)},
   {"init_stores", PROF_STARTS(7), PROF_STOPS(7)},
-  // On est FULL-quenelle par ce que c'est contenu dans le dispatch (Magento\Framework\App\FrontController::dispatch)
   {"routing", PROF_STOPS(7), PROF_STARTS(8)},
   {"controller", PROF_STARTS(8), PROF_STOPS(11)},
   {"before_layout_loading", PROF_STARTS(8), PROF_STARTS(9)},
@@ -204,10 +203,13 @@ static const struct {
   {"magento2_create_app", PROF_STARTS(2), PROF_STOPS(2)},
   {"magento2_before_init_config", PROF_STARTS(2), PROF_STARTS(3)},
   {"magento2_init_config", PROF_STARTS(3), PROF_STOPS(3)},
-  {"magento2_after_init_config", PROF_STOPS(3), PROF_STOPS(2)},
-  {"magento2_loading", PROF_STARTS(1), PROF_STOPS(2)},
-  {"magento2_between_loading_routing", PROF_STOPS(2), PROF_STARTS(7)},
+  {"magento2_after_init_config", PROF_STOPS(3), PROF_STARTS(4)},
+  {"magento2_parse_request", PROF_STARTS(4), PROF_STOPS(4)},
+  {"magento2_configure_area", PROF_STOPS(4), PROF_STARTS(7)},
+  {"magento2_loading", PROF_STARTS(1), PROF_STARTS(7)},
+
   {"magento2_routing", PROF_STARTS(7), PROF_STARTS(8)},
+
   {"magento2_controller", PROF_STARTS(8), PROF_STOPS(8)},
   {"magento2_before_layout_rendering", PROF_STARTS(8), PROF_STARTS(10)},
   {"magento2_layout_rendering", PROF_STARTS(10), PROF_STOPS(10)},
@@ -215,8 +217,8 @@ static const struct {
   {"magento2_after_controller", PROF_STOPS(8), PROF_STOPS(7)},
   {"magento2_after_dispatch", PROF_STOPS(7), PROF_STOPS(0)},
 
-  // {"magento2_before_sending_response", PROF_STOPS(7), PROF_STARTS(12)},
-  // {"magento2_sending_response", PROF_STARTS(12), PROF_STOPS(12)},
+  {"magento2_before_sending_response", PROF_STOPS(7), PROF_STARTS(12)},
+  {"magento2_sending_response", PROF_STARTS(12), PROF_STOPS(12)},
   {"magento2_total", PROF_STARTS(1), PROF_STOPS(0)},
   {"magento2_before_magento", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STARTS(1)},
   {"magento2_after_magento", PROF_STOPS(0), PROF_STOPS(POS_ENTRY_PHP_TOTAL)},

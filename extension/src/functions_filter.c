@@ -48,16 +48,16 @@ void hp_get_monitored_functions_fill() {
   hp_globals.monitored_function_names[1][1] = "Magento\\Framework\\App\\Bootstrap::create";
   hp_globals.monitored_function_names[1][2] = "Magento\\Framework\\App\\Bootstrap::createApplication";
   hp_globals.monitored_function_names[1][3] = "Magento\\Framework\\Interception\\Config\\Config::initialize";
-  hp_globals.monitored_function_names[1][4] = "";
-  hp_globals.monitored_function_names[1][5] = "Magento\\Framework\\App\\Response\\Http::sendResponse";
+  hp_globals.monitored_function_names[1][4] = "Magento\\Framework\\App\\Request\\Http::getFrontName";
+  hp_globals.monitored_function_names[1][5] = "";
   hp_globals.monitored_function_names[1][6] = "";
-  hp_globals.monitored_function_names[1][7] = "Magento\\Framework\\App\\FrontController::dispatch";
+  hp_globals.monitored_function_names[1][7] = "Magento\\Framework\\App\\FrontController\\Interceptor::dispatch";
 
   hp_globals.monitored_function_names[1][8] = "Magento\\Framework\\App\\Action\\Action::dispatch";
   hp_globals.monitored_function_names[1][9] = "Magento\\Framework\\View\\Page\\Builder::loadLayoutUpdates"; // TODO! Never called ?
   hp_globals.monitored_function_names[1][10] = "Magento\\Framework\\View\\Page\\Builder::generateLayoutBlocks";
   hp_globals.monitored_function_names[1][11] = "Magento\\Framework\\View\\Page\\Builder::generateLayoutXml"; //TODO! Check what it dows
-  hp_globals.monitored_function_names[1][12] = "";
+  hp_globals.monitored_function_names[1][12] = "Magento\\Framework\\App\\Response\\Http\\Interceptor::sendResponse";
 
   hp_globals.monitored_function_names[1][13] = "";
   hp_globals.monitored_function_names[1][14] = "";
