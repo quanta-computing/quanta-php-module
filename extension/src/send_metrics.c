@@ -55,7 +55,8 @@ char *version, char *edition) {
   }
 }
 
-static void fetch_magento2_version(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
+// TODO! disabled because there is potential GC issues
+static void fetch_magento2_version_failing(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
   zval *objectManager;
   zval *productMetaData;
   zval version;
@@ -94,6 +95,10 @@ end:
   zval_dtor(&edition);
 }
 
+static void fetch_magento2_version(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
+  push_magento_version_metric(clock, metrics, "Magento 2", "unknown");
+}
+
 static void fetch_magento_version(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
   zval version;
   zval edition;
@@ -125,7 +130,8 @@ static void fetch_module_version(struct timeval *clock, monikor_metric_list_t *m
 }
 
 static void fetch_all_versions(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
-  fetch_magento_version(clock, metrics TSRMLS_CC);
+  // TODO! disabled because there is potential GC issues
+  // fetch_magento_version(clock, metrics TSRMLS_CC);
   fetch_magento2_version(clock, metrics TSRMLS_CC);
   fetch_php_version(clock, metrics);
   fetch_module_version(clock, metrics);
@@ -393,7 +399,8 @@ magento_block_t *block TSRMLS_DC) {
   sprintf(metric_name, "magento.%zu.blocks.%.255s.", hp_globals.quanta_step_id, block->name);
   metric_base_end = metric_name + strlen(metric_name);
   fetch_block_class_metric(clock, metrics, block TSRMLS_CC);
-  fetch_block_class_file_metric(clock, metrics, block TSRMLS_CC);
+  // TODO! disabled because there is potential GC issues
+  // fetch_block_class_file_metric(clock, metrics, block TSRMLS_CC);
   fetch_block_template_metrics(clock, metrics, block);
   fetch_block_sql_metrics(clock, metrics, cpufreq, block);
   strcpy(metric_base_end, "rendering_time");
