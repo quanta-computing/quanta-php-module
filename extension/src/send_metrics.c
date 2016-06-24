@@ -14,7 +14,7 @@ static void fetch_request_uri(struct timeval *clock, monikor_metric_list_t *metr
   if (!hp_globals.request_uri)
     return;
   if (hp_globals.profiler_level == QUANTA_MON_MODE_MAGENTO_PROFILING)
-    sprintf(metric_name, "magento.%zu.request_uri", hp_globals.quanta_step_id);
+    sprintf(metric_name, "magento2.%zu.request_uri", hp_globals.quanta_step_id);
   else
     sprintf(metric_name, "qtracer.%zu.request_uri", hp_globals.quanta_step_id);
   metric = monikor_metric_string(metric_name, clock, hp_globals.request_uri);
@@ -205,29 +205,27 @@ static const struct {
   int8_t starts_b;
   int8_t stops_b;
 } magento_metrics[] = {
-  {"magento2_create_bootstrap", PROF_STARTS(1), PROF_STOPS(1)},
-  {"magento2_create_app", PROF_STARTS(2), PROF_STOPS(2)},
-  {"magento2_before_init_config", PROF_STARTS(2), PROF_STARTS(3)},
-  {"magento2_init_config", PROF_STARTS(3), PROF_STOPS(3)},
-  {"magento2_after_init_config", PROF_STOPS(3), PROF_STARTS(4)},
-  {"magento2_parse_request", PROF_STARTS(4), PROF_STOPS(4)},
-  {"magento2_configure_area", PROF_STOPS(4), PROF_STARTS(7)},
-  {"magento2_loading", PROF_STARTS(1), PROF_STARTS(7)},
+  {"create_bootstrap", PROF_STARTS(1), PROF_STOPS(1)},
+  {"create_app", PROF_STARTS(2), PROF_STOPS(2)},
+  {"before_init_config", PROF_STARTS(2), PROF_STARTS(3)},
+  {"init_config", PROF_STARTS(3), PROF_STOPS(3)},
+  {"after_init_config", PROF_STOPS(3), PROF_STARTS(4)},
+  {"parse_request", PROF_STARTS(4), PROF_STOPS(4)},
+  {"configure_area", PROF_STOPS(4), PROF_STARTS(7)},
+  {"loading", PROF_STARTS(1), PROF_STARTS(7)},
 
-  {"magento2_routing", PROF_STARTS(7), PROF_STARTS(8)},
+  {"dispatch", PROF_STARTS(7), PROF_STARTS(7)},
 
-  {"magento2_controller", PROF_STARTS(8), PROF_STOPS(8)},
-  {"magento2_before_layout_rendering", PROF_STARTS(8), PROF_STARTS(10)},
-  {"magento2_layout_rendering", PROF_STARTS(10), PROF_STOPS(10)},
-  {"magento2_after_layout_rendering", PROF_STOPS(10), PROF_STOPS(7)},
-  {"magento2_after_controller", PROF_STOPS(8), PROF_STOPS(7)},
-  {"magento2_after_dispatch", PROF_STOPS(7), PROF_STOPS(0)},
+  {"controller", PROF_STARTS(8), PROF_STOPS(8)},
+  {"before_layout_rendering", PROF_STARTS(8), PROF_STARTS(10)},
+  {"layout_rendering", PROF_STARTS(10), PROF_STOPS(10)},
+  {"after_layout_rendering", PROF_STOPS(10), PROF_STOPS(7)},
 
-  {"magento2_before_sending_response", PROF_STOPS(7), PROF_STARTS(12)},
-  {"magento2_sending_response", PROF_STARTS(12), PROF_STOPS(12)},
-  {"magento2_total", PROF_STARTS(1), PROF_STOPS(0)},
-  {"magento2_before_magento", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STARTS(1)},
-  {"magento2_after_magento", PROF_STOPS(0), PROF_STOPS(POS_ENTRY_PHP_TOTAL)},
+  {"before_sending_response", PROF_STOPS(7), PROF_STARTS(12)},
+  {"sending_response", PROF_STARTS(12), PROF_STOPS(12)},
+  {"total", PROF_STARTS(1), PROF_STOPS(0)},
+  {"before_magento", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STARTS(1)},
+  {"after_magento", PROF_STOPS(0), PROF_STOPS(POS_ENTRY_PHP_TOTAL)},
   {"php_total", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STOPS(POS_ENTRY_PHP_TOTAL)},
   {0}
 };
@@ -268,7 +266,7 @@ float cpufreq, size_t metric_idx) {
       sql_count += hp_globals.monitored_function_sql_queries_count_after[i];
     }
   }
-  sprintf(metric_name, "magento.%zu.profiling.%s.sql.", hp_globals.quanta_step_id,
+  sprintf(metric_name, "magento2.%zu.profiling.%s.sql.", hp_globals.quanta_step_id,
     magento_metrics[metric_idx].name);
   metric_base_end = metric_name + strlen(metric_name);
   strcpy(metric_base_end, "count");
@@ -291,7 +289,7 @@ static void fetch_profiler_metrics(struct timeval *clock, monikor_metric_list_t 
 
   if (hp_globals.profiler_level != QUANTA_MON_MODE_MAGENTO_PROFILING)
     return;
-  sprintf(metric_name, "magento.%zu.profiling.", hp_globals.quanta_step_id);
+  sprintf(metric_name, "magento2.%zu.profiling.", hp_globals.quanta_step_id);
   metric_base_end = metric_name + strlen(metric_name);
   for (i = 0; magento_metrics[i].name; i++) {
     uint64_t a = (magento_metrics[i].starts_a != -1) ?
@@ -329,7 +327,7 @@ magento_block_t *block) {
     goto end;
   }
   // PRINTF_QUANTA("Block %s class file: %s\n", block->name, Z_STRVAL(class_file));
-  sprintf(metric_name, "magento.%zu.blocks.%.255s.class_file",
+  sprintf(metric_name, "magento2.%zu.blocks.%.255s.class_file",
     hp_globals.quanta_step_id, block->name);
   if ((metric = monikor_metric_string(metric_name, clock, Z_STRVAL(class_file))))
     monikor_metric_list_push(metrics, metric);
@@ -349,7 +347,7 @@ magento_block_t *block TSRMLS_DC) {
 
   if (!block->class)
     return;
-  sprintf(metric_name, "magento.%zu.blocks.%.255s.class", hp_globals.quanta_step_id, block->name);
+  sprintf(metric_name, "magento2.%zu.blocks.%.255s.class", hp_globals.quanta_step_id, block->name);
   if ((metric = monikor_metric_string(metric_name, clock, block->class)))
     monikor_metric_list_push(metrics, metric);
   MAKE_STD_ZVAL(params[0]);
@@ -365,7 +363,7 @@ magento_block_t *block) {
 
   if (!block->template)
     return;
-  sprintf(metric_name, "magento.%zu.blocks.%.255s.", hp_globals.quanta_step_id, block->name);
+  sprintf(metric_name, "magento2.%zu.blocks.%.255s.", hp_globals.quanta_step_id, block->name);
   metric_base_end = metric_name + strlen(metric_name);
   strcpy(metric_base_end, "template");
   if ((metric = monikor_metric_string(metric_name, clock, block->template)))
@@ -378,7 +376,7 @@ float cpufreq, magento_block_t *block) {
   monikor_metric_t *metric;
   char *metric_base_end;
 
-  sprintf(metric_name, "magento.%zu.blocks.%.255s.", hp_globals.quanta_step_id, block->name);
+  sprintf(metric_name, "magento2.%zu.blocks.%.255s.", hp_globals.quanta_step_id, block->name);
   metric_base_end = metric_name + strlen(metric_name);
   strcpy(metric_base_end, "sql_count");
   if ((metric = monikor_metric_integer(metric_name, clock, block->sql_queries_count, 0)))
@@ -396,7 +394,7 @@ magento_block_t *block TSRMLS_DC) {
   char metric_name[MAX_METRIC_NAME_LENGTH];
   char *metric_base_end;
 
-  sprintf(metric_name, "magento.%zu.blocks.%.255s.", hp_globals.quanta_step_id, block->name);
+  sprintf(metric_name, "magento2.%zu.blocks.%.255s.", hp_globals.quanta_step_id, block->name);
   metric_base_end = metric_name + strlen(metric_name);
   fetch_block_class_metric(clock, metrics, block TSRMLS_CC);
   // TODO! disabled because there is potential GC issues
