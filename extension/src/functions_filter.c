@@ -66,9 +66,9 @@ void hp_get_monitored_functions_fill() {
   hp_globals.monitored_function_names[1][16] = "PDOStatement::execute";
 
   /* POS_ENTRY_EVENTS_ONLY */
-  hp_globals.monitored_function_names[1][17] = "";
-  hp_globals.monitored_function_names[1][18] = "";
-  hp_globals.monitored_function_names[1][19] = "";
+  hp_globals.monitored_function_names[1][17] = "Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushAll::execute";
+  hp_globals.monitored_function_names[1][18] = "Magento\\Framework\\App\\Cache\\TypeList::cleanType";
+  hp_globals.monitored_function_names[1][19] = "Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushSystem::execute";
   hp_globals.monitored_function_names[1][20] = "";
   hp_globals.monitored_function_names[1][21] = "";
   hp_globals.monitored_function_names[1][22] = NULL;

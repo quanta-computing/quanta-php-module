@@ -5,6 +5,7 @@ static int push_magento_event(uint8_t class, char *type, char *subtype) {
 
   if (!(event = ecalloc(1, sizeof(*event))))
     return -1;
+  PRINTF_QUANTA("EVENT[%hhd]: %s %s\n", class, type, subtype);
   event->class = class;
   if (!(event->type = estrdup(type))
   || !(event->subtype = estrdup(subtype))) {
@@ -42,7 +43,6 @@ int qm_record_cache_clean_event(int profile_curr, zend_execute_data *execute_dat
     PRINTF_QUANTA("extract event: subtype is not a string\n");
     return -1;
   }
-  PRINTF_QUANTA("extract event: subtype: %s\n", Z_STRVAL_P(param_node));
   if (!push_magento_event(MAGENTO_EVENT_CACHE_CLEAR, "clean", Z_STRVAL_P(param_node)))
     return profile_curr;
   else
@@ -88,7 +88,6 @@ int qm_record_reindex_event(int profile_curr, zend_execute_data *execute_data TS
   /* If we want to get a count : array_count = zend_hash_num_elements(arr_hash); */
   entity = get_mage_model_data(attributes, "entity" TSRMLS_CC);
   type = get_mage_model_data(attributes, "type" TSRMLS_CC);
-  PRINTF_QUANTA("reindex '%s' on entity '%s'\n", type, entity);
   if (!entity || !type) {
     PRINTF_QUANTA("reindex: Entity or type is NULL\n");
     return -1;
