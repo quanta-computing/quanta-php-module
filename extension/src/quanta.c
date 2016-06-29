@@ -25,8 +25,9 @@ int qm_record_sql_timers(void) {
   && hp_globals.last_monitored_function < QUANTA_MON_MAX_MONITORED_FUNCTIONS) {
     hp_globals.monitored_function_sql_cpu_cycles_after[hp_globals.last_monitored_function] += cycles;
     hp_globals.monitored_function_sql_queries_count_after[hp_globals.last_monitored_function]++;
-    PRINTF_QUANTA("SQL QUERY AFTER FUNCTION [%d] %s\n", hp_globals.last_monitored_function,
-      hp_globals_monitored_function_names()[hp_globals.last_monitored_function]);
+    if (!(block = block_stack_top()))
+      PRINTF_QUANTA("SQL QUERY AFTER FUNCTION [%d] %s\n", hp_globals.last_monitored_function,
+        hp_globals_monitored_function_names()[hp_globals.last_monitored_function]);
     return 0;
   } else {
     PRINTF_QUANTA("SQL query outside monitored function\n");

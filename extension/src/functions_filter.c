@@ -54,9 +54,11 @@ void hp_get_monitored_functions_fill() {
   hp_globals.monitored_function_names[1][7] = "Magento\\Framework\\App\\FrontController\\Interceptor::dispatch";
 
   hp_globals.monitored_function_names[1][8] = "Magento\\Framework\\App\\Action\\Action::dispatch";
-  hp_globals.monitored_function_names[1][9] = "Magento\\Framework\\View\\Page\\Builder::loadLayoutUpdates"; // TODO! Never called ?
-  hp_globals.monitored_function_names[1][10] = "Magento\\Framework\\View\\Page\\Builder::generateLayoutBlocks";
-  hp_globals.monitored_function_names[1][11] = "Magento\\Framework\\View\\Page\\Builder::generateLayoutXml"; //TODO! Check what it dows
+  // hp_globals.monitored_function_names[1][9] = "Magento\\Framework\\View\\Page\\Builder::loadLayoutUpdates"; TODO! Never called ?
+  hp_globals.monitored_function_names[1][9] = "Magento\\Framework\\View\\Page\\Builder::generateLayoutBlocks";
+  hp_globals.monitored_function_names[1][10] = "Magento\\Framework\\View\\Result\\Page\\Interceptor::renderResult";
+  hp_globals.monitored_function_names[1][11] = "";
+  // hp_globals.monitored_function_names[1][11] = "Magento\\Framework\\View\\Page\\Builder::generateLayoutXml"; //TODO! Check what it dows
   hp_globals.monitored_function_names[1][12] = "Magento\\Framework\\App\\Response\\Http\\Interceptor::sendResponse";
 
   hp_globals.monitored_function_names[1][13] = "";

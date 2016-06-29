@@ -214,14 +214,15 @@ static const struct {
   {"configure_area", PROF_STOPS(4), PROF_STARTS(7)},
   {"loading", PROF_STARTS(1), PROF_STARTS(7)},
 
-  {"dispatch", PROF_STARTS(7), PROF_STARTS(7)},
-
+  {"dispatch", PROF_STARTS(7), PROF_STOPS(7)},
+  {"routing", PROF_STARTS(7), PROF_STARTS(8)},
   {"controller", PROF_STARTS(8), PROF_STOPS(8)},
-  {"before_layout_rendering", PROF_STARTS(8), PROF_STARTS(10)},
+  {"before_layout_loading", PROF_STARTS(8), PROF_STARTS(9)},
+  {"layout_loading", PROF_STARTS(9), PROF_STOPS(9)},
+  {"between_layout_loading_and_rendering", PROF_STOPS(9), PROF_STARTS(10)},
   {"layout_rendering", PROF_STARTS(10), PROF_STOPS(10)},
-  {"after_layout_rendering", PROF_STOPS(10), PROF_STOPS(7)},
 
-  {"before_sending_response", PROF_STOPS(7), PROF_STARTS(12)},
+  {"before_sending_response", PROF_STOPS(10), PROF_STARTS(12)},
   {"sending_response", PROF_STARTS(12), PROF_STOPS(12)},
   {"total", PROF_STARTS(1), PROF_STOPS(0)},
   {"before_magento", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STARTS(1)},
