@@ -228,6 +228,7 @@ static const struct {
   {"before_magento", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STARTS(1)},
   {"after_magento", PROF_STOPS(0), PROF_STOPS(POS_ENTRY_PHP_TOTAL)},
   {"php_total", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STOPS(POS_ENTRY_PHP_TOTAL)},
+  {"debug_build", PROF_STARTS(14), PROF_STOPS(14)},
   {0}
 };
 
@@ -246,7 +247,7 @@ float cpufreq, size_t metric_idx) {
   if (hp_globals.monitored_function_tsc_start[0] <= 0)
     return;
   start = magento_metrics[metric_idx].starts_a == -1 ?
-    magento_metrics[metric_idx].stops_a + 1: magento_metrics[metric_idx].starts_a;
+    magento_metrics[metric_idx].stops_a + 1 : magento_metrics[metric_idx].starts_a;
   stop = magento_metrics[metric_idx].starts_b == -1 ?
     magento_metrics[metric_idx].stops_b + 1: magento_metrics[metric_idx].starts_b;
   /* Mage::run has all queries, so ignore it unless we are counting queries for the total */
@@ -311,6 +312,7 @@ static void fetch_profiler_metrics(struct timeval *clock, monikor_metric_list_t 
 }
 
 // TODO! Check if it still works with Magento 1
+// TODO! Deprecated ?
 static void fetch_block_class_file_metric(struct timeval *clock, monikor_metric_list_t *metrics,
 magento_block_t *block) {
   monikor_metric_t *metric;
@@ -344,16 +346,17 @@ static void fetch_block_class_metric(struct timeval *clock, monikor_metric_list_
 magento_block_t *block TSRMLS_DC) {
   char metric_name[MAX_METRIC_NAME_LENGTH];
   monikor_metric_t *metric;
-  zval *params[1];
 
   if (!block->class)
     return;
   sprintf(metric_name, "magento2.%zu.blocks.%.255s.class", hp_globals.quanta_step_id, block->name);
   if ((metric = monikor_metric_string(metric_name, clock, block->class)))
     monikor_metric_list_push(metrics, metric);
-  MAKE_STD_ZVAL(params[0]);
-  ZVAL_STRING(params[0], block->class, 1);
-  FREE_ZVAL(params[0]);
+  if (block->class_file) {
+    strcat(metric_name, "_file");
+    if ((metric = monikor_metric_string(metric_name, clock, block->class_file)))
+      monikor_metric_list_push(metrics, metric);
+  }
 }
 
 static void fetch_block_template_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
@@ -394,18 +397,22 @@ magento_block_t *block TSRMLS_DC) {
   monikor_metric_t *metric;
   char metric_name[MAX_METRIC_NAME_LENGTH];
   char *metric_base_end;
+  float rendering_time;
 
   sprintf(metric_name, "magento2.%zu.blocks.%.255s.", hp_globals.quanta_step_id, block->name);
   metric_base_end = metric_name + strlen(metric_name);
   fetch_block_class_metric(clock, metrics, block TSRMLS_CC);
-  // TODO! disabled because there is potential GC issues
-  // fetch_block_class_file_metric(clock, metrics, block TSRMLS_CC);
   fetch_block_template_metrics(clock, metrics, block);
   fetch_block_sql_metrics(clock, metrics, cpufreq, block);
   strcpy(metric_base_end, "rendering_time");
-  uint64_t rendering_time = cpu_cycles_range_to_ms(cpufreq,
+  rendering_time = cpu_cycles_range_to_ms(cpufreq,
     block->renderize_children_cycles + block->tsc_renderize_first_start,
     block->tsc_renderize_last_stop
+  );
+  PRINTF_QUANTA("BLOCK %s rendered in %f\n  - class: %s (%s)\n  - template: %s\n",
+    block->name, rendering_time,
+    block->class, block->class_file,
+    block->template
   );
   metric = monikor_metric_float(metric_name, clock, rendering_time, 0);
   if (metric)
@@ -422,6 +429,7 @@ static void fetch_blocks_metrics(struct timeval *clock, monikor_metric_list_t *m
     if (hp_globals.profiler_level == QUANTA_MON_MODE_MAGENTO_PROFILING)
       fetch_block_metrics(clock, metrics, cpufreq, current_block TSRMLS_CC);
     efree(current_block->class);
+    efree(current_block->class_file);
     efree(current_block->name);
     efree(current_block->template);
     efree(current_block);

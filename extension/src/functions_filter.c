@@ -63,7 +63,7 @@ void hp_get_monitored_functions_fill() {
 
   hp_globals.monitored_function_names[1][13] = "";
   hp_globals.monitored_function_names[1][14] = "";
-  hp_globals.monitored_function_names[1][15] = "Magento\\Framework\\View\\Element\\AbstractBlock::toHtml";
+  hp_globals.monitored_function_names[1][15] = "Magento\\Framework\\View\\Layout::_renderBlock";
 
   hp_globals.monitored_function_names[1][16] = "PDOStatement::execute";
 

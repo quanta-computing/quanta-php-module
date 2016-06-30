@@ -169,6 +169,7 @@ typedef struct magento_block_t {
   uint64_t  sql_queries_count;
   char    *name;
   char    *class;
+  char    *class_file;
   char    *template;
   struct magento_block_t *next;
 } magento_block_t;
@@ -281,6 +282,9 @@ typedef struct hp_global_t {
   block_stack_t *block_stack;
 
   magento_event_t *magento_events;
+
+  char *magento_version;
+  char *magento_edition;
 } hp_global_t;
 
 // CPU
