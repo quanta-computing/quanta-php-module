@@ -85,6 +85,21 @@ int qm_begin_profiling(uint8_t hash_code, const char *curr_func, zend_execute_da
     return -1; /* False match, we have nothing */
   }
 
+  /* We want to fetch version when the execution ends because we are sure that needed classes
+  are fully loaded
+  TODO! It seems it's very long :(
+  */
+  if (i == POS_ENTRY_APP_RUN) {
+    uint64_t start, end;
+    float cpufreq;
+
+    cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
+    start = cycle_timer();
+    fetch_magento_version(TSRMLS_C);
+    end = cycle_timer();
+    PRINTF_QUANTA("FETCH MAGENTO VERSION TOOK %fms\n", cpu_cycles_range_to_ms(cpufreq, start, end));
+  }
+
   hp_globals.monitored_function_tsc_start[i] = cycle_timer();
 
   if (i != POS_ENTRY_PDO_EXECUTE && i != POS_ENTRY_TOHTML && *hp_globals_monitored_function_names()[i]) {
@@ -111,15 +126,6 @@ int qm_begin_profiling(uint8_t hash_code, const char *curr_func, zend_execute_da
 
 int qm_end_profiling(int profile_curr, zend_execute_data *execute_data TSRMLS_DC) {
   hp_globals.monitored_function_tsc_stop[profile_curr] = cycle_timer();
-
-  /* We want to fetch version when the execution ends because we are sure that needed classes
-  are fully loaded */
-  if (profile_curr == POS_ENTRY_APP_RUN) {
-    PRINTF_QUANTA("Fetching magento version\n");
-    fetch_magento_version(TSRMLS_C);
-    gc_collect_cycles(); //TODO!
-  }
-
   if (profile_curr != POS_ENTRY_PDO_EXECUTE && profile_curr != POS_ENTRY_TOHTML && *hp_globals_monitored_function_names()[profile_curr]) {
     PRINTF_QUANTA("END FUNCTION %d %s\n", profile_curr, hp_globals_monitored_function_names()[profile_curr]);
     hp_globals.current_monitored_function = -1;

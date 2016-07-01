@@ -50,6 +50,7 @@ static void fetch_magento2_version(TSRMLS_D) {
     PRINTF_QUANTA("Cannot get magento2 version\n");
     goto end;
   }
+
   hp_globals.magento_version = estrdup(Z_STRVAL(version));
   hp_globals.magento_edition = estrdup(Z_STRVAL(edition));
 
@@ -61,7 +62,6 @@ end:
   zval_dtor(&edition);
 }
 
-//TODO! fix me
 static void fetch_magento1_version(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
   zval version;
   zval edition;
@@ -73,7 +73,8 @@ static void fetch_magento1_version(struct timeval *clock, monikor_metric_list_t 
     PRINTF_QUANTA("Could not get magento version\n");
     goto end;
   }
-  push_magento_version_metric(clock, metrics, Z_STRVAL(version), Z_STRVAL(edition));
+  hp_globals.magento_version = estrdup(Z_STRVAL(version));
+  hp_globals.magento_edition = estrdup(Z_STRVAL(edition));
 
 end:
   zval_dtor(&version);
@@ -83,6 +84,5 @@ end:
 void fetch_magento_version(TSRMLS_D) {
   if (!hp_globals.magento_version) {
     fetch_magento2_version(TSRMLS_C);
-    PRINTF_QUANTA("Magento version '%s %s'\n", hp_globals.magento_version, hp_globals.magento_edition);
   }
 }
