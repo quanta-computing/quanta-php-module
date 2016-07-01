@@ -84,6 +84,7 @@
 #define QUANTA_MAGENTO_VERSION_INDEX 1
 
 /* Monitored functions positions */
+#define POS_ENTRY_APP_RUN 0
 #define POS_ENTRY_TOHTML     15
 #define POS_ENTRY_PDO_EXECUTE      16
 #define POS_ENTRY_EVENTS_ONLY      17 /* Anything below won't be processed unless the special cookie is set */
@@ -169,6 +170,7 @@ typedef struct magento_block_t {
   uint64_t  sql_queries_count;
   char    *name;
   char    *class;
+  char    *class_file;
   char    *template;
   struct magento_block_t *next;
 } magento_block_t;
@@ -281,6 +283,9 @@ typedef struct hp_global_t {
   block_stack_t *block_stack;
 
   magento_event_t *magento_events;
+
+  char *magento_version;
+  char *magento_edition;
 } hp_global_t;
 
 // CPU
@@ -322,11 +327,12 @@ char *hp_get_function_name_fast(zend_execute_data *execute_data TSRMLS_DC);
 size_t hp_get_function_stack(hp_entry_t *entry, int level, char *result_buf, size_t result_len);
 void hp_trunc_time(struct timeval *tv, uint64_t intr);
 char *get_mage_model_data(HashTable *attrs, char *key TSRMLS_DC);
+void fetch_magento_version(TSRMLS_D);
 int safe_call_function(char *function, zval *ret, int ret_type,
-size_t params_count, zval **params TSRMLS_DC);
+  size_t params_count, zval **params TSRMLS_DC);
 int safe_call_method(zval *object, char *function, zval *ret, int ret_type,
-size_t params_count, zval **params TSRMLS_DC);
-
+  size_t params_count, zval **params TSRMLS_DC);
+zval *safe_new(char *class, int params_count, zval **params TSRMLS_DC);
 
 // Zend hijacks
 #if PHP_VERSION_ID < 50500

@@ -13,6 +13,8 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
   }
   hp_globals.profiler_level  = (int) level;
   hp_globals.magento_events = NULL;
+  hp_globals.magento_version = NULL;
+  hp_globals.magento_edition = NULL;
 
   if (level != QUANTA_MON_MODE_EVENTS_ONLY) {
     /* Init stats_count */
@@ -81,6 +83,8 @@ void hp_clean_profiler_state(TSRMLS_D) {
   hp_globals.ever_enabled = 0;
 
   efree(hp_globals.request_uri);
+  efree(hp_globals.magento_version);
+  efree(hp_globals.magento_edition);
 
   /* Pop all blocks still present in the stack (should be zero) */
   while (block_stack_pop());
@@ -160,6 +164,8 @@ int hp_begin_profiling(hp_entry_t **entries, const char *symbol, zend_execute_da
   uint8_t hash_code = hp_inline_hash(symbol);
   int profile_curr;
 
+  if (hp_globals.monitored_function_tsc_stop[0])
+    PRINTF_QUANTA("BEGIN OUTSIDE FUNCTION %s\n", symbol);
   profile_curr = qm_begin_profiling(hash_code, symbol, data TSRMLS_CC);
   if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {
     hp_entry_t *cur_entry = hp_fast_alloc_hprof_entry();
