@@ -333,6 +333,7 @@ int safe_call_function(char *function, zval *ret, int ret_type,
 int safe_call_method(zval *object, char *function, zval *ret, int ret_type,
   size_t params_count, zval **params TSRMLS_DC);
 zval *safe_new(char *class, int params_count, zval **params TSRMLS_DC);
+zval *safe_get_class_constant(char *class, char *name, int type TSRMLS_DC);
 
 // Zend hijacks
 #if PHP_VERSION_ID < 50500
