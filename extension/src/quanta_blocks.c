@@ -102,7 +102,7 @@ int qm_before_tohtml(int profile_curr, zend_execute_data *execute_data TSRMLS_DC
   zval *this;
   zval *block_name;
   zval *zblock;
-  magento_block_t *block;
+  magento_block_t *block = NULL;
 
   if (!(this = get_this(execute_data TSRMLS_CC))
   || !(block_name = get_block_name(execute_data TSRMLS_CC))
