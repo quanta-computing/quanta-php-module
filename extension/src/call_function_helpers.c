@@ -60,3 +60,30 @@ zval *safe_new(char *class, int params_count, zval **params TSRMLS_DC) {
   zval_dtor(&dummy);
   return object;
 }
+
+zval *safe_get_class_constant(char *class, char *name, int type TSRMLS_DC) {
+  zval *reflection;
+  zval *reflection_params[1];
+  zval *get_constant_params[1];
+  zval *constant;
+
+  MAKE_STD_ZVAL(constant);
+  MAKE_STD_ZVAL(reflection_params[0]);
+  MAKE_STD_ZVAL(get_constant_params[0]);
+  ZVAL_STRING(reflection_params[0], class, 1);
+  ZVAL_STRING(get_constant_params[0], name, 1);
+  if (!(reflection = safe_new("ReflectionClass", 1, reflection_params TSRMLS_CC))
+  || safe_call_method(reflection, "getConstant", constant, type, 1, get_constant_params TSRMLS_CC)) {
+    PRINTF_QUANTA("Cannot get constant %s::%s\n", class, name);
+    FREE_ZVAL(constant);
+    constant = NULL;
+    goto end;
+  }
+
+end:
+  FREE_ZVAL(reflection_params[0]);
+  FREE_ZVAL(get_constant_params[0]);
+  if (reflection)
+    FREE_ZVAL(reflection);
+  return constant;
+}
