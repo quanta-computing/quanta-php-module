@@ -286,6 +286,12 @@ typedef struct hp_global_t {
 
   char *magento_version;
   char *magento_edition;
+
+  struct {
+    uint64_t total;
+    uint64_t function;
+    uint64_t class_unmatched;
+  } internal_match_counters;
 } hp_global_t;
 
 // CPU

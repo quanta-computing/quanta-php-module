@@ -106,6 +106,8 @@ PHP_RINIT_FUNCTION(quanta_mon) {
   else
     flags = 0;
   hp_fill_monitored_functions(hp_globals.monitored_function_names[QUANTA_MAGENTO_VERSION_INDEX]);
+  hp_get_monitored_functions_fill();
+  bzero(&hp_globals.internal_match_counters, sizeof(hp_globals.internal_match_counters));
   hp_begin(mode, flags TSRMLS_CC);
   return SUCCESS;
 }
