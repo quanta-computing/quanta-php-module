@@ -162,6 +162,20 @@ char *hp_get_function_name(zend_execute_data *data TSRMLS_DC) {
   return ret;
 }
 
+
+const char *hp_get_class_name(zend_execute_data *data TSRMLS_DC) {
+  const char *class_name = NULL;
+
+  if (!data)
+    return NULL;
+  if (data->function_state.function->common.scope) {
+    class_name = data->function_state.function->common.scope->name;
+  } else if (data->object) {
+    class_name = Z_OBJCE(*data->object)->name;
+  }
+  return class_name;
+}
+
 /**
  * A hash function to calculate a 8-bit hash code for a function name.
  * This is based on a small modification to 'zend_inline_hash_func' by summing

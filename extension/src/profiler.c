@@ -56,8 +56,10 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
   /* Set up filter of functions which may be ignored during profiling */
   hp_ignored_functions_filter_init();
 
-  /* Set up filter of functions which are monitored */
+  /* Set up filter of functions which are monitored
   hp_monitored_functions_filter_init();
+  Not used anymore since we precompute the tree
+  */
   hp_globals.current_monitored_function = -1;
   hp_globals.last_monitored_function = -1;
 }
@@ -161,17 +163,16 @@ size_t hp_get_entry_name(hp_entry_t  *entry, char *result_buf, size_t result_len
 }
 
 int hp_begin_profiling(hp_entry_t **entries, const char *symbol, zend_execute_data *data TSRMLS_DC) {
-  uint8_t hash_code = hp_inline_hash(symbol);
   int profile_curr;
 
   if (hp_globals.monitored_function_tsc_stop[0])
     PRINTF_QUANTA("BEGIN OUTSIDE FUNCTION %s\n", symbol);
-  profile_curr = qm_begin_profiling(hash_code, symbol, data TSRMLS_CC);
+  profile_curr = qm_begin_profiling(symbol, data TSRMLS_CC);
   if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {
     hp_entry_t *cur_entry = hp_fast_alloc_hprof_entry();
     if (!cur_entry)
       return profile_curr;
-    cur_entry->hash_code = hash_code;
+    cur_entry->hash_code = hp_inline_hash(symbol);
     cur_entry->name_hprof = symbol;
     cur_entry->prev_hprof = *entries;
     /* Call the universal callback */

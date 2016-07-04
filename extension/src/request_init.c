@@ -105,7 +105,7 @@ PHP_RINIT_FUNCTION(quanta_mon) {
     flags = QUANTA_MON_FLAGS_CPU | QUANTA_MON_FLAGS_MEMORY;
   else
     flags = 0;
-  hp_get_monitored_functions_fill();
+  hp_fill_monitored_functions(hp_globals.monitored_function_names[QUANTA_MAGENTO_VERSION_INDEX]);
   hp_begin(mode, flags TSRMLS_CC);
   return SUCCESS;
 }

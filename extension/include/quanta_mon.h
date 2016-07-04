@@ -324,6 +324,7 @@ zval * hp_hash_lookup(char *symbol  TSRMLS_DC);
 const char *hp_get_base_filename(const char *filename);
 char *hp_get_function_name(zend_execute_data *data TSRMLS_DC);
 char *hp_get_function_name_fast(zend_execute_data *execute_data TSRMLS_DC);
+const char *hp_get_class_name(zend_execute_data *data TSRMLS_DC);
 size_t hp_get_function_stack(hp_entry_t *entry, int level, char *result_buf, size_t result_len);
 void hp_trunc_time(struct timeval *tv, uint64_t intr);
 char *get_mage_model_data(HashTable *attrs, char *key TSRMLS_DC);
@@ -367,7 +368,7 @@ void hp_sample_check(hp_entry_t **entries  TSRMLS_DC);
 
 // Quanta stuff
 void send_metrics(TSRMLS_D);
-int qm_begin_profiling(uint8_t hash_code, const char *curr_func, zend_execute_data *execute_data TSRMLS_DC);
+int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TSRMLS_DC);
 int qm_end_profiling(int profile_curr, zend_execute_data *execute_data TSRMLS_DC);
 int qm_before_tohtml(int profile_curr, zend_execute_data *execute_data TSRMLS_DC);
 int qm_after_tohtml(zend_execute_data *execute_data TSRMLS_DC);

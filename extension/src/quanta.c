@@ -67,47 +67,25 @@ static int match_function_and_class(int start, zend_execute_data *data, const ch
  * @author ch
  * return -1 if we don't monitor specifically this function, -2 if we don't monitor at all
  */
-int qm_begin_profiling(uint8_t hash_code, const char *curr_func, zend_execute_data *execute_data TSRMLS_DC) {
+int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TSRMLS_DC) {
   int i;
 
-  /* Search quickly if we may have a match */
-  if (!hp_monitored_functions_filter_collision(hash_code)) {
-    return -1;
-  }
-
-  if (hp_globals.profiler_level == QUANTA_MON_MODE_EVENTS_ONLY)
-    i = POS_ENTRY_EVENTS_ONLY;
-  else
-    i = 0;
-
-  i = match_function_and_class(i, execute_data, curr_func TSRMLS_CC);
-  if (!hp_globals_monitored_function_names()[i] || !*hp_globals_monitored_function_names()[i]) {
+  if ((i = hp_match_monitored_function(curr_func, execute_data TSRMLS_CC)) == -1
+  || !hp_globals_monitored_function_names()[i] || !*hp_globals_monitored_function_names()[i]
+  || (i < POS_ENTRY_EVENTS_ONLY && hp_globals.profiler_level == QUANTA_MON_MODE_EVENTS_ONLY) {
     return -1; /* False match, we have nothing */
   }
 
-  /* We want to fetch version when the execution ends because we are sure that needed classes
-  are fully loaded
-  TODO! It seems it's very long :(
-  */
   if (i == POS_ENTRY_APP_RUN) {
-    uint64_t start, end;
-    float cpufreq;
-
-    cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
-    start = cycle_timer();
     fetch_magento_version(TSRMLS_C);
-    end = cycle_timer();
-    PRINTF_QUANTA("FETCH MAGENTO VERSION TOOK %fms\n", cpu_cycles_range_to_ms(cpufreq, start, end));
   }
-
+  // Init timestamp after version fetch to not interfere with function timers
   hp_globals.monitored_function_tsc_start[i] = cycle_timer();
-
   if (i != POS_ENTRY_PDO_EXECUTE && i != POS_ENTRY_TOHTML && *hp_globals_monitored_function_names()[i]) {
     PRINTF_QUANTA("BEGIN FUNCTION %d %s\n", i, hp_globals_monitored_function_names()[i]);
     hp_globals.current_monitored_function = i;
     hp_globals.last_monitored_function = -1;
   }
-
   if (i == POS_ENTRY_TOHTML) {
     qm_before_tohtml(i, execute_data TSRMLS_CC);
     return i;
