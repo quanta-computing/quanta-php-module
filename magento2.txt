@@ -12,3 +12,252 @@
 - Magento\Framework\View\Element\AbstractBlock::toHtml
 
 fwrite(fopen('/php-module/debug-magento.log', 'w+'), "END hasPlugins for " . $type . " @" . microtime(true) . "\n");
+
+BLOCK googleoptimizer.experiment.script rendered in 5.789958
+  - class: Magento\GoogleOptimizer\Block\Code\Page (/php-module/magento/magento2/app/code/Magento/GoogleOptimizer/Block/Code/Page.php)
+  - template: (null)
+  - SQL: 0 (0.000000ms)
+BLOCK head.components rendered in 36.917381
+  - class: Magento\Framework\View\Element\Js\Components (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Js/Components.php)
+  - template: Magento_Catalog::js/components.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK bundle_checkout_page_head_components rendered in 33.733425
+  - class: Magento\Framework\View\Element\Js\Components (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Js/Components.php)
+  - template: Magento_Bundle::js/components.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK sales_page_head_components rendered in 33.660797
+  - class: Magento\Framework\View\Element\Js\Components (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Js/Components.php)
+  - template: Magento_Sales::js/components.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK checkout_page_head_components rendered in 30.282082
+  - class: Magento\Framework\View\Element\Js\Components (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Js/Components.php)
+  - template: Magento_Checkout::js/components.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK newsletter_head_components rendered in 28.513397
+  - class: Magento\Framework\View\Element\Js\Components (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Js/Components.php)
+  - template: Magento_Newsletter::js/components.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK pagecache_page_head_components rendered in 29.563440
+  - class: Magento\Framework\View\Element\Js\Components (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Js/Components.php)
+  - template: Magento_PageCache::js/components.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK reports_page_head_components rendered in 24.767635
+  - class: Magento\Framework\View\Element\Js\Components (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Js/Components.php)
+  - template: Magento_Reports::js/components.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK wishlist_page_head_components rendered in 28.467155
+  - class: Magento\Framework\View\Element\Js\Components (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Js/Components.php)
+  - template: Magento_Wishlist::js/components.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK requirejs-config rendered in 10.732418
+  - class: Magento\RequireJs\Block\Html\Head\Config (/php-module/magento/magento2/app/code/Magento/RequireJs/Block/Html/Head/Config.php)
+  - template: (null)
+  - SQL: 0 (0.000000ms)
+BLOCK translate-config rendered in 6.499282
+  - class: Magento\Translation\Block\Html\Head\Config (/php-module/magento/magento2/app/code/Magento/Translation/Block/Html/Head/Config.php)
+  - template: (null)
+  - SQL: 0 (0.000000ms)
+BLOCK translate rendered in 44.601196
+  - class: Magento\Translation\Block\Js (/php-module/magento/magento2/app/code/Magento/Translation/Block/Js.php)
+  - template: Magento_Translation::translate.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK js_cookies rendered in 19.479052
+  - class: Magento\Framework\View\Element\Js\Cookie (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Js/Cookie.php)
+  - template: Magento_Theme::js/cookie.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK global_notices rendered in 24.743113
+  - class: Magento\Theme\Block\Html\Notices (/php-module/magento/magento2/app/code/Magento/Theme/Block/Html/Notices.php)
+  - template: html/notices.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK cookie_notices rendered in 36.213001
+  - class: Magento\Cookie\Block\Html\Notices (/php-module/magento/magento2/app/code/Magento/Cookie/Block/Html/Notices.php)
+  - template: html/notices.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK google_analytics rendered in 14.291226
+  - class: Magento\GoogleAnalytics\Block\Ga (/php-module/magento/magento2/app/code/Magento/GoogleAnalytics/Block/Ga.php)
+  - template: ga.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK logger rendered in 21.607634
+  - class: Magento\Ui\Block\Logger (/php-module/magento/magento2/app/code/Magento/Ui/Block/Logger.php)
+  - template: Magento_Ui::logger.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK paypal.express-in-context.component rendered in 10.012280
+  - class: Magento\Paypal\Block\Express\InContext\Component (/php-module/magento/magento2/app/code/Magento/Paypal/Block/Express/InContext/Component.php)
+  - template: Magento_Paypal::express/in-context/component.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK skip_to_content rendered in 28.063461
+  - class: Magento\Framework\View\Element\Template (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Template.php)
+  - template: Magento_Theme::html/skip.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK currency rendered in 82.285896
+  - class: Magento\Directory\Block\Currency (/php-module/magento/magento2/app/code/Magento/Directory/Block/Currency.php)
+  - template: currency.phtml
+  - SQL: 1 (0.525570ms)
+BLOCK store_language rendered in 28.722357
+  - class: Magento\Store\Block\Switcher\Interceptor (/php-module/magento/magento2/var/generation/Magento/Store/Block/Switcher/Interceptor.php)
+  - template: switch/languages.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK header.links rendered in 18.268587
+  - class: Magento\Framework\View\Element\Html\Links (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Html/Links.php)
+  - template: (null)
+  - SQL: 0 (0.000000ms)
+BLOCK header rendered in 24.641272
+  - class: Magento\Theme\Block\Html\Header (/php-module/magento/magento2/app/code/Magento/Theme/Block/Html/Header.php)
+  - template: html/header.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK customer rendered in 27.577677
+  - class: Magento\Customer\Block\Account\Customer (/php-module/magento/magento2/app/code/Magento/Customer/Block/Account/Customer.php)
+  - template: account/customer.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK authorization-link-login rendered in 30.238008
+  - class: Magento\Customer\Block\Account\AuthorizationLink (/php-module/magento/magento2/app/code/Magento/Customer/Block/Account/AuthorizationLink.php)
+  - template: account/link/authorization.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK register-link rendered in 7.432120
+  - class: Magento\Customer\Block\Account\RegisterLink (/php-module/magento/magento2/app/code/Magento/Customer/Block/Account/RegisterLink.php)
+  - template: (null)
+  - SQL: 0 (0.000000ms)
+BLOCK logo rendered in 55.656406
+  - class: Magento\Theme\Block\Html\Header\Logo (/php-module/magento/magento2/app/code/Magento/Theme/Block/Html/Header/Logo.php)
+  - template: html/header/logo.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK minicart rendered in 570.008606
+  - class: Magento\Checkout\Block\Cart\Sidebar\Interceptor (/php-module/magento/magento2/var/generation/Magento/Checkout/Block/Cart/Sidebar/Interceptor.php)
+  - template: cart/minicart.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK top.search rendered in 84.320778
+  - class: Magento\Framework\View\Element\Template (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Template.php)
+  - template: Magento_Search::form.mini.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK advanced-search-link rendered in 36.632492
+  - class: Magento\Framework\View\Element\Template (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Template.php)
+  - template: Magento_CatalogSearch::advanced/link.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK catalog.compare.link rendered in 28.013651
+  - class: Magento\Framework\View\Element\Template (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Template.php)
+  - template: Magento_Catalog::product/compare/link.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK navigation.sections rendered in 35.174446
+  - class: Magento\Framework\View\Element\Template (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Template.php)
+  - template: Magento_Theme::html/sections.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK store.menu rendered in 8.337815
+  - class: Magento\Framework\View\Element\Template (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Template.php)
+  - template: Magento_Theme::html/container.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK catalog.topnav rendered in 732.052551
+  - class: Magento\Theme\Block\Html\Topmenu\Interceptor (/php-module/magento/magento2/var/generation/Magento/Theme/Block/Html/Topmenu/Interceptor.php)
+  - template: html/topmenu.phtml
+  - SQL: 4 (3.121456ms)
+BLOCK store.links rendered in 7.730938
+  - class: Magento\Framework\View\Element\Text (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Text.php)
+  - template: (null)
+  - SQL: 0 (0.000000ms)
+BLOCK store.settings rendered in 7.718015
+  - class: Magento\Framework\View\Element\Template (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Template.php)
+  - template: Magento_Theme::html/container.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK store.settings.language rendered in 10.857349
+  - class: Magento\Store\Block\Switcher\Interceptor (/php-module/magento/magento2/var/generation/Magento/Store/Block/Switcher/Interceptor.php)
+  - template: switch/languages.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK store.settings.currency rendered in 9.007850
+  - class: Magento\Directory\Block\Currency (/php-module/magento/magento2/app/code/Magento/Directory/Block/Currency.php)
+  - template: currency.phtml
+  - SQL: 1 (0.448219ms)
+BLOCK bml.center.logo rendered in 8.030522
+  - class: Magento\Paypal\Block\Bml\Banners (/php-module/magento/magento2/app/code/Magento/Paypal/Block/Bml/Banners.php)
+  - template: bml.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK breadcrumbs rendered in 18.316980
+  - class: Magento\Theme\Block\Html\Breadcrumbs (/php-module/magento/magento2/app/code/Magento/Theme/Block/Html/Breadcrumbs.php)
+  - template: html/breadcrumbs.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK skip_to_content.target rendered in 29.893190
+  - class: Magento\Framework\View\Element\Template (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Template.php)
+  - template: Magento_Theme::html/skiptarget.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK page.main.title rendered in 33.394073
+  - class: Magento\Theme\Block\Html\Title (/php-module/magento/magento2/app/code/Magento/Theme/Block/Html/Title.php)
+  - template: html/title.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK ajax.message.placeholder rendered in 31.979200
+  - class: Magento\Framework\View\Element\Template (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Template.php)
+  - template: Magento_Theme::html/messages.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK messages rendered in 34.218288
+  - class: Magento\Framework\View\Element\Messages (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Messages.php)
+  - template: Magento_Theme::messages.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK formkey rendered in 14.152176
+  - class: Magento\Framework\View\Element\FormKey (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/FormKey.php)
+  - template: (null)
+  - SQL: 0 (0.000000ms)
+BLOCK authentication-popup rendered in 33.563507
+  - class: Magento\Customer\Block\Account\AuthenticationPopup (/php-module/magento/magento2/app/code/Magento/Customer/Block/Account/AuthenticationPopup.php)
+  - template: account/authentication-popup.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK customer.section.config rendered in 42.847301
+  - class: Magento\Customer\Block\SectionConfig (/php-module/magento/magento2/app/code/Magento/Customer/Block/SectionConfig.php)
+  - template: Magento_Customer::js/section-config.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK customer.customer.data rendered in 32.647064
+  - class: Magento\Customer\Block\CustomerData (/php-module/magento/magento2/app/code/Magento/Customer/Block/CustomerData.php)
+  - template: Magento_Customer::js/customer-data.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK pageCache rendered in 27.960127
+  - class: Magento\PageCache\Block\Javascript (/php-module/magento/magento2/app/code/Magento/PageCache/Block/Javascript.php)
+  - template: Magento_PageCache::javascript.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK 5397eef51396ef149b74173cc5279e16 rendered in 3857.167236
+  - class: Magento\Cms\Block\Widget\Block (/php-module/magento/magento2/app/code/Magento/Cms/Block/Widget/Block.php)
+  - template: widget/static_block/default.phtml
+  - SQL: 226 (190.975647ms)
+BLOCK cms_page rendered in 6.752957
+  - class: Magento\Cms\Block\Page (/php-module/magento/magento2/app/code/Magento/Cms/Block/Page.php)
+  - template: (null)
+  - SQL: 0 (0.000000ms)
+BLOCK form.subscribe rendered in 18.168623
+  - class: Magento\Newsletter\Block\Subscribe (/php-module/magento/magento2/app/code/Magento/Newsletter/Block/Subscribe.php)
+  - template: subscribe.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK 8bea601f3ca5d587e7a76de619f288d7 rendered in 23.162678
+  - class: Magento\Cms\Block\Widget\Block (/php-module/magento/magento2/app/code/Magento/Cms/Block/Widget/Block.php)
+  - template: widget/static_block/default.phtml
+  - SQL: 3 (2.531478ms)
+BLOCK footer_links rendered in 14.591008
+  - class: Magento\Framework\View\Element\Html\Links (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Html/Links.php)
+  - template: (null)
+  - SQL: 0 (0.000000ms)
+BLOCK privacy-policy-link rendered in 11.863441
+  - class: Magento\Framework\View\Element\Html\Link\Current (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Html/Link/Current.php)
+  - template: (null)
+  - SQL: 0 (0.000000ms)
+BLOCK search-term-popular-link rendered in 7.938110
+  - class: Magento\Framework\View\Element\Html\Link\Current (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Html/Link/Current.php)
+  - template: (null)
+  - SQL: 0 (0.000000ms)
+BLOCK catalog-search-advanced-link rendered in 6.655391
+  - class: Magento\Framework\View\Element\Html\Link\Current (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Html/Link/Current.php)
+  - template: (null)
+  - SQL: 0 (0.000000ms)
+BLOCK contact-us-link rendered in 11.836216
+  - class: Magento\Framework\View\Element\Html\Link\Current (/php-module/magento/magento2/lib/internal/Magento/Framework/View/Element/Html/Link/Current.php)
+  - template: (null)
+  - SQL: 0 (0.000000ms)
+BLOCK sales-guest-form-link rendered in 6.581037
+  - class: Magento\Sales\Block\Guest\Link (/php-module/magento/magento2/app/code/Magento/Sales/Block/Guest/Link.php)
+  - template: (null)
+  - SQL: 0 (0.000000ms)
+BLOCK store_switcher rendered in 33.869072
+  - class: Magento\Store\Block\Switcher\Interceptor (/php-module/magento/magento2/var/generation/Magento/Store/Block/Switcher/Interceptor.php)
+  - template: switch/stores.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK absolute_footer rendered in 30.494419
+  - class: Magento\Theme\Block\Html\Footer (/php-module/magento/magento2/app/code/Magento/Theme/Block/Html/Footer.php)
+  - template: html/absolute_footer.phtml
+  - SQL: 0 (0.000000ms)
+BLOCK copyright rendered in 29.590832
+  - class: Magento\Theme\Block\Html\Footer (/php-module/magento/magento2/app/code/Magento/Theme/Block/Html/Footer.php)
+  - template: html/copyright.phtml
+  - SQL: 0 (0.000000ms)
