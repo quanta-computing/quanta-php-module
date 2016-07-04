@@ -1,5 +1,3 @@
-#include "quanta_mon.h"
-
 void hp_fill_monitored_functions(char **function_names) {
  if (function_names[0] != NULL) return;
  function_names[0] = "Magento\\Framework\\App\\Bootstrap::run";
@@ -27,8 +25,7 @@ void hp_fill_monitored_functions(char **function_names) {
  function_names[22] = NULL;
 }
 
-int hp_match_monitored_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {
- ++hp_globals.internal_match_counters.total;
+int hp_match_monitored_function(const char* function_name) {
  if (function_name[0] == 'g') {
   if (function_name[1] == 'e') {
    if (function_name[2] == 't') {
@@ -42,11 +39,7 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
            if (function_name[10] == 'm') {
             if (function_name[11] == 'e') {
              if (function_name[12] == '\0') {
-              ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
-              if (!class_name) return -1;
-              if (!strcmp(class_name, "Magento\\Framework\\App\\Request\\Http")) return 4;
-              ++hp_globals.internal_match_counters.class_unmatched;
+              if (!strcmp(function_name, "Magento\\Framework\\App\\Request\\Http")) return 4;
               return -1;
              }
              return -1;
@@ -88,11 +81,7 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
                    if (function_name[18] == 'k') {
                     if (function_name[19] == 's') {
                      if (function_name[20] == '\0') {
-                      ++hp_globals.internal_match_counters.function;
-                      const char *class_name = hp_get_class_name(data TSRMLS_CC);
-                      if (!class_name) return -1;
-                      if (!strcmp(class_name, "Magento\\Framework\\View\\Page\\Builder")) return 9;
-                      ++hp_globals.internal_match_counters.class_unmatched;
+                      if (!strcmp(function_name, "Magento\\Framework\\View\\Page\\Builder")) return 9;
                       return -1;
                      }
                      return -1;
@@ -148,11 +137,7 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
            if (function_name[10] == 's') {
             if (function_name[11] == 'e') {
              if (function_name[12] == '\0') {
-              ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
-              if (!class_name) return -1;
-              if (!strcmp(class_name, "Magento\\Framework\\App\\Response\\Http\\Interceptor")) return 12;
-              ++hp_globals.internal_match_counters.class_unmatched;
+              if (!strcmp(function_name, "Magento\\Framework\\App\\Response\\Http\\Interceptor")) return 12;
               return -1;
              }
              return -1;
@@ -192,11 +177,7 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
            if (function_name[10] == 'c') {
             if (function_name[11] == 'k') {
              if (function_name[12] == '\0') {
-              ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
-              if (!class_name) return -1;
-              if (!strcmp(class_name, "Magento\\Framework\\View\\Layout")) return 15;
-              ++hp_globals.internal_match_counters.class_unmatched;
+              if (!strcmp(function_name, "Magento\\Framework\\View\\Layout")) return 15;
               return -1;
              }
              return -1;
@@ -234,11 +215,7 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
          if (function_name[8] == 'z') {
           if (function_name[9] == 'e') {
            if (function_name[10] == '\0') {
-            ++hp_globals.internal_match_counters.function;
-            const char *class_name = hp_get_class_name(data TSRMLS_CC);
-            if (!class_name) return -1;
-            if (!strcmp(class_name, "Magento\\Framework\\Interception\\Config\\Config")) return 3;
-            ++hp_globals.internal_match_counters.class_unmatched;
+            if (!strcmp(function_name, "Magento\\Framework\\Interception\\Config\\Config")) return 3;
             return -1;
            }
            return -1;
@@ -268,11 +245,7 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
      if (function_name[4] == 't') {
       if (function_name[5] == 'e') {
        if (function_name[6] == '\0') {
-        ++hp_globals.internal_match_counters.function;
-        const char *class_name = hp_get_class_name(data TSRMLS_CC);
-        if (!class_name) return -1;
-        if (!strcmp(class_name, "Magento\\Framework\\App\\Bootstrap")) return 1;
-        ++hp_globals.internal_match_counters.class_unmatched;
+        if (!strcmp(function_name, "Magento\\Framework\\App\\Bootstrap")) return 1;
         return -1;
        }
        if (function_name[6] == 'A') {
@@ -287,11 +260,7 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
                 if (function_name[15] == 'o') {
                  if (function_name[16] == 'n') {
                   if (function_name[17] == '\0') {
-                   ++hp_globals.internal_match_counters.function;
-                   const char *class_name = hp_get_class_name(data TSRMLS_CC);
-                   if (!class_name) return -1;
-                   if (!strcmp(class_name, "Magento\\Framework\\App\\Bootstrap")) return 2;
-                   ++hp_globals.internal_match_counters.class_unmatched;
+                   if (!strcmp(function_name, "Magento\\Framework\\App\\Bootstrap")) return 2;
                    return -1;
                   }
                   return -1;
@@ -335,11 +304,7 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
         if (function_name[7] == 'p') {
          if (function_name[8] == 'e') {
           if (function_name[9] == '\0') {
-           ++hp_globals.internal_match_counters.function;
-           const char *class_name = hp_get_class_name(data TSRMLS_CC);
-           if (!class_name) return -1;
-           if (!strcmp(class_name, "Magento\\Framework\\App\\Cache\\TypeList")) return 18;
-           ++hp_globals.internal_match_counters.class_unmatched;
+           if (!strcmp(function_name, "Magento\\Framework\\App\\Cache\\TypeList")) return 18;
            return -1;
           }
           return -1;
@@ -368,13 +333,9 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
       if (function_name[5] == 't') {
        if (function_name[6] == 'e') {
         if (function_name[7] == '\0') {
-         ++hp_globals.internal_match_counters.function;
-         const char *class_name = hp_get_class_name(data TSRMLS_CC);
-         if (!class_name) return -1;
-         if (!strcmp(class_name, "PDOStatement")) return 16;
-         if (!strcmp(class_name, "Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushAll")) return 17;
-         if (!strcmp(class_name, "Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushSystem")) return 19;
-         ++hp_globals.internal_match_counters.class_unmatched;
+         if (!strcmp(function_name, "PDOStatement")) return 16;
+         if (!strcmp(function_name, "Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushAll")) return 17;
+         if (!strcmp(function_name, "Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushSystem")) return 19;
          return -1;
         }
         return -1;
@@ -400,12 +361,8 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
        if (function_name[6] == 'c') {
         if (function_name[7] == 'h') {
          if (function_name[8] == '\0') {
-          ++hp_globals.internal_match_counters.function;
-          const char *class_name = hp_get_class_name(data TSRMLS_CC);
-          if (!class_name) return -1;
-          if (!strcmp(class_name, "Magento\\Framework\\App\\FrontController\\Interceptor")) return 7;
-          if (!strcmp(class_name, "Magento\\Framework\\App\\Action\\Action")) return 8;
-          ++hp_globals.internal_match_counters.class_unmatched;
+          if (!strcmp(function_name, "Magento\\Framework\\App\\FrontController\\Interceptor")) return 7;
+          if (!strcmp(function_name, "Magento\\Framework\\App\\Action\\Action")) return 8;
           return -1;
          }
          return -1;
@@ -437,11 +394,7 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
            if (function_name[10] == 'l') {
             if (function_name[11] == 't') {
              if (function_name[12] == '\0') {
-              ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
-              if (!class_name) return -1;
-              if (!strcmp(class_name, "Magento\\Framework\\View\\Result\\Page\\Interceptor")) return 10;
-              ++hp_globals.internal_match_counters.class_unmatched;
+              if (!strcmp(function_name, "Magento\\Framework\\View\\Result\\Page\\Interceptor")) return 10;
               return -1;
              }
              return -1;
@@ -469,11 +422,7 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
   if (function_name[1] == 'u') {
    if (function_name[2] == 'n') {
     if (function_name[3] == '\0') {
-     ++hp_globals.internal_match_counters.function;
-     const char *class_name = hp_get_class_name(data TSRMLS_CC);
-     if (!class_name) return -1;
-     if (!strcmp(class_name, "Magento\\Framework\\App\\Bootstrap")) return 0;
-     ++hp_globals.internal_match_counters.class_unmatched;
+     if (!strcmp(function_name, "Magento\\Framework\\App\\Bootstrap")) return 0;
      return -1;
     }
     return -1;
