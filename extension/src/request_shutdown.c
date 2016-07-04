@@ -12,6 +12,6 @@ PHP_RSHUTDOWN_FUNCTION(quanta_mon) {
     hp_globals.internal_match_counters.function - hp_globals.internal_match_counters.class_unmatched,
     hp_globals.internal_match_counters.class_unmatched
   );
-  close(hp_globals.internal_match_counters.fd);
+  // close(hp_globals.internal_match_counters.fd);
   return SUCCESS;
 }
