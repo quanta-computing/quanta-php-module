@@ -1,55 +1,56 @@
 # Don't forget to change QUANTA_MON_MAX_MONITORED_FUNCTIONS.
 # It must be equal to the last entry ([x] = NULL) + 1
 
-methods = [
-  'Magento\Framework\App\Bootstrap::run',
-  'Magento\Framework\App\Bootstrap::create',
-  'Magento\Framework\App\Bootstrap::createApplication',
-  'Magento\Framework\Interception\Config\Config::initialize',
-  'Magento\Framework\App\Request\Http::getFrontName',
-  '',
-  '',
-  'Magento\Framework\App\FrontController\Interceptor::dispatch',
-  'Magento\Framework\App\Action\Action::dispatch',
-  'Magento\Framework\View\Page\Builder::generateLayoutBlocks',
-  'Magento\Framework\View\Result\Page\Interceptor::renderResult',
-  '',
-  'Magento\Framework\App\Response\Http\Interceptor::sendResponse',
-  '',
-  '',
-  'Magento\Framework\View\Layout::_renderBlock',
-  'PDOStatement::execute',
-  'Magento\Backend\Controller\Adminhtml\Cache\FlushAll::execute',
-  'Magento\Framework\App\Cache\TypeList::cleanType',
-  'Magento\Backend\Controller\Adminhtml\Cache\FlushSystem::execute',
-  '',
-  ''
-]
+# put that in the optimal way
+methods = {
+  15 => 'Magento\Framework\App\Bootstrap::run',
+  6 => 'Magento\Framework\App\Bootstrap::create',
+  7 => 'Magento\Framework\App\Bootstrap::createApplication',
+  5 => 'Magento\Framework\Interception\Config\Config::initialize',
+  0 => 'Magento\Framework\App\Request\Http::getFrontName',
+  16 => '',
+  17 => '',
+  13 => 'Magento\Framework\App\FrontController\Interceptor::dispatch',
+  12 => 'Magento\Framework\App\Action\Action::dispatch',
+  1 => 'Magento\Framework\View\Page\Builder::generateLayoutBlocks',
+  14 => 'Magento\Framework\View\Result\Page\Interceptor::renderResult',
+  18 => '',
+  3 => 'Magento\Framework\App\Response\Http\Interceptor::sendResponse',
+  19 => '',
+  20 => '',
+  4 => 'Magento\Framework\View\Layout::_renderBlock',
+  9 => 'PDOStatement::execute',
+  10 => 'Magento\Backend\Controller\Adminhtml\Cache\FlushAll::execute',
+  8 => 'Magento\Framework\App\Cache\TypeList::cleanType',
+  11 => 'Magento\Backend\Controller\Adminhtml\Cache\FlushSystem::execute',
+  21 => '',
+  22 => ''
+}
 
 def compute_functions methods
-  methods.each_with_index.reduce Hash.new do |functions, (method, index)|
+  methods.each_with_index.reduce Hash.new do |functions, ((order, method), index)|
     next functions if method.empty?
-    klass, function = method.split '::'
-    (functions[function] ||= []).push class_name: klass, index: index
+    klass, function_name = method.split '::'
+    (functions[function_name] ||= []).push class_name: klass, index: index, order: order
+    functions[function_name].sort_by { |function| function[:order] }
     functions
+  end.sort_by do |function_name, functions|
+    functions.min { |function| function[:order] }[:order]
   end
 end
 
 def insert_into_tree node, string, value
   i = 0
   n = string.length
-  while i < n
-    if node[:children][string[i]]
-      node = node[:children][string[i]]
-      i += 1
-    else
-      break
-    end
+  while i < n && node[:children][string[i]]
+    node = node[:children][string[i]]
+    i += 1
   end
   while i < n
     node = node[:children][string[i]] = {children: {}, value: value}
     i += 1
   end
+  node[:children]['\\0'] = {children: {}, value: value}
 end
 
 def create_tree functions
@@ -97,7 +98,7 @@ def compile_fill methods
   puts
   puts "void hp_fill_monitored_functions(char **function_names) {"
   puts " if (function_names[0] != NULL) return;"
-  methods.each_with_index do |method, index|
+  methods.each_with_index do |(__, method), index|
     puts " function_names[#{index}] = \"#{method.gsub '\\', '\\\\\\\\'}\";";
   end
   puts " function_names[#{methods.length}] = NULL;"
