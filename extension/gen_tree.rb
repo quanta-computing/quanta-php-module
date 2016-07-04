@@ -96,7 +96,7 @@ def compile_fill methods
   puts "void hp_fill_monitored_functions(char **function_names) {"
   puts " if (function_names[0] != NULL) return;"
   methods.each_with_index do |method, index|
-    puts " function_names[#{index}] = \"#{method}\"";
+    puts " function_names[#{index}] = \"#{method.gsub '\\', '\\\\\\\\'}\"";
   end
   puts " function_names[#{methods.length}] = NULL;"
   puts "}"
