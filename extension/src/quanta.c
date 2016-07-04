@@ -76,6 +76,8 @@ int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TS
     return -1; /* False match, we have nothing */
   }
 
+  //TODO! testing
+  return -1;
   if (i == POS_ENTRY_APP_RUN) {
     fetch_magento_version(TSRMLS_C);
   }
