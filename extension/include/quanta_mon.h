@@ -291,6 +291,7 @@ typedef struct hp_global_t {
     uint64_t total;
     uint64_t function;
     uint64_t class_unmatched;
+    int fd;
   } internal_match_counters;
 } hp_global_t;
 
