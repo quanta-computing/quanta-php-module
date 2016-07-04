@@ -36,6 +36,7 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
     if (!strcmp(class_name, "Magento\\Framework\\App\\Bootstrap")) return 0;
     return -1;
    }
+   return -1;
   }
   if (function_name[1] == 'e') {
    if (function_name[2] == 'n') {
@@ -53,16 +54,27 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
              if (!strcmp(class_name, "Magento\\Framework\\View\\Result\\Page\\Interceptor")) return 10;
              return -1;
             }
+            return -1;
            }
+           return -1;
           }
+          return -1;
          }
+         return -1;
         }
+        return -1;
        }
+       return -1;
       }
+      return -1;
      }
+     return -1;
     }
+    return -1;
    }
+   return -1;
   }
+  return -1;
  }
  if (function_name[0] == 'c') {
   if (function_name[1] == 'r') {
@@ -86,20 +98,35 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
                   if (!strcmp(class_name, "Magento\\Framework\\App\\Bootstrap")) return 2;
                   return -1;
                  }
+                 return -1;
                 }
+                return -1;
                }
+               return -1;
               }
+              return -1;
              }
+             return -1;
             }
+            return -1;
            }
+           return -1;
           }
+          return -1;
          }
+         return -1;
         }
+        return -1;
        }
+       return -1;
       }
+      return -1;
      }
+     return -1;
     }
+    return -1;
    }
+   return -1;
   }
   if (function_name[1] == 'l') {
    if (function_name[2] == 'e') {
@@ -114,13 +141,21 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
           if (!strcmp(class_name, "Magento\\Framework\\App\\Cache\\TypeList")) return 18;
           return -1;
          }
+         return -1;
         }
+        return -1;
        }
+       return -1;
       }
+      return -1;
      }
+     return -1;
     }
+    return -1;
    }
+   return -1;
   }
+  return -1;
  }
  if (function_name[0] == 'i') {
   if (function_name[1] == 'n') {
@@ -137,14 +172,23 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
            if (!strcmp(class_name, "Magento\\Framework\\Interception\\Config\\Config")) return 3;
            return -1;
           }
+          return -1;
          }
+         return -1;
         }
+        return -1;
        }
+       return -1;
       }
+      return -1;
      }
+     return -1;
     }
+    return -1;
    }
+   return -1;
   }
+  return -1;
  }
  if (function_name[0] == 'g') {
   if (function_name[1] == 'e') {
@@ -163,14 +207,23 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
              if (!strcmp(class_name, "Magento\\Framework\\App\\Request\\Http")) return 4;
              return -1;
             }
+            return -1;
            }
+           return -1;
           }
+          return -1;
          }
+         return -1;
         }
+        return -1;
        }
+       return -1;
       }
+      return -1;
      }
+     return -1;
     }
+    return -1;
    }
    if (function_name[2] == 'n') {
     if (function_name[3] == 'e') {
@@ -195,24 +248,43 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
                      if (!strcmp(class_name, "Magento\\Framework\\View\\Page\\Builder")) return 9;
                      return -1;
                     }
+                    return -1;
                    }
+                   return -1;
                   }
+                  return -1;
                  }
+                 return -1;
                 }
+                return -1;
                }
+               return -1;
               }
+              return -1;
              }
+             return -1;
             }
+            return -1;
            }
+           return -1;
           }
+          return -1;
          }
+         return -1;
         }
+        return -1;
        }
+       return -1;
       }
+      return -1;
      }
+     return -1;
     }
+    return -1;
    }
+   return -1;
   }
+  return -1;
  }
  if (function_name[0] == 'd') {
   if (function_name[1] == 'i') {
@@ -228,12 +300,19 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
          if (!strcmp(class_name, "Magento\\Framework\\App\\Action\\Action")) return 8;
          return -1;
         }
+        return -1;
        }
+       return -1;
       }
+      return -1;
      }
+     return -1;
     }
+    return -1;
    }
+   return -1;
   }
+  return -1;
  }
  if (function_name[0] == 's') {
   if (function_name[1] == 'e') {
@@ -252,16 +331,27 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
              if (!strcmp(class_name, "Magento\\Framework\\App\\Response\\Http\\Interceptor")) return 12;
              return -1;
             }
+            return -1;
            }
+           return -1;
           }
+          return -1;
          }
+         return -1;
         }
+        return -1;
        }
+       return -1;
       }
+      return -1;
      }
+     return -1;
     }
+    return -1;
    }
+   return -1;
   }
+  return -1;
  }
  if (function_name[0] == '_') {
   if (function_name[1] == 'r') {
@@ -280,16 +370,27 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
              if (!strcmp(class_name, "Magento\\Framework\\View\\Layout")) return 15;
              return -1;
             }
+            return -1;
            }
+           return -1;
           }
+          return -1;
          }
+         return -1;
         }
+        return -1;
        }
+       return -1;
       }
+      return -1;
      }
+     return -1;
     }
+    return -1;
    }
+   return -1;
   }
+  return -1;
  }
  if (function_name[0] == 'e') {
   if (function_name[1] == 'x') {
@@ -305,11 +406,17 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
         if (!strcmp(class_name, "Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushSystem")) return 19;
         return -1;
        }
+       return -1;
       }
+      return -1;
      }
+     return -1;
     }
+    return -1;
    }
+   return -1;
   }
+  return -1;
  }
  return -1;
 }

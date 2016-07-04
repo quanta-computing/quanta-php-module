@@ -74,19 +74,18 @@ def compile_node node, depth = 0
     node[:value].each do |value|
       print depth, "if (!strcmp(class_name, \"#{value[:class_name].gsub '\\', '\\\\\\\\'}\")) return #{value[:index]};"
     end
-    print depth, "return -1;"
   end
   node[:children].each do |letter, child|
     print depth, "if (function_name[#{depth}] == '#{letter}') {"
     compile_node child, depth + 1
     print depth, '}'
   end
+  print depth, "return -1;"
 end
 
 def compile_tree tree
   puts "int hp_match_monitored_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {"
   compile_node tree
-  puts " return -1;"
   puts "}"
 end
 
