@@ -72,7 +72,7 @@ int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TS
 
   if ((i = hp_match_monitored_function(curr_func, execute_data TSRMLS_CC)) == -1
   || !hp_globals_monitored_function_names()[i] || !*hp_globals_monitored_function_names()[i]
-  || (i < POS_ENTRY_EVENTS_ONLY && hp_globals.profiler_level == QUANTA_MON_MODE_EVENTS_ONLY) {
+  || (i < POS_ENTRY_EVENTS_ONLY && hp_globals.profiler_level == QUANTA_MON_MODE_EVENTS_ONLY)) {
     return -1; /* False match, we have nothing */
   }
 

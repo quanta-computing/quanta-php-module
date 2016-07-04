@@ -400,13 +400,15 @@ void hp_mode_events_only_endfn_cb(hp_entry_t **entries  TSRMLS_DC);
 
 // Monitored/ignored functions filter
 void hp_get_ignored_functions_from_arg(zval *args);
-void hp_get_monitored_functions_fill();
 void hp_ignored_functions_filter_clear();
 void hp_ignored_functions_filter_init();
+void hp_fill_monitored_functions(char **function_names);
+int hp_match_monitored_function(const char* function_name, zend_execute_data* data TSRMLS_DC);
 
-void hp_monitored_functions_filter_clear();
-void hp_monitored_functions_filter_init();
-int hp_monitored_functions_filter_collision(uint8_t hash);
+// void hp_get_monitored_functions_fill();
+// void hp_monitored_functions_filter_clear();
+// void hp_monitored_functions_filter_init();
+// int hp_monitored_functions_filter_collision(uint8_t hash);
 int  hp_ignore_entry_work(uint8_t hash_code, char *curr_func);
 inline int hp_ignore_entry(uint8_t hash_code, char *curr_func);
 

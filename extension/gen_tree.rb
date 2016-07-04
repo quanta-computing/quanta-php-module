@@ -60,7 +60,7 @@ def create_tree functions
 end
 
 def indent length
-  ' ' * length
+  ' ' * (length + 1)
 end
 
 def print depth, text
@@ -85,7 +85,7 @@ end
 
 def compile_tree tree
   puts "int hp_match_monitored_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {"
-  compile_node tree, 1
+  compile_node tree
   puts " return -1;"
   puts "}"
 end
@@ -96,7 +96,7 @@ def compile_fill methods
   puts "void hp_fill_monitored_functions(char **function_names) {"
   puts " if (function_names[0] != NULL) return;"
   methods.each_with_index do |method, index|
-    puts " function_names[#{index}] = \"#{method.gsub '\\', '\\\\\\\\'}\"";
+    puts " function_names[#{index}] = \"#{method.gsub '\\', '\\\\\\\\'}\";";
   end
   puts " function_names[#{methods.length}] = NULL;"
   puts "}"
