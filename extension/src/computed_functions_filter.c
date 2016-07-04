@@ -27,7 +27,7 @@ void hp_fill_monitored_functions(char **function_names) {
  function_names[22] = NULL;
 }
 
-int hp_match_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {
+int hp_match_monitored_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {
  if (function_name[1] == 'r') {
   if (function_name[2] == 'u') {
    if (function_name[3] == 'n') {

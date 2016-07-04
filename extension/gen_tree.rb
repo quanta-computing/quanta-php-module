@@ -84,7 +84,7 @@ def compile_node node, depth = 0
 end
 
 def compile_tree tree
-  puts "int hp_match_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {"
+  puts "int hp_match_monitored_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {"
   compile_node tree, 1
   puts " return -1;"
   puts "}"
