@@ -69,11 +69,13 @@ end
 
 def compile_node node, depth = 0
   if node[:children].empty?
+    print depth, "++hp_globals.internal_match_counters.function;"
     print depth, "const char *class_name = hp_get_class_name(data TSRMLS_CC);";
     print depth, "if (!class_name) return -1;"
     node[:value].each do |value|
       print depth, "if (!strcmp(class_name, \"#{value[:class_name].gsub '\\', '\\\\\\\\'}\")) return #{value[:index]};"
     end
+    print depth, "++hp_globals.internal_match_counters.class_unmatched;"
   end
   node[:children].each do |letter, child|
     print depth, "if (function_name[#{depth}] == '#{letter}') {"
@@ -85,6 +87,7 @@ end
 
 def compile_tree tree
   puts "int hp_match_monitored_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {"
+  puts " ++hp_globals.internal_match_counters.total;"
   compile_node tree
   puts "}"
 end
