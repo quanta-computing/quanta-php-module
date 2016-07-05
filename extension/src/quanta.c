@@ -91,15 +91,14 @@ int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TS
   //   j = -1;
   // end = cycle_timer();
   // hp_globals.internal_match_counters.hash_cycles += end - start;
-
+  //
   // if (i != j)
-  //   PRINTF_QUANTA("FUCKED UP MATCH %d != %d\n", i, j);
+  //   printf("FUCKED UP MATCH %d != %d\n", i, j);
   if (i < 0
   || !hp_globals_monitored_function_names()[i] || !*hp_globals_monitored_function_names()[i]
   || (i < POS_ENTRY_EVENTS_ONLY && hp_globals.profiler_level == QUANTA_MON_MODE_EVENTS_ONLY)) {
     return -1; /* False match, we have nothing */
   }
-
   //TODO! testing
   // return -1;
   if (i == POS_ENTRY_APP_RUN) {
@@ -122,8 +121,6 @@ int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TS
     return qm_record_cache_clean_event(i, execute_data TSRMLS_CC);
   if (i == POS_ENTRY_EV_MAGE_CLEAN)
     return qm_record_cache_system_flush_event(i, execute_data TSRMLS_CC);
-  if (i == POS_ENTRY_EV_BEFORE_SAVE)
-    return qm_record_reindex_event(i, execute_data TSRMLS_CC);
 
   return i; /* No, bailout */
 }
@@ -140,6 +137,8 @@ int qm_end_profiling(int profile_curr, zend_execute_data *execute_data TSRMLS_DC
     qm_after_tohtml(execute_data TSRMLS_CC);
   if (profile_curr == POS_ENTRY_PDO_EXECUTE)
     qm_record_sql_timers();
+  if (profile_curr == POS_ENTRY_EV_BEFORE_SAVE)
+    return qm_record_reindex_event(profile_curr, execute_data TSRMLS_CC);
 
   return profile_curr;
 }

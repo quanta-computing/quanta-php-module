@@ -23,7 +23,7 @@ methods = {
   10 => 'Magento\Backend\Controller\Adminhtml\Cache\FlushAll::execute',
   8 => 'Magento\Framework\App\Cache\TypeList::cleanType',
   11 => 'Magento\Backend\Controller\Adminhtml\Cache\FlushSystem::execute',
-  21 => '',
+  21 => 'Magento\Indexer\Model\Indexer::reindexAll',
   22 => ''
 }
 

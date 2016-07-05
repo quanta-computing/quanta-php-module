@@ -1,6 +1,6 @@
 #include "quanta_mon.h"
 
-char *get_mage_model_data(HashTable *attrs, char *key TSRMLS_DC) {
+zval *get_mage_model_zdata(HashTable *attrs, char *key, int type TSRMLS_DC) {
   HashTable *model_data;
   zval **data;
   zval **ret;
@@ -14,11 +14,19 @@ char *get_mage_model_data(HashTable *attrs, char *key TSRMLS_DC) {
     PRINTF_QUANTA("Cannot fetch %s in model data\n", key);
     return NULL;
   }
-  if (Z_TYPE_PP(ret) != IS_STRING) {
-    PRINTF_QUANTA("%s is not a string :(\n", key);
+  if (Z_TYPE_PP(ret) != type) {
+    PRINTF_QUANTA("%s is not a %d, it's a %d :(\n", key, type, Z_TYPE_PP(ret));
     return NULL;
   }
-  return Z_STRVAL_PP(ret);
+  return *ret;
+}
+
+char *get_mage_model_data(HashTable *attrs, char *key TSRMLS_DC) {
+  zval *data;
+
+  if (!(data = get_mage_model_zdata(attrs, key, IS_STRING TSRMLS_CC)))
+    return NULL;
+  return Z_STRVAL_P(data);
 }
 
 static char *get_magento2_composer_version(FILE *composer_file_handle TSRMLS_DC) {

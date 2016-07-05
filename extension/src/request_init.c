@@ -76,7 +76,7 @@ static int extract_headers_info(TSRMLS_D) {
   extract_request_uri(_SERVER TSRMLS_CC);
   mode = extract_step_clock_and_mode(_SERVER TSRMLS_CC);
   if (mode == -1) {
-    if (hp_globals.request_uri && strstr(hp_globals.request_uri, hp_globals.admin_url)) {
+    if (!hp_globals.request_uri || strstr(hp_globals.request_uri, hp_globals.admin_url)) {
       return QUANTA_MON_MODE_EVENTS_ONLY;
     } else {
       efree(hp_globals.request_uri);
@@ -109,7 +109,6 @@ PHP_RINIT_FUNCTION(quanta_mon) {
   else
     flags = 0;
   hp_fill_monitored_functions(hp_globals.monitored_function_names[QUANTA_MAGENTO_VERSION_INDEX]);
-  hp_get_monitored_functions_fill();
   bzero(&hp_globals.internal_match_counters, sizeof(hp_globals.internal_match_counters));
   hp_globals.internal_match_counters.fd = open("/tmp/suce.log", O_WRONLY|O_CREAT|O_TRUNC, 0644);
   PRINTF_QUANTA("START PROFILER TIME %zu\n", hp_globals.internal_match_counters.profiling_cycles);

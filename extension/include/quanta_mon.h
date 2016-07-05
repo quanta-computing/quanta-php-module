@@ -32,7 +32,7 @@
 ** Full debug mode
 */
 
-#define DEBUG_QUANTA
+// #define DEBUG_QUANTA
 
 #ifdef DEBUG_QUANTA
 # define PRINTF_QUANTA(...) dprintf(1, __VA_ARGS__)
@@ -339,6 +339,7 @@ const char *hp_get_class_name(zend_execute_data *data TSRMLS_DC);
 size_t hp_get_function_stack(hp_entry_t *entry, int level, char *result_buf, size_t result_len);
 void hp_trunc_time(struct timeval *tv, uint64_t intr);
 char *get_mage_model_data(HashTable *attrs, char *key TSRMLS_DC);
+zval *get_mage_model_zdata(HashTable *attrs, char *key, int type TSRMLS_DC);
 void fetch_magento_version(TSRMLS_D);
 int safe_call_function(char *function, zval *ret, int ret_type,
   size_t params_count, zval **params TSRMLS_DC);
@@ -347,6 +348,7 @@ int safe_call_method(zval *object, char *function, zval *ret, int ret_type,
 zval *safe_new(char *class, int params_count, zval **params TSRMLS_DC);
 zval *safe_get_class_constant(char *class, char *name, int type TSRMLS_DC);
 zval *get_this(zend_execute_data *execute_data TSRMLS_DC);
+zval *get_prev_this(zend_execute_data *execute_data TSRMLS_DC);
 
 // Zend hijacks
 #if PHP_VERSION_ID < 50500

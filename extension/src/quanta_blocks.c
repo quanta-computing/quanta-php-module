@@ -84,7 +84,7 @@ int qm_before_tohtml(int profile_curr, zend_execute_data *execute_data TSRMLS_DC
   zval *zblock;
   magento_block_t *block = NULL;
 
-  if (!(this = get_this(execute_data TSRMLS_CC))
+  if (!(this = get_prev_this(execute_data TSRMLS_CC))
   || !(block_name = get_block_name(execute_data TSRMLS_CC))
   || !(zblock = get_block_object(this, block_name TSRMLS_CC))
   || !(block = ecalloc(1, sizeof(magento_block_t)))
@@ -115,6 +115,7 @@ int qm_after_tohtml(zend_execute_data *execute_data TSRMLS_DC) {
   magento_block_t *block;
   magento_block_t *parent;
 
+  //TODO! Check if we shouldn't use "get_this" instead
   if (!(this = get_this(execute_data TSRMLS_CC))
   || (!(block_name = get_block_name(execute_data TSRMLS_CC)))
   || (!(block_object = get_block_object(this, block_name TSRMLS_CC)))) {

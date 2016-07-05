@@ -45,9 +45,9 @@ char *version, char *edition) {
   char value[512];
   int ret;
 
-  ret = snprintf(value, 512, "%s %s",
-    version ? version : "unknown",
-    edition ? edition : "unknown");
+  if (!version)
+    return;
+  ret = snprintf(value, 512, "%s %s", version, edition ? edition : "unknown");
   if (ret < 512) {
     monikor_metric_t *metric = monikor_metric_string("magento.version.magento", clock, value);
     if (metric) {

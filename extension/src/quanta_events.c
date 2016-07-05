@@ -65,29 +65,25 @@ int qm_record_cache_system_flush_event(int profile_curr, zend_execute_data *exec
     return -1;
 }
 
-int qm_record_reindex_event(int profile_curr, zend_execute_data *execute_data TSRMLS_DC) {
-  HashTable *attributes;
-  zval *this;
 
-  if (!execute_data) {
-    PRINTF_QUANTA("reindex: execute_data NULL\n");
+int qm_record_reindex_event(int profile_curr, zend_execute_data *execute_data TSRMLS_DC) {
+  zval *this;
+  zval *title;
+  zval title_text;
+  int ret;
+
+  if (!(this = get_this(execute_data TSRMLS_CC))
+  || !(title = get_mage_model_zdata(Z_OBJPROP_P(this), "title", IS_OBJECT TSRMLS_CC))
+  || safe_call_method(title, "getText", &title_text, IS_STRING, 0, NULL TSRMLS_CC)) {
+    PRINTF_QUANTA("Cannot get reindex type\n");
     return -1;
   }
-  if (!execute_data->prev_execute_data) {
-    PRINTF_QUANTA("reindex: execute_data->prev_execute_data NULL\n");
+  if (push_magento_event(MAGENTO_EVENT_REINDEX, "Reindex", Z_STRVAL(title_text))) {
+    PRINTF_QUANTA("Cannot push reindex event\n");
+    zval_dtor(&title_text);
     return -1;
   }
-  this = execute_data->prev_execute_data->current_this;
-  if (Z_TYPE_P(this) != IS_OBJECT) {
-    PRINTF_QUANTA("reindex: 'this' is not an object\n");
-    return -1;
-  }
-  attributes = Z_OBJPROP_P(this);
-  title = get_mage_model_data(attributes, "title" TSRMLS_CC);
-  if (!push_magento_event(MAGENTO_EVENT_REINDEX, "Reindex", title))
-    return profile_curr;
-  else
-    return -1;
+  zval_dtor(&title_text);
   return profile_curr;
 }
 
