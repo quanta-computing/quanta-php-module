@@ -1,5 +1,23 @@
 #include "quanta_mon.h"
 
+zval *get_this(zend_execute_data *execute_data TSRMLS_DC) {
+  zval *this;
+  const char *class_name;
+  zend_uint class_name_len;
+
+  if (!execute_data || !execute_data->prev_execute_data
+  || !(this = execute_data->prev_execute_data->current_this)
+  || Z_TYPE_P(this) != IS_OBJECT) {
+    PRINTF_QUANTA ("Cannot get this (pun intended)\n");
+    return NULL;
+  }
+  if (!Z_OBJ_HANDLER_P(this, get_class_name)
+  || Z_OBJ_HANDLER_P(this, get_class_name)(this, &class_name, &class_name_len, 0 TSRMLS_CC) != SUCCESS) {
+    PRINTF_QUANTA ("GET THIS: 'this' is an object of unknown class\n");
+    return NULL;
+  }
+  return this;
+}
 
 static int _safe_call_function(char *function_name, zval *object, zval *ret_val, int ret_type,
 size_t call_params_count, zval **call_params TSRMLS_DC) {
