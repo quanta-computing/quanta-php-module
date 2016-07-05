@@ -69,16 +69,39 @@ static int match_function_and_class(int start, zend_execute_data *data, const ch
  */
 int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TSRMLS_DC) {
   int i;
+  int j;
+  uint64_t start;
+  uint64_t end;
+  uint8_t hash_code;
 
-  dprintf(hp_globals.internal_match_counters.fd, "%s\n", curr_func);
-  if ((i = hp_match_monitored_function(curr_func, execute_data TSRMLS_CC)) == -1
+  // dprintf(hp_globals.internal_match_counters.fd, "%s %s\n",
+  //   curr_func, hp_get_class_name(execute_data TSRMLS_CC));
+
+  start = cycle_timer();
+  i = hp_match_monitored_function(curr_func, execute_data TSRMLS_CC);
+  end = cycle_timer();
+  hp_globals.internal_match_counters.cycles += end - start;
+  // start = cycle_timer();
+  // hash_code = hp_inline_hash(curr_func);
+  // if (hp_monitored_functions_filter_collision(hash_code))
+  //   j = match_function_and_class(0, execute_data, curr_func TSRMLS_CC);
+  // else
+  //   j = -1;
+  // if (j == QUANTA_MON_MAX_MONITORED_FUNCTIONS - 1)
+  //   j = -1;
+  // end = cycle_timer();
+  // hp_globals.internal_match_counters.hash_cycles += end - start;
+
+  // if (i != j)
+  //   PRINTF_QUANTA("FUCKED UP MATCH %d != %d\n", i, j);
+  if (i < 0
   || !hp_globals_monitored_function_names()[i] || !*hp_globals_monitored_function_names()[i]
   || (i < POS_ENTRY_EVENTS_ONLY && hp_globals.profiler_level == QUANTA_MON_MODE_EVENTS_ONLY)) {
     return -1; /* False match, we have nothing */
   }
 
   //TODO! testing
-  return -1;
+  // return -1;
   if (i == POS_ENTRY_APP_RUN) {
     fetch_magento_version(TSRMLS_C);
   }

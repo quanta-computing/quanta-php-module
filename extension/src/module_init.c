@@ -53,9 +53,7 @@ PHP_MINIT_FUNCTION(quanta_mon) {
   }
 
   hp_ignored_functions_filter_clear();
-  /* Not used anymore
   hp_monitored_functions_filter_clear();
-  */
 
 #if defined(DEBUG)
   /* To make it random number generator repeatable to ease testing. */

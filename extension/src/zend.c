@@ -36,9 +36,6 @@ void hp_restore_original_zend_execute(void) {
 }
 
 void hp_hijack_zend_execute(uint32_t flags, long level) {
-  _zend_compile_file = zend_compile_file;
-  _zend_compile_string = zend_compile_string;
-
 #if PHP_VERSION_ID < 50500
   _zend_execute = zend_execute;
   zend_execute  = hp_execute;
@@ -55,6 +52,8 @@ void hp_hijack_zend_execute(uint32_t flags, long level) {
     zend_execute_internal = hp_execute_internal;
   }
 
+  _zend_compile_file = zend_compile_file;
+  _zend_compile_string = zend_compile_string;
   if (level <= QUANTA_MON_MODE_SAMPLED) {
     zend_compile_string = hp_compile_string;
     zend_compile_file  = hp_compile_file;
@@ -67,35 +66,6 @@ void hp_hijack_zend_execute(uint32_t flags, long level) {
  * ***************************
  */
 
-// static char *hp_get_function_name_fast(zend_op_array *ops, zend_execute_data *data TSRMLS_DC) {
-//   static char ret[1024] = {0};
-//   const char *func = NULL;
-//   const char *cls = NULL;
-//   zend_function      *curr_func;
-//
-//   if (!data)
-//     return NULL;
-//
-//   /* shared meta data for function on the call stack */
-//   curr_func = data->function_state.function;
-//
-//   /* extract function name from the meta info */
-//   func = curr_func->common.function_name;
-//
-//   if (!func)
-//     return NULL;
-//   if (curr_func->common.scope) {
-//     cls = curr_func->common.scope->name;
-//   } else if (data->object) {
-//     cls = Z_OBJCE(*data->object)->name;
-//   }
-//   if (cls) {
-//     snprintf(ret, 1024, "%s::%s", cls, func);
-//   } else {
-//     return func;
-//   }
-//   return ret;
-// }
 
 /**
  * QuantaMon enable replaced the zend_execute function with this
@@ -112,8 +82,11 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
 #endif
   char *func = NULL;
   int hp_profile_flag = 1;
+  uint64_t start1, start2;
+  uint64_t end1, end2;
+  uint64_t last;
 
-
+  start1 = cycle_timer();
   if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {
     func = hp_get_function_name(execute_data TSRMLS_CC);
   } else {
@@ -129,14 +102,21 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
   }
 
   hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, execute_data TSRMLS_CC);
+  end1 = cycle_timer();
 #if PHP_VERSION_ID < 50500
   _zend_execute(ops TSRMLS_CC);
 #else
   _zend_execute_ex(execute_data TSRMLS_CC);
 #endif
+  start2 = cycle_timer();
   hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data TSRMLS_CC);
   if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED)
     efree(func);
+  end2 = cycle_timer();
+  last = hp_globals.internal_match_counters.profiling_cycles;
+  hp_globals.internal_match_counters.profiling_cycles += end1 - start1 + end2 - start2;
+  if (hp_globals.internal_match_counters.profiling_cycles < last)
+    PRINTF_QUANTA("OVERFLOW :(\n");
 }
 
 #undef EX
@@ -161,7 +141,11 @@ struct _zend_fcall_info *fci, int ret TSRMLS_DC) {
 #endif
   char *func = NULL;
   int hp_profile_flag = -1;
+  uint64_t start1, start2;
+  uint64_t end1, end2;
+  uint64_t last;
 
+  start1 = cycle_timer();
   if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {
     func = hp_get_function_name(execute_data TSRMLS_CC);
   } else {
@@ -171,6 +155,7 @@ struct _zend_fcall_info *fci, int ret TSRMLS_DC) {
     hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, execute_data TSRMLS_CC);
   }
 
+  end1 = cycle_timer();
   if (!_zend_execute_internal) {
     /* no old override to begin with. so invoke the builtin's implementation  */
 
@@ -221,12 +206,17 @@ struct _zend_fcall_info *fci, int ret TSRMLS_DC) {
     _zend_execute_internal(execute_data, fci, ret TSRMLS_CC);
 #endif
   }
-
+  start2 = cycle_timer();
   if (func) {
     hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data TSRMLS_CC);
   }
   if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED)
     efree(func);
+  end2 = cycle_timer();
+  last = hp_globals.internal_match_counters.profiling_cycles;
+  hp_globals.internal_match_counters.profiling_cycles += end1 - start1 + end2 - start2;
+  if (hp_globals.internal_match_counters.profiling_cycles < last)
+    PRINTF_QUANTA("OVERFLOW :(\n");
 }
 
 /**

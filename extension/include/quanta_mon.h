@@ -291,6 +291,10 @@ typedef struct hp_global_t {
     uint64_t total;
     uint64_t function;
     uint64_t class_unmatched;
+    uint64_t cycles;
+    uint64_t hash_cycles;
+    uint64_t profiling_cycles;
+    uint64_t init_cycles;
     int fd;
   } internal_match_counters;
 } hp_global_t;
@@ -413,9 +417,9 @@ void hp_fill_monitored_functions(char **function_names);
 int hp_match_monitored_function(const char* function_name, zend_execute_data* data TSRMLS_DC);
 
 // void hp_get_monitored_functions_fill();
-// void hp_monitored_functions_filter_clear();
-// void hp_monitored_functions_filter_init();
-// int hp_monitored_functions_filter_collision(uint8_t hash);
+void hp_monitored_functions_filter_clear();
+void hp_monitored_functions_filter_init();
+int hp_monitored_functions_filter_collision(uint8_t hash);
 int  hp_ignore_entry_work(uint8_t hash_code, char *curr_func);
 inline int hp_ignore_entry(uint8_t hash_code, char *curr_func);
 

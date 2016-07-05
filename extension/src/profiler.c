@@ -56,10 +56,8 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
   /* Set up filter of functions which may be ignored during profiling */
   hp_ignored_functions_filter_init();
 
-  /* Set up filter of functions which are monitored
+  /* Set up filter of functions which are monitored */
   hp_monitored_functions_filter_init();
-  Not used anymore since we precompute the tree
-  */
   hp_globals.current_monitored_function = -1;
   hp_globals.last_monitored_function = -1;
 }
