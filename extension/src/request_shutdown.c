@@ -27,13 +27,17 @@ PHP_RSHUTDOWN_FUNCTION(quanta_mon) {
     cpu_cycles_to_ms(hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
       hp_globals.internal_match_counters.hash_cycles)
   );
-  printf("PROFILING TIME %fms\nINIT TIME %fms\nSHUTDOWN TIME %fms\n",
+  printf("PROFILING TIME %fms\nINIT TIME %fms\nSHUTDOWN TIME %fms\nTOTAL TIME %fms\n",
     cpu_cycles_to_ms(hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
       hp_globals.internal_match_counters.profiling_cycles),
     cpu_cycles_to_ms(hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
       hp_globals.internal_match_counters.init_cycles),
     cpu_cycles_to_ms(hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
-      end - start)
+      end - start),
+    cpu_cycles_to_ms(hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
+      hp_globals.internal_match_counters.profiling_cycles
+      + hp_globals.internal_match_counters.init_cycles
+      + end - start)
   );
   close(hp_globals.internal_match_counters.fd);
   return SUCCESS;
