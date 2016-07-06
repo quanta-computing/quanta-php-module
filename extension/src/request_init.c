@@ -110,8 +110,6 @@ PHP_RINIT_FUNCTION(quanta_mon) {
     flags = 0;
   hp_fill_monitored_functions(hp_globals.monitored_function_names[QUANTA_MAGENTO_VERSION_INDEX]);
   bzero(&hp_globals.internal_match_counters, sizeof(hp_globals.internal_match_counters));
-  hp_globals.internal_match_counters.fd = open("/tmp/suce.log", O_WRONLY|O_CREAT|O_TRUNC, 0644);
-  PRINTF_QUANTA("START PROFILER TIME %zu\n", hp_globals.internal_match_counters.profiling_cycles);
   hp_begin(mode, flags TSRMLS_CC);
   end = cycle_timer();
   hp_globals.internal_match_counters.init_cycles += end - start;

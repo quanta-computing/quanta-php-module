@@ -147,7 +147,6 @@ static const struct {
   int8_t stops_b;
 } magento_metrics[] = {
   {"create_bootstrap", PROF_STARTS(1), PROF_STOPS(1)},
-  {"create_app", PROF_STARTS(2), PROF_STOPS(2)},
   {"before_init_config", PROF_STARTS(2), PROF_STARTS(3)},
   {"init_config", PROF_STARTS(3), PROF_STOPS(3)},
   {"after_init_config", PROF_STOPS(3), PROF_STARTS(4)},
@@ -348,6 +347,55 @@ static void fetch_blocks_metrics(struct timeval *clock, monikor_metric_list_t *m
   }
 }
 
+static void fetch_self_profiling_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
+float cpufreq TSRMLS_DC) {
+  char metric_name[MAX_METRIC_NAME_LENGTH];
+  char *metric_base_end;
+  monikor_metric_t *metric;
+
+  sprintf(metric_name, "magento2.%zu.selfprofiling.", hp_globals.quanta_step_id);
+  metric_base_end = metric_name + strlen(metric_name);
+  strcpy(metric_base_end, "init_time");
+  metric = monikor_metric_float(metric_name, clock,
+    cpu_cycles_to_ms(cpufreq, hp_globals.internal_match_counters.init_cycles), 0);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+  strcpy(metric_base_end, "profiling_time");
+  metric = monikor_metric_float(metric_name, clock,
+    cpu_cycles_to_ms(cpufreq, hp_globals.internal_match_counters.profiling_cycles), 0);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+  hp_globals.internal_match_counters.shutdown_cycles = cycle_timer()
+    - hp_globals.internal_match_counters.shutdown_cycles;
+  strcpy(metric_base_end, "shutdown_time");
+  metric = monikor_metric_float(metric_name, clock,
+    cpu_cycles_to_ms(cpufreq, hp_globals.internal_match_counters.shutdown_cycles), 0);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+  strcpy(metric_base_end, "match_time");
+  metric = monikor_metric_float(metric_name, clock,
+    cpu_cycles_to_ms(cpufreq, hp_globals.internal_match_counters.cycles), 0);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+  strcpy(metric_base_end, "match_total_count");
+  metric = monikor_metric_float(metric_name, clock,
+    cpu_cycles_to_ms(cpufreq, hp_globals.internal_match_counters.total), 0);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+  strcpy(metric_base_end, "match_function_count");
+  metric = monikor_metric_float(metric_name, clock,
+    cpu_cycles_to_ms(cpufreq, hp_globals.internal_match_counters.function), 0);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+  strcpy(metric_base_end, "match_full_count");
+  metric = monikor_metric_float(metric_name, clock,
+    cpu_cycles_to_ms(cpufreq, hp_globals.internal_match_counters.function
+      - hp_globals.internal_match_counters.class_unmatched
+    ), 0);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+}
+
 static void send_data_to_monikor(monikor_metric_list_t *metrics) {
   void *data = NULL;
   int sock = -1;
@@ -419,6 +467,7 @@ void send_metrics(TSRMLS_D) {
       fetch_profiler_metrics(&now, metrics, cpufreq);
       fetch_blocks_metrics(&now, metrics, cpufreq TSRMLS_CC);
       fetch_xhprof_metrics(&now, metrics TSRMLS_CC);
+      fetch_self_profiling_metrics(&now, metrics, cpufreq TSRMLS_CC);
     }
   }
   /* We only want to provide context information such as versions when we actually have some metrics

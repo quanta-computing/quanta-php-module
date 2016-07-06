@@ -32,7 +32,7 @@
 ** Full debug mode
 */
 
-// #define DEBUG_QUANTA
+#define DEBUG_QUANTA
 
 #ifdef DEBUG_QUANTA
 # define PRINTF_QUANTA(...) dprintf(1, __VA_ARGS__)
@@ -295,7 +295,8 @@ typedef struct hp_global_t {
     uint64_t hash_cycles;
     uint64_t profiling_cycles;
     uint64_t init_cycles;
-    int fd;
+    uint64_t shutdown_cycles;
+    int fd; // useful for logging all calls
   } internal_match_counters;
 } hp_global_t;
 
