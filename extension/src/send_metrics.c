@@ -378,20 +378,18 @@ float cpufreq TSRMLS_DC) {
   if (metric)
     monikor_metric_list_push(metrics, metric);
   strcpy(metric_base_end, "match_total_count");
-  metric = monikor_metric_float(metric_name, clock,
-    cpu_cycles_to_ms(cpufreq, hp_globals.internal_match_counters.total), 0);
+  metric = monikor_metric_integer(metric_name, clock,
+    hp_globals.internal_match_counters.total, 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
   strcpy(metric_base_end, "match_function_count");
-  metric = monikor_metric_float(metric_name, clock,
-    cpu_cycles_to_ms(cpufreq, hp_globals.internal_match_counters.function), 0);
+  metric = monikor_metric_integer(metric_name, clock,
+    hp_globals.internal_match_counters.function, 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
   strcpy(metric_base_end, "match_full_count");
-  metric = monikor_metric_float(metric_name, clock,
-    cpu_cycles_to_ms(cpufreq, hp_globals.internal_match_counters.function
-      - hp_globals.internal_match_counters.class_unmatched
-    ), 0);
+  metric = monikor_metric_float(metric_name, clock, hp_globals.internal_match_counters.function
+    - hp_globals.internal_match_counters.class_unmatched, 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
 }
