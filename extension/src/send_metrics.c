@@ -147,9 +147,11 @@ static const struct {
   int8_t stops_b;
 } magento_metrics[] = {
   {"create_bootstrap", PROF_STARTS(1), PROF_STOPS(1)},
-  {"before_init_config", PROF_STARTS(2), PROF_STARTS(3)},
-  {"init_config", PROF_STARTS(3), PROF_STOPS(3)},
-  {"after_init_config", PROF_STOPS(3), PROF_STARTS(4)},
+  {"create_application", PROF_STARTS(2), PROF_STOPS(2)},
+  {"after_create_application", PROF_STOPS(2), PROF_STARTS(4)},
+  // {"before_init_config", PROF_STARTS(2), PROF_STARTS(3)},
+  // {"init_config", PROF_STARTS(3), PROF_STOPS(3)},
+  // {"after_init_config", PROF_STOPS(3), PROF_STARTS(4)},
   {"parse_request", PROF_STARTS(4), PROF_STOPS(4)},
   {"configure_area", PROF_STOPS(4), PROF_STARTS(7)},
   {"loading", PROF_STARTS(1), PROF_STARTS(7)},
@@ -318,12 +320,12 @@ magento_block_t *block TSRMLS_DC) {
     block->renderize_children_cycles + block->tsc_renderize_first_start,
     block->tsc_renderize_last_stop
   );
-  PRINTF_QUANTA("BLOCK %s rendered in %f\n  - class: %s (%s)\n  - template: %s\n  - SQL: %zu (%fms)\n",
-    block->name, rendering_time,
-    block->class, block->class_file,
-    block->template,
-    block->sql_queries_count, cpu_cycles_to_ms(cpufreq, block->sql_cpu_cycles)
-  );
+  // PRINTF_QUANTA("BLOCK %s rendered in %f\n  - class: %s (%s)\n  - template: %s\n  - SQL: %zu (%fms)\n",
+  //   block->name, rendering_time,
+  //   block->class, block->class_file,
+  //   block->template,
+  //   block->sql_queries_count, cpu_cycles_to_ms(cpufreq, block->sql_cpu_cycles)
+  // );
   metric = monikor_metric_float(metric_name, clock, rendering_time, 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);

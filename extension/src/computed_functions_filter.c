@@ -5,7 +5,7 @@ void hp_fill_monitored_functions(char **function_names) {
  function_names[0] = "Magento\\Framework\\App\\Bootstrap::run";
  function_names[1] = "Magento\\Framework\\App\\Bootstrap::create";
  function_names[2] = "Magento\\Framework\\App\\Bootstrap::createApplication";
- function_names[3] = "Magento\\Framework\\Interception\\Config\\Config::initialize";
+ function_names[3] = "";
  function_names[4] = "Magento\\Framework\\App\\Request\\Http::getFrontName";
  function_names[5] = "";
  function_names[6] = "";
@@ -139,44 +139,6 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
              }
              return -1;
             }
-            return -1;
-           }
-           return -1;
-          }
-          return -1;
-         }
-         return -1;
-        }
-        return -1;
-       }
-       return -1;
-      }
-      return -1;
-     }
-     return -1;
-    }
-    return -1;
-   }
-   return -1;
-  }
-  return -1;
- }
- if (function_name[0] == 'i') {
-  if (function_name[1] == 'n') {
-   if (function_name[2] == 'i') {
-    if (function_name[3] == 't') {
-     if (function_name[4] == 'i') {
-      if (function_name[5] == 'a') {
-       if (function_name[6] == 'l') {
-        if (function_name[7] == 'i') {
-         if (function_name[8] == 'z') {
-          if (function_name[9] == 'e') {
-           if (function_name[10] == '\0') {
-            ++hp_globals.internal_match_counters.function;
-            const char *class_name = hp_get_class_name(data TSRMLS_CC);
-            if (!class_name) return -1;
-            if (!strcmp(class_name, "Magento\\Framework\\Interception\\Config\\Config")) return 3;
-            ++hp_globals.internal_match_counters.class_unmatched;
             return -1;
            }
            return -1;
