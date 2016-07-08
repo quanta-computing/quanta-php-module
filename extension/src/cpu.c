@@ -130,13 +130,14 @@ float cpu_cycles_to_ms(float cpufreq, uint64_t count) {
 
 
 float cpu_cycles_range_to_ms(float cpufreq, long long start, long long end) {
-  // TODO check if it doesnt exceed long max value
   if (!start && !end)
      return -1.0;
   if (!start)
     return -2.0;
   if (!end)
     return -3.0;
+  if (start > end)
+    return -4.0;
   return cpu_cycles_to_ms(cpufreq, end - start);
 }
 
