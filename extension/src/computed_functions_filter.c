@@ -11,7 +11,7 @@ void hp_fill_monitored_functions(char **function_names) {
  function_names[6] = "";
  function_names[7] = "Magento\\Framework\\App\\FrontController\\Interceptor::dispatch";
  function_names[8] = "Magento\\Framework\\App\\Action\\Action::dispatch";
- function_names[9] = "Magento\\Framework\\View\\Page\\Builder::generateLayoutBlocks";
+ function_names[9] = "";
  function_names[10] = "Magento\\Framework\\View\\Result\\Page\\Interceptor::renderResult";
  function_names[11] = "";
  function_names[12] = "Magento\\Framework\\App\\Response\\Http\\Interceptor::sendResponse";
@@ -47,68 +47,6 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
               if (!class_name) return -1;
               if (!strcmp(class_name, "Magento\\Framework\\App\\Request\\Http")) return 4;
               ++hp_globals.internal_match_counters.class_unmatched;
-              return -1;
-             }
-             return -1;
-            }
-            return -1;
-           }
-           return -1;
-          }
-          return -1;
-         }
-         return -1;
-        }
-        return -1;
-       }
-       return -1;
-      }
-      return -1;
-     }
-     return -1;
-    }
-    return -1;
-   }
-   if (function_name[2] == 'n') {
-    if (function_name[3] == 'e') {
-     if (function_name[4] == 'r') {
-      if (function_name[5] == 'a') {
-       if (function_name[6] == 't') {
-        if (function_name[7] == 'e') {
-         if (function_name[8] == 'L') {
-          if (function_name[9] == 'a') {
-           if (function_name[10] == 'y') {
-            if (function_name[11] == 'o') {
-             if (function_name[12] == 'u') {
-              if (function_name[13] == 't') {
-               if (function_name[14] == 'B') {
-                if (function_name[15] == 'l') {
-                 if (function_name[16] == 'o') {
-                  if (function_name[17] == 'c') {
-                   if (function_name[18] == 'k') {
-                    if (function_name[19] == 's') {
-                     if (function_name[20] == '\0') {
-                      ++hp_globals.internal_match_counters.function;
-                      const char *class_name = hp_get_class_name(data TSRMLS_CC);
-                      if (!class_name) return -1;
-                      if (!strcmp(class_name, "Magento\\Framework\\View\\Page\\Builder")) return 9;
-                      ++hp_globals.internal_match_counters.class_unmatched;
-                      return -1;
-                     }
-                     return -1;
-                    }
-                    return -1;
-                   }
-                   return -1;
-                  }
-                  return -1;
-                 }
-                 return -1;
-                }
-                return -1;
-               }
-               return -1;
-              }
               return -1;
              }
              return -1;
