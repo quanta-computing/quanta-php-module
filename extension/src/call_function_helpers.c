@@ -24,7 +24,7 @@ zval *get_this(zend_execute_data *execute_data TSRMLS_DC) {
 
 #if PHP_MAJOR_VERSION < 7
   if (!execute_data
-  || !(this = exeecute_data->current_this)
+  || !(this = execute_data->current_this)
   || Z_TYPE_P(this) != IS_OBJECT) {
     PRINTF_QUANTA ("Cannot get this (pun intended) execute_data %p this %p\n", execute_data, this);
     return NULL;
@@ -122,8 +122,9 @@ int safe_call_function(char *function, zval *ret, int ret_type,
 size_t params_count, zval params[] TSRMLS_DC) {
 #if PHP_MAJOR_VERSION < 7
   zval *php5_params[params_count];
+  size_t i;
 
-  for (size_t i = 0; i < params_count; i++)
+  for (i = 0; i < params_count; i++)
     php5_params[i] = &params[i];
   return _safe_call_function(function, NULL, ret, ret_type, params_count, php5_params TSRMLS_CC);
 #else
@@ -135,8 +136,9 @@ int safe_call_method(zval *object, char *method, zval *ret, int ret_type,
 size_t params_count, zval params[] TSRMLS_DC) {
 #if PHP_MAJOR_VERSION < 7
   zval *php5_params[params_count];
+  size_t i;
 
-  for (size_t i = 0; i < params_count; i++)
+  for (i = 0; i < params_count; i++)
     php5_params[i] = &params[i];
   return _safe_call_function(method, object, ret, ret_type, params_count, php5_params TSRMLS_CC);
 #else
