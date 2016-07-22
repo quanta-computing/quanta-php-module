@@ -27,6 +27,7 @@
 #endif
 
 #include "cpu.h"
+#include "compat.h"
 
 /*
 ** Full debug mode
@@ -55,7 +56,7 @@
 /* Various QUANTA_MON modes. If you are adding a new mode, register the appropriate
  * callbacks in hp_begin() */
 #define QUANTA_MON_MODE_HIERARCHICAL            1      /* Complete profiling of every single PHP calls */
-#define QUANTA_MON_MODE_SAMPLED                 2      /* Statistical sample of most PHP calls */
+#define QUANTA_MON_MODE_SAMPLED                 2      /* Statistical sample of most PHP calls (not used anymore) */
 #define QUANTA_MON_MODE_MAGENTO_PROFILING       3      /* Profiling of selected Magento calls (see hp_get_monitored_functions_fill) */
 #define QUANTA_MON_MODE_EVENTS_ONLY             4      /* No profiling, deal only with calls >= POS_ENTRY_EVENTS_ONLY */
 
@@ -95,7 +96,7 @@
 #define POS_ENTRY_PHP_TOTAL        21
 
 
-/* Bloom filter for function names to be ignored */
+/* Bloom filter for function names to be monitored */
 #define INDEX_2_BYTE(index)  (index >> 3)
 #define INDEX_2_BIT(index)   (1 << (index & 0x7));
 
@@ -204,9 +205,6 @@ typedef struct hp_global_t {
   /* Indicates if quanta_mon was ever enabled during this request */
   int              ever_enabled;
 
-  /* Holds all the quanta_mon statistics */
-  zval            *stats_count;
-
   /* Indicates the current quanta_mon mode or level */
   int              profiler_level;
 
@@ -219,6 +217,8 @@ typedef struct hp_global_t {
   /* Extracted from _SERVER['REQUEST_URI'] */
   char            *request_uri;
   char            *admin_url;
+
+  zval            stats_count;
 
   /* Top of the profile stack */
   hp_entry_t      *entries;
@@ -261,10 +261,6 @@ typedef struct hp_global_t {
 
   /* counter table indexed by hash value of function names. */
   uint8_t  func_hash_counters[256];
-
-  /* Table of ignored function names and their filter */
-  char  **ignored_function_names;
-  uint8_t   ignored_function_filter[QUANTA_MON_IGNORED_FUNCTION_FILTER_SIZE];
 
   /* Table of monitored function names and their filter */
   char     *monitored_function_names[2][QUANTA_MON_MAX_MONITORED_FUNCTIONS];
@@ -314,11 +310,6 @@ float cpu_cycles_to_ms(float cpufreq, uint64_t count);
 inline double get_us_from_tsc(uint64_t count, double cpu_frequency);
 inline uint64_t get_tsc_from_us(uint64_t usecs, double cpu_frequency);
 
-// Zval
-zval  *hp_zval_at_key(char *key, zval *values);
-char **hp_strings_in_zval(zval *values);
-
-
 // Constants
 void hp_register_constants(INIT_FUNC_ARGS);
 
@@ -331,8 +322,7 @@ void hp_fast_free_hprof_entry(hp_entry_t *p);
 
 // Utils
 void   hp_array_del(char **name_array);
-inline uint8_t hp_inline_hash(char * str);
-zval * hp_hash_lookup(char *symbol  TSRMLS_DC);
+inline uint8_t hp_inline_hash(const char *str);
 const char *hp_get_base_filename(const char *filename);
 char *hp_get_function_name(zend_execute_data *data TSRMLS_DC);
 char *hp_get_function_name_fast(zend_execute_data *execute_data TSRMLS_DC);
@@ -343,22 +333,32 @@ char *get_mage_model_data(HashTable *attrs, char *key TSRMLS_DC);
 zval *get_mage_model_zdata(HashTable *attrs, char *key, int type TSRMLS_DC);
 void fetch_magento_version(TSRMLS_D);
 int safe_call_function(char *function, zval *ret, int ret_type,
-  size_t params_count, zval **params TSRMLS_DC);
+  size_t params_count, zval params[] TSRMLS_DC);
 int safe_call_method(zval *object, char *function, zval *ret, int ret_type,
-  size_t params_count, zval **params TSRMLS_DC);
-zval *safe_new(char *class, int params_count, zval **params TSRMLS_DC);
-zval *safe_get_class_constant(char *class, char *name, int type TSRMLS_DC);
+  size_t params_count, zval params[] TSRMLS_DC);
+int safe_new(char *class, zval *ret, int params_count, zval params[] TSRMLS_DC);
+int safe_get_class_constant(char *class, char *name, zval *ret, int type TSRMLS_DC);
 zval *get_this(zend_execute_data *execute_data TSRMLS_DC);
 zval *get_prev_this(zend_execute_data *execute_data TSRMLS_DC);
+const char *get_obj_class_name(zval *obj TSRMLS_DC);
+zval *safe_get_argument(zend_execute_data *ex, size_t num, int type);
+zval *safe_get_constant(const char *name, int type TSRMLS_DC);
+
+//Compat
+zval *zend_hash_find_compat(HashTable *ht, const char *key, size_t key_len);
+zend_bool zend_hash_exists_compat(HashTable *ht, const char *key, size_t key_len);
 
 // Zend hijacks
 #if PHP_VERSION_ID < 50500
 ZEND_DLEXPORT void hp_execute (zend_op_array *ops TSRMLS_DC);
 ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, int ret TSRMLS_DC);
-#else
+#elif PHP_MAJOR_VERSION < 7
 ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC);
 ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
   struct _zend_fcall_info *fci, int ret TSRMLS_DC);
+#else
+ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC);
+ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, zval *return_value);
 #endif
 ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle, int type TSRMLS_DC);
 ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filename TSRMLS_DC);
@@ -378,8 +378,6 @@ int hp_begin_profiling(hp_entry_t **entries, const char *symbol, zend_execute_da
 void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data *data TSRMLS_DC);
 void hp_hijack_zend_execute(uint32_t flags, long level);
 void hp_restore_original_zend_execute(void);
-void hp_sample_stack(hp_entry_t **entries  TSRMLS_DC);
-void hp_sample_check(hp_entry_t **entries  TSRMLS_DC);
 
 // Quanta stuff
 void send_metrics(TSRMLS_D);
@@ -401,22 +399,15 @@ void hp_mode_dummy_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_
 void hp_mode_dummy_endfn_cb(hp_entry_t **entries   TSRMLS_DC);
 void hp_mode_common_beginfn(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
 void hp_mode_common_endfn(hp_entry_t **entries, hp_entry_t *current TSRMLS_DC);
-void hp_mode_sampled_init_cb(TSRMLS_D);
 void hp_mode_hier_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
 void hp_mode_magento_profil_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
 void hp_mode_events_only_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
-void hp_mode_sampled_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
-zval * hp_mode_shared_endfn_cb(hp_entry_t *top, char *symbol  TSRMLS_DC);
 void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC);
-void hp_mode_sampled_endfn_cb(hp_entry_t **entries  TSRMLS_DC);
 void hp_mode_magento_profil_endfn_cb(hp_entry_t **entries  TSRMLS_DC);
 void hp_mode_events_only_endfn_cb(hp_entry_t **entries  TSRMLS_DC);
 
 
 // Monitored/ignored functions filter
-void hp_get_ignored_functions_from_arg(zval *args);
-void hp_ignored_functions_filter_clear();
-void hp_ignored_functions_filter_init();
 void hp_fill_monitored_functions(char **function_names);
 int hp_match_monitored_function(const char* function_name, zend_execute_data* data TSRMLS_DC);
 
@@ -424,9 +415,6 @@ int hp_match_monitored_function(const char* function_name, zend_execute_data* da
 void hp_monitored_functions_filter_clear();
 void hp_monitored_functions_filter_init();
 int hp_monitored_functions_filter_collision(uint8_t hash);
-int  hp_ignore_entry_work(uint8_t hash_code, char *curr_func);
-inline int hp_ignore_entry(uint8_t hash_code, char *curr_func);
-
 
 // Block stack
 magento_block_t *block_stack_pop(void);

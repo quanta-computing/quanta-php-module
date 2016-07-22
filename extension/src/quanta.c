@@ -35,33 +35,8 @@ int qm_record_sql_timers(void) {
   }
 }
 
-static int match_function_and_class(int start, zend_execute_data *data, const char *name TSRMLS_DC) {
-  const char *class_name = NULL;
-  size_t class_name_len;
-
-  if (!data || !name)
-    return QUANTA_MON_MAX_MONITORED_FUNCTIONS -1;
-  if (data->function_state.function->common.scope) {
-    class_name = data->function_state.function->common.scope->name;
-  } else if (data->object) {
-    class_name = Z_OBJCE(*data->object)->name;
-  }
-  if (!class_name)
-    return QUANTA_MON_MAX_MONITORED_FUNCTIONS -1;
-  class_name_len = strlen(class_name);
-  // PRINTF_QUANTA("Function %s::%s matched (maybe)\n", class_name, name);
-  for (; hp_globals_monitored_function_names()[start]; start++) {
-    // PRINTF_QUANTA("CHECKING %s::%s against %s\n", class_name, name, hp_globals_monitored_function_names()[start]);
-    if (!strncmp(class_name, hp_globals_monitored_function_names()[start], class_name_len)
-    && !strncmp(hp_globals_monitored_function_names()[start] + class_name_len, "::", 2)
-    && !strcmp(name, hp_globals_monitored_function_names()[start] + class_name_len + 2))
-      return start;
-  }
-  return start;
-}
-
 /**
- * Check if this entry should be ignored, first with a conservative Bloomish
+ * Check if this entry should be monitored, first with a conservative Bloomish
  * filter then with an exact check against the function names.
  *
  * @author ch
@@ -69,31 +44,13 @@ static int match_function_and_class(int start, zend_execute_data *data, const ch
  */
 int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TSRMLS_DC) {
   int i;
-  int j;
   uint64_t start;
   uint64_t end;
-  uint8_t hash_code;
-
-  // dprintf(hp_globals.internal_match_counters.fd, "%s %s\n",
-  //   curr_func, hp_get_class_name(execute_data TSRMLS_CC));
 
   start = cycle_timer();
   i = hp_match_monitored_function(curr_func, execute_data TSRMLS_CC);
   end = cycle_timer();
   hp_globals.internal_match_counters.cycles += end - start;
-  // start = cycle_timer();
-  // hash_code = hp_inline_hash(curr_func);
-  // if (hp_monitored_functions_filter_collision(hash_code))
-  //   j = match_function_and_class(0, execute_data, curr_func TSRMLS_CC);
-  // else
-  //   j = -1;
-  // if (j == QUANTA_MON_MAX_MONITORED_FUNCTIONS - 1)
-  //   j = -1;
-  // end = cycle_timer();
-  // hp_globals.internal_match_counters.hash_cycles += end - start;
-  //
-  // if (i != j)
-  //   printf("FUCKED UP MATCH %d != %d\n", i, j);
   if (i < 0
   || !hp_globals_monitored_function_names()[i] || !*hp_globals_monitored_function_names()[i]
   || (i < POS_ENTRY_EVENTS_ONLY && hp_globals.profiler_level == QUANTA_MON_MODE_EVENTS_ONLY)) {

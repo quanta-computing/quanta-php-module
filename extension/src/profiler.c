@@ -17,14 +17,8 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
   hp_globals.magento_edition = NULL;
 
   if (level != QUANTA_MON_MODE_EVENTS_ONLY) {
-    /* Init stats_count */
-    if (hp_globals.stats_count) {
-      zval_dtor(hp_globals.stats_count);
-      FREE_ZVAL(hp_globals.stats_count);
-    }
-    MAKE_STD_ZVAL(hp_globals.stats_count);
-    array_init(hp_globals.stats_count);
 
+    array_init(&hp_globals.stats_count);
     /* NOTE(cjiang): some fields such as cpu_frequencies take relatively longer
      * to initialize, (5 milisecond per logical cpu right now), therefore we
      * calculate them lazily. */
@@ -53,9 +47,6 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
   memset(hp_globals.monitored_function_sql_queries_count_after, 0,
     sizeof(hp_globals.monitored_function_sql_queries_count_after));
 
-  /* Set up filter of functions which may be ignored during profiling */
-  hp_ignored_functions_filter_init();
-
   /* Set up filter of functions which are monitored */
   hp_monitored_functions_filter_init();
   hp_globals.current_monitored_function = -1;
@@ -72,12 +63,7 @@ void hp_clean_profiler_state(TSRMLS_D) {
   /* Call current mode's exit cb */
   hp_globals.mode_cb.exit_cb(TSRMLS_C);
 
-  /* Clear globals */
-  if (hp_globals.stats_count) {
-    zval_dtor(hp_globals.stats_count);
-    FREE_ZVAL(hp_globals.stats_count);
-    hp_globals.stats_count = NULL;
-  }
+  ZVAL_NULL(&hp_globals.stats_count);
   hp_globals.entries = NULL;
   hp_globals.profiler_level = 1;
   hp_globals.ever_enabled = 0;
@@ -89,13 +75,8 @@ void hp_clean_profiler_state(TSRMLS_D) {
   /* Pop all blocks still present in the stack (should be zero) */
   while (block_stack_pop());
 
-  /* Delete the array storing ignored function names */
-  hp_array_del(hp_globals.ignored_function_names);
-  hp_globals.ignored_function_names = NULL;
-
   /* We don't need to delete the array of monitored function names,
-   * it's just pointers to static memory, unlike ignored function names
-   * which are emalloced.
+   * it's just pointers to static memory.
    *
    * Delete the array storing monitored function names
    hp_array_del(hp_globals.monitored_function_names);
@@ -115,14 +96,14 @@ void hp_clean_profiler_state(TSRMLS_D) {
  */
 void hp_inc_count(zval *counts, char *name, long count TSRMLS_DC) {
   HashTable *ht;
-  void *data;
+  zval *data;
 
   if (!counts) return;
   ht = HASH_OF(counts);
   if (!ht) return;
 
-  if (zend_hash_find(ht, name, strlen(name) + 1, &data) == SUCCESS) {
-    ZVAL_LONG(*(zval**)data, Z_LVAL_PP((zval**)data) + count);
+  if ((data = zend_hash_find_compat(ht, name, strlen(name) + 1))) {
+    ZVAL_LONG(data, Z_LVAL_P(data) + count);
   } else {
     add_assoc_long(counts, name, count);
   }

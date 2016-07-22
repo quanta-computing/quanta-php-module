@@ -12,38 +12,6 @@ inline void hp_array_del(char **name_array) {
 }
 
 /**
- * Looksup the hash table for the given symbol
- * Initializes a new array() if symbol is not present
- *
- * @author kannan, veeve
- */
-zval * hp_hash_lookup(char *symbol  TSRMLS_DC) {
-  HashTable   *ht;
-  void        *data;
-  zval        *counts = (zval *) 0;
-
-  /* Bail if something is goofy */
-  if (!hp_globals.stats_count || !(ht = HASH_OF(hp_globals.stats_count))) {
-    return (zval *) 0;
-  }
-
-  /* Lookup our hash table */
-  if (zend_hash_find(ht, symbol, strlen(symbol) + 1, &data) == SUCCESS) {
-    /* Symbol already exists */
-    counts = *(zval **) data;
-  }
-  else {
-    /* Add symbol to hash table */
-    MAKE_STD_ZVAL(counts);
-    array_init(counts);
-    add_assoc_zval(hp_globals.stats_count, symbol, counts);
-  }
-
-  return counts;
-}
-
-
-/**
  * Takes an input of the form /a/b/c/d/foo.php and returns
  * a pointer to one-level directory and basefile name
  * (d/foo.php) in the same string.
@@ -55,8 +23,43 @@ const char *hp_get_base_filename(const char *filename) {
 }
 
 char *hp_get_function_name_fast(zend_execute_data *execute_data TSRMLS_DC) {
+#if PHP_MAJOR_VERSION < 7
   return execute_data ? execute_data->function_state.function->common.function_name : NULL;
+#else
+  return execute_data ? ZSTR_VAL(execute_data->func->common.function_name) : NULL;
+#endif
 }
+
+static zend_function *hp_get_current_function(zend_execute_data *execute_data) {
+#if PHP_MAJOR_VERSION < 7
+  return execute_data ? execute_data->function_state.function : NULL;
+#else
+  return execute_data ? execute_data->func : NULL;
+#endif
+}
+
+const char *hp_get_class_name(zend_execute_data *data TSRMLS_DC) {
+  const char *cls = NULL;
+  zend_function      *curr_func;
+
+  if (!(curr_func = hp_get_current_function(data)))
+    return NULL;
+#if PHP_MAJOR_VERSION < 7
+  if (curr_func->common.scope) {
+    cls = curr_func->common.scope->name;
+  } else if (data->object) {
+    cls = Z_OBJCE_P(data->object)->name;
+  }
+#else
+  if (curr_func->common.scope && curr_func->common.scope->name) {
+    cls = ZSTR_VAL(curr_func->common.scope->name);
+  } else if (Z_OBJ(data->This) && Z_OBJCE(data->This)->name) {
+    cls = ZSTR_VAL(Z_OBJCE(data->This)->name);
+  }
+#endif
+  return cls;
+}
+
 
 /**
  * Get the name of the current function. The name is qualified with
@@ -70,110 +73,83 @@ char *hp_get_function_name(zend_execute_data *data TSRMLS_DC) {
   char              *ret = NULL;
   zend_function      *curr_func;
 
-  if (data) {
-    /* shared meta data for function on the call stack */
-    curr_func = data->function_state.function;
-
-    /* extract function name from the meta info */
-    func = curr_func->common.function_name;
-
-    if (func) {
-      /* previously, the order of the tests in the "if" below was
-       * flipped, leading to incorrect function names in profiler
-       * reports. When a method in a super-type is invoked the
-       * profiler should qualify the function name with the super-type
-       * class name (not the class name based on the run-time type
-       * of the object.
-       */
-      if (curr_func->common.scope) {
-        cls = curr_func->common.scope->name;
-      } else if (data->object) {
-        cls = Z_OBJCE(*data->object)->name;
-      }
-
-      if (cls) {
-        int   len;
-        len = strlen(cls) + strlen(func) + 8;
-        ret = (char*)emalloc(len);
-        snprintf(ret, len, "%s::%s", cls, func);
-      } else {
-        ret = estrdup(func);
-      }
+  if (!data || !(curr_func = hp_get_current_function(data)))
+    return NULL;
+  func = hp_get_function_name_fast(data TSRMLS_CC);
+  if (func) {
+    cls = hp_get_class_name(data TSRMLS_CC);
+    if (cls) {
+      int   len;
+      len = strlen(cls) + strlen(func) + 8;
+      ret = (char*)emalloc(len);
+      snprintf(ret, len, "%s::%s", cls, func);
     } else {
-      long     curr_op;
-      int      add_filename = 1;
+      ret = estrdup(func);
+    }
+  } else {
+    long     curr_op;
+    int      add_filename = 1;
 
-      /* we are dealing with a special directive/function like
-       * include, eval, etc.
-       */
+    /* we are dealing with a special directive/function like
+     * include, eval, etc.
+     */
 #if ZEND_EXTENSION_API_NO >= 220121212
-      if (data->prev_execute_data) {
-        curr_op = data->prev_execute_data->opline->extended_value;
-      } else {
-        curr_op = data->opline->extended_value;
-      }
-#elif ZEND_EXTENSION_API_NO >= 220100525
+    if (data->prev_execute_data) {
+      curr_op = data->prev_execute_data->opline->extended_value;
+    } else {
       curr_op = data->opline->extended_value;
+    }
+#elif ZEND_EXTENSION_API_NO >= 220100525
+    curr_op = data->opline->extended_value;
 #else
-      curr_op = data->opline->op2.u.constant.value.lval;
+    curr_op = data->opline->op2.u.constant.value.lval;
 #endif
 
-      switch (curr_op) {
-        case ZEND_EVAL:
-          func = "eval";
-          break;
-        case ZEND_INCLUDE:
-          func = "include";
-          add_filename = 1;
-          break;
-        case ZEND_REQUIRE:
-          func = "require";
-          add_filename = 1;
-          break;
-        case ZEND_INCLUDE_ONCE:
-          func = "include_once";
-          add_filename = 1;
-          break;
-        case ZEND_REQUIRE_ONCE:
-          func = "require_once";
-          add_filename = 1;
-          break;
-        default:
-          func = "???_op";
-          break;
-      }
+    switch (curr_op) {
+      case ZEND_EVAL:
+        func = "eval";
+        break;
+      case ZEND_INCLUDE:
+        func = "include";
+        add_filename = 1;
+        break;
+      case ZEND_REQUIRE:
+        func = "require";
+        add_filename = 1;
+        break;
+      case ZEND_INCLUDE_ONCE:
+        func = "include_once";
+        add_filename = 1;
+        break;
+      case ZEND_REQUIRE_ONCE:
+        func = "require_once";
+        add_filename = 1;
+        break;
+      default:
+        func = "???_op";
+        break;
+    }
 
-      /* For some operations, we'll add the filename as part of the function
-       * name to make the reports more useful. So rather than just "include"
-       * you'll see something like "run_init::foo.php" in your reports.
-       */
-      if (add_filename){
-        const char *filename;
-        int   len;
-        filename = hp_get_base_filename((curr_func->op_array).filename);
-        len      = strlen("run_init") + strlen(filename) + 3;
-        ret      = (char *)emalloc(len);
-        snprintf(ret, len, "run_init::%s", filename);
-      } else {
-        ret = estrdup(func);
-      }
+    /* For some operations, we'll add the filename as part of the function
+     * name to make the reports more useful. So rather than just "include"
+     * you'll see something like "run_init::foo.php" in your reports.
+     */
+    if (add_filename){
+      const char *filename;
+      int   len;
+#if PHP_MAJOR_VERSION < 7
+      filename = hp_get_base_filename(curr_func->op_array.filename);
+#else
+      filename = hp_get_base_filename(ZSTR_VAL(curr_func->op_array.filename));
+#endif
+      len      = strlen("run_init") + strlen(filename) + 3;
+      ret      = (char *)emalloc(len);
+      snprintf(ret, len, "run_init::%s", filename);
+    } else {
+      ret = estrdup(func);
     }
   }
   return ret;
-}
-
-
-const char *hp_get_class_name(zend_execute_data *data TSRMLS_DC) {
-  const char *class_name = NULL;
-
-  if (!data)
-    return NULL;
-  if (data->function_state.function->common.scope) {
-    class_name = data->function_state.function->common.scope->name;
-  } else if (data->object) {
-    class_name = Z_OBJCE(*data->object)->name;
-  }
-  return class_name;
 }
 
 /**
@@ -185,7 +161,7 @@ const char *hp_get_class_name(zend_execute_data *data TSRMLS_DC) {
  *
  * @author cjiang
  */
-inline uint8_t hp_inline_hash(char * str) {
+inline uint8_t hp_inline_hash(const char *str) {
   ulong h = 5381;
   uint i = 0;
   uint8_t res = 0;

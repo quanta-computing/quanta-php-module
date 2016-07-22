@@ -8,11 +8,6 @@ static void register_appropriate_callbacks(long level) {
       hp_globals.mode_cb.begin_fn_cb = hp_mode_hier_beginfn_cb;
       hp_globals.mode_cb.end_fn_cb   = hp_mode_hier_endfn_cb;
       break;
-    case QUANTA_MON_MODE_SAMPLED:
-      hp_globals.mode_cb.init_cb     = hp_mode_sampled_init_cb;
-      hp_globals.mode_cb.begin_fn_cb = hp_mode_sampled_beginfn_cb;
-      hp_globals.mode_cb.end_fn_cb   = hp_mode_sampled_endfn_cb;
-      break;
     case QUANTA_MON_MODE_MAGENTO_PROFILING:
       hp_globals.mode_cb.begin_fn_cb = hp_mode_magento_profil_beginfn_cb;
       hp_globals.mode_cb.end_fn_cb   = hp_mode_magento_profil_endfn_cb;

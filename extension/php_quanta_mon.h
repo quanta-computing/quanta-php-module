@@ -36,10 +36,8 @@ PHP_MSHUTDOWN_FUNCTION(quanta_mon);
 PHP_RINIT_FUNCTION(quanta_mon);
 PHP_RSHUTDOWN_FUNCTION(quanta_mon);
 PHP_MINFO_FUNCTION(quanta_mon);
-
-PHP_FUNCTION(quanta_mon_enable);
-PHP_FUNCTION(quanta_mon_disable);
-PHP_FUNCTION(quanta_mon_sample_enable);
-PHP_FUNCTION(quanta_mon_sample_disable);
+//
+// PHP_FUNCTION(quanta_mon_enable);
+// PHP_FUNCTION(quanta_mon_disable);
 
 #endif /* PHP_QUANTA_MON_H */

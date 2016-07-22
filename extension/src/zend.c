@@ -7,13 +7,16 @@ static ZEND_DLEXPORT void (*_zend_execute) (zend_op_array *ops TSRMLS_DC);
 /* Pointer to the origianl execute_internal function */
 static ZEND_DLEXPORT void (*_zend_execute_internal) (zend_execute_data *data,
                            int ret TSRMLS_DC);
-#else
+#elif PHP_MAJOR_VERSION < 7
 /* Pointer to the original execute function */
 static void (*_zend_execute_ex) (zend_execute_data *execute_data TSRMLS_DC);
 
 /* Pointer to the origianl execute_internal function */
 static void (*_zend_execute_internal) (zend_execute_data *data,
                       struct _zend_fcall_info *fci, int ret TSRMLS_DC);
+#else
+static void (*_zend_execute_ex) (zend_execute_data *execute_data);
+static void (*_zend_execute_internal) (zend_execute_data *execute_data, zval *return_value);
 #endif
 
 /* Pointer to the original compile function */
@@ -128,96 +131,66 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
  *
  * @author hzhao, kannan
  */
+ #if PHP_VERSION_ID >= 70000
+ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, zval *return_value) {
+ #elif PHP_VERSION_ID < 50500
+ #define EX_T(offset) (*(temp_variable *)((char *) EX(Ts) + offset))
 
-#if PHP_VERSION_ID < 50500
-#define EX_T(offset) (*(temp_variable *)((char *) EX(Ts) + offset))
+ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
+                                        int ret TSRMLS_DC) {
+ #else
+ #define EX_T(offset) (*EX_TMP_VAR(execute_data, offset))
 
-ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, int ret TSRMLS_DC) {
-#else
-#define EX_T(offset) (*EX_TMP_VAR(execute_data, offset))
+ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
+                                        struct _zend_fcall_info *fci, int ret TSRMLS_DC) {
+ #endif
+     char *func = NULL;
+     int hp_profile_flag = -1;
+     uint64_t start1, start2;
+     uint64_t end1, end2;
+     uint64_t last;
 
-ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
-struct _zend_fcall_info *fci, int ret TSRMLS_DC) {
-#endif
-  char *func = NULL;
-  int hp_profile_flag = -1;
-  uint64_t start1, start2;
-  uint64_t end1, end2;
-  uint64_t last;
+     start1 = cycle_timer();
+     if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {
+       func = hp_get_function_name(execute_data TSRMLS_CC);
+     } else {
+       func = hp_get_function_name_fast(execute_data TSRMLS_CC);
+     }
+     if (func) {
+       hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, execute_data TSRMLS_CC);
+     }
 
-  start1 = cycle_timer();
-  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {
-    func = hp_get_function_name(execute_data TSRMLS_CC);
-  } else {
-    func = hp_get_function_name_fast(execute_data TSRMLS_CC);
-  }
-  if (func) {
-    hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, execute_data TSRMLS_CC);
-  }
-
-  end1 = cycle_timer();
-  if (!_zend_execute_internal) {
-    /* no old override to begin with. so invoke the builtin's implementation  */
-
-#if ZEND_EXTENSION_API_NO >= 220121212
-    /* PHP 5.5. This is just inlining a copy of execute_internal(). */
-
-    if (fci != NULL) {
-      ((zend_internal_function *) execute_data->function_state.function)->handler(
-        fci->param_count,
-        *fci->retval_ptr_ptr,
-        fci->retval_ptr_ptr,
-        fci->object_ptr,
-        1 TSRMLS_CC);
-    } else {
-      zval **return_value_ptr = &EX_TMP_VAR(execute_data, execute_data->opline->result.var)->var.ptr;
-      ((zend_internal_function *) execute_data->function_state.function)->handler(
-        execute_data->opline->extended_value,
-        *return_value_ptr,
-        (execute_data->function_state.function->common.fn_flags & ZEND_ACC_RETURN_REFERENCE)
-          ? return_value_ptr
-          : NULL,
-        execute_data->object,
-        ret TSRMLS_CC);
-    }
-#elif ZEND_EXTENSION_API_NO >= 220100525
-    zend_op *opline = EX(opline);
-    temp_variable *retvar = &EX_T(opline->result.var);
-    ((zend_internal_function *) EX(function_state).function)->handler(
-                       opline->extended_value,
-                       retvar->var.ptr,
-                       (EX(function_state).function->common.fn_flags & ZEND_ACC_RETURN_REFERENCE) ?
-                       &retvar->var.ptr:NULL,
-                       EX(object), ret TSRMLS_CC);
-#else
-    zend_op *opline = EX(opline);
-    ((zend_internal_function *) EX(function_state).function)->handler(
-                       opline->extended_value,
-                       EX_T(opline->result.u.var).var.ptr,
-                       EX(function_state).function->common.return_reference ?
-                       &EX_T(opline->result.u.var).var.ptr:NULL,
-                       EX(object), ret TSRMLS_CC);
-#endif
-  } else {
-    /* call the old override */
-#if PHP_VERSION_ID < 50500
-    _zend_execute_internal(execute_data, ret TSRMLS_CC);
-#else
-    _zend_execute_internal(execute_data, fci, ret TSRMLS_CC);
-#endif
-  }
-  start2 = cycle_timer();
-  if (func) {
-    hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data TSRMLS_CC);
-  }
-  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED)
-    efree(func);
-  end2 = cycle_timer();
-  last = hp_globals.internal_match_counters.profiling_cycles;
-  hp_globals.internal_match_counters.profiling_cycles += end1 - start1 + end2 - start2;
-  if (hp_globals.internal_match_counters.profiling_cycles < last)
-    PRINTF_QUANTA("OVERFLOW :(\n");
-}
+     end1 = cycle_timer();
+     if (!_zend_execute_internal) {
+ #if PHP_VERSION_ID >= 70000
+         execute_internal(execute_data, return_value TSRMLS_CC);
+ #elif PHP_VERSION_ID < 50500
+         execute_internal(execute_data, ret TSRMLS_CC);
+ #else
+         execute_internal(execute_data, fci, ret TSRMLS_CC);
+ #endif
+     } else {
+         /* call the old override */
+ #if PHP_VERSION_ID >= 70000
+         _zend_execute_internal(execute_data, return_value TSRMLS_CC);
+ #elif PHP_VERSION_ID < 50500
+         _zend_execute_internal(execute_data, ret TSRMLS_CC);
+ #else
+         _zend_execute_internal(execute_data, fci, ret TSRMLS_CC);
+ #endif
+     }
+     start2 = cycle_timer();
+     if (func) {
+       hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data TSRMLS_CC);
+     }
+     if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED)
+       efree(func);
+     end2 = cycle_timer();
+     last = hp_globals.internal_match_counters.profiling_cycles;
+     hp_globals.internal_match_counters.profiling_cycles += end1 - start1 + end2 - start2;
+     if (hp_globals.internal_match_counters.profiling_cycles < last)
+       PRINTF_QUANTA("OVERFLOW :(\n");
+ }
 
 /**
  * Proxy for zend_compile_file(). Used to profile PHP compilation time.

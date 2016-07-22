@@ -41,7 +41,7 @@ PHP_MINIT_FUNCTION(quanta_mon) {
   hp_globals.cpu_frequencies = NULL;
   hp_globals.cur_cpu_id = 0;
 
-  hp_globals.stats_count = NULL;
+  ZVAL_NULL(&hp_globals.stats_count);
   hp_globals.ever_enabled = 0;
   hp_globals.enabled = 0;
 
@@ -52,7 +52,6 @@ PHP_MINIT_FUNCTION(quanta_mon) {
     hp_globals.func_hash_counters[i] = 0;
   }
 
-  hp_ignored_functions_filter_clear();
   hp_monitored_functions_filter_clear();
 
 #if defined(DEBUG)

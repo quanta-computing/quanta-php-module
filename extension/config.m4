@@ -33,7 +33,6 @@ if test "$PHP_QUANTAMON" != "no"; then
     src/module_init.c \
     src/module_shutdown.c \
     src/profiler_callbacks.c \
-    src/profiler_sample.c \
     src/profiler.c \
     src/quanta_blocks.c \
     src/quanta_events.c \
@@ -43,6 +42,6 @@ if test "$PHP_QUANTAMON" != "no"; then
     src/request_shutdown.c \
     src/send_metrics.c \
     src/utils.c \
-    src/zend.c \
-    src/zval.c, $ext_shared,,-W -Wall -D_GNU_SOURCE)
+    src/zend_hash.c \
+    src/zend.c, $ext_shared,,-W -Wall -D_GNU_SOURCE)
 fi

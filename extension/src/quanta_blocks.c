@@ -1,38 +1,35 @@
 #include "quanta_mon.h"
 
 static zval *get_block_name(zend_execute_data *execute_data TSRMLS_DC) {
+  zval *ret;
+
   if (!execute_data || !execute_data->prev_execute_data
-  || execute_data->prev_execute_data->function_state.arguments[0] != (void *)(1)
-  || Z_TYPE_P((zval *)(execute_data->prev_execute_data->function_state.arguments[-1])) != IS_STRING) {
+  || !(ret = safe_get_argument(execute_data->prev_execute_data, 0, IS_STRING))) {
     PRINTF_QUANTA("Cannot get block name parameter\n");
     return NULL;
   }
-  return (zval *)(execute_data->prev_execute_data->function_state.arguments[-1]);
+  return ret;
 }
 
 static char *get_block_class_name(zval *block TSRMLS_DC) {
   const char *class_name;
-  zend_uint class_name_len;
 
-  if (Z_TYPE_P(block) != IS_OBJECT
-  || !Z_OBJ_HANDLER_P(block, get_class_name)
-  || Z_OBJ_HANDLER_P(block, get_class_name)(block, &class_name, &class_name_len, 0 TSRMLS_CC) != SUCCESS) {
+  if (!(class_name = get_obj_class_name(block TSRMLS_CC)))
     return NULL;
-  }
   return estrdup(class_name);
 }
 
 static char *get_block_class_file(const char *class_name TSRMLS_DC) {
-  zval *reflection;
-  zval *params[1];
+  zval reflection;
+  zval params[1];
   zval zclass_file;
   char *class_file = NULL;
 
   ZVAL_NULL(&zclass_file);
-  MAKE_STD_ZVAL(params[0]);
-  ZVAL_STRING(params[0], class_name, 1);
-  if (!(reflection = safe_new("ReflectionClass", 1, params TSRMLS_CC))
-  || safe_call_method(reflection, "getFileName", &zclass_file, IS_STRING, 0, NULL TSRMLS_CC)
+  ZVAL_NULL(&reflection);
+  ZVAL_STRING_COMPAT(&params[0], class_name);
+  if (safe_new("ReflectionClass", &reflection, 1, params TSRMLS_CC)
+  || safe_call_method(&reflection, "getFileName", &zclass_file, IS_STRING, 0, NULL TSRMLS_CC)
   || !(class_file = estrdup(Z_STRVAL(zclass_file)))) {
     PRINTF_QUANTA("Cannot get file for class %s\n", class_name);
     goto end;
@@ -40,41 +37,36 @@ static char *get_block_class_file(const char *class_name TSRMLS_DC) {
 
 end:
   zval_dtor(&zclass_file);
-  FREE_ZVAL(params[0]);
-  if (reflection)
-    FREE_ZVAL(reflection);
+  zval_dtor(&params[0]);
+  zval_dtor(&reflection);
   return class_file;
 }
 
 static zval *get_block_object(zval *this, zval *block_name TSRMLS_DC) {
-  zval **blocks = NULL;
-  zval **data = NULL;
-  int ret;
+  zval *blocks = NULL;
+  zval *block = NULL;
 
-  ret = zend_hash_find(Z_OBJPROP_P(this),
-    "\0*\0_blocks", sizeof("\0*\0_blocks"), (void **)&blocks);
-  if (ret != SUCCESS || Z_TYPE_PP(blocks) != IS_ARRAY) {
+  blocks = zend_hash_find_compat(Z_OBJPROP_P(this), "\0*\0_blocks", sizeof("\0*\0_blocks"));
+  if (!blocks || Z_TYPE_P(blocks) != IS_ARRAY) {
     return NULL;
   }
-  ret = zend_hash_find(Z_ARRVAL_PP(blocks), Z_STRVAL_P(block_name),
-    Z_STRLEN_P(block_name) + 1, (void **)&data);
-  if (ret != SUCCESS || Z_TYPE_PP(data) != IS_OBJECT) {
+  block = zend_hash_find_compat(Z_ARRVAL_P(blocks), Z_STRVAL_P(block_name), Z_STRLEN_P(block_name));
+  if (!block || Z_TYPE_P(block) != IS_OBJECT) {
     return NULL;
   }
-  return *data;
+  return block;
 }
 
 static char *get_block_attr(const char *key, size_t key_len, zval *this TSRMLS_DC) {
-  zval **data;
+  zval *data;
   HashTable *block;
 
   block = Z_OBJPROP_P(this);
-  if (zend_hash_find(block, key, key_len, (void **)&data) == FAILURE
-  || Z_TYPE_PP(data) != IS_STRING) {
+  if (!(data = zend_hash_find_compat(block, key, key_len)) || Z_TYPE_P(data) != IS_STRING) {
     PRINTF_QUANTA("Cannot extract attr %s from block\n", key + 3);
     return NULL;
   } else {
-    return estrdup(Z_STRVAL_PP(data));
+    return estrdup(Z_STRVAL_P(data));
   }
 }
 

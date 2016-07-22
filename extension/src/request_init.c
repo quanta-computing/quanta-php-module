@@ -2,30 +2,31 @@
 
 
 static void extract_request_uri(HashTable *_SERVER TSRMLS_DC) {
-  zval **data;
+  zval *request_uri;
 
-  if (zend_hash_find(_SERVER, "REQUEST_URI", strlen("REQUEST_URI") + 1, (void **)&data) == FAILURE
-  || Z_TYPE_PP(data) != IS_STRING) {
+  request_uri = zend_hash_find_compat(_SERVER, "REQUEST_URI", sizeof("REQUEST_URI"));
+  if (!request_uri || Z_TYPE_P(request_uri) != IS_STRING) {
     PRINTF_QUANTA("NO REQUEST URI\n");
     hp_globals.request_uri = NULL;
   } else {
-    hp_globals.request_uri = estrdup(Z_STRVAL_PP(data));
+    hp_globals.request_uri = estrdup(Z_STRVAL_P(request_uri));
     PRINTF_QUANTA("REQUEST URI: %s\n", hp_globals.request_uri);
   }
 }
 
 static int extract_step_clock_and_mode(HashTable *_SERVER TSRMLS_DC) {
-  zval **data;
+  zval *data;
   char *quanta_header;
   char *quanta_mode;
   char *quanta_clock;
 
-  if (zend_hash_find(_SERVER, QUANTA_HTTP_HEADER, strlen(QUANTA_HTTP_HEADER) + 1, (void **)&data) == FAILURE
-  || Z_TYPE_PP(data) != IS_STRING) {
+
+  data = zend_hash_find_compat(_SERVER, QUANTA_HTTP_HEADER, sizeof(QUANTA_HTTP_HEADER));
+  if (!data || Z_TYPE_P(data) != IS_STRING) {
     PRINTF_QUANTA("NO QUANTA HEADER\n");
     return -1;
   }
-  quanta_header = Z_STRVAL_PP(data);
+  quanta_header = Z_STRVAL_P(data);
   PRINTF_QUANTA("QUANTA HEADER: %s\n", quanta_header);
   hp_globals.quanta_step_id = strtoull(quanta_header, &quanta_clock, 10);
   if (quanta_clock == quanta_header) {
@@ -55,24 +56,31 @@ static int extract_step_clock_and_mode(HashTable *_SERVER TSRMLS_DC) {
 */
 static int extract_headers_info(TSRMLS_D) {
   HashTable *_SERVER;
-  zval **arr;
+  zval *data;
   int mode;
 
   /* _SERVER is lazy-initialized, force population
   */
-  if (!zend_hash_exists(&EG(symbol_table), "_SERVER", 8)) {
+  if (!zend_hash_exists_compat(&EG(symbol_table), "_SERVER", sizeof("_SERVER"))) {
     zend_auto_global* auto_global;
-    if (zend_hash_find(CG(auto_globals), "_SERVER", 8, (void **)&auto_global) != FAILURE) {
+    auto_global = (zend_auto_global *)zend_hash_find_compat(
+      CG(auto_globals), "_SERVER", sizeof("_SERVER"));
+    if (auto_global) {
+      #if PHP_MAJOR_VERSION < 7
       auto_global->armed = auto_global->auto_global_callback(auto_global->name,
         auto_global->name_len TSRMLS_CC);
+      #else
+      auto_global->armed = auto_global->auto_global_callback(auto_global->name);
+      #endif
     }
   }
   hp_globals.quanta_clock = 0;
-  if (zend_hash_find(&EG(symbol_table), "_SERVER", 8, (void**)&arr) == FAILURE) {
+  data = zend_hash_find_compat(&EG(symbol_table), "_SERVER", sizeof("_SERVER"));
+  if (!data || Z_TYPE_P(data) != IS_ARRAY) {
     PRINTF_QUANTA("NO _SERVER\n");
     return -1;
   }
-  _SERVER = Z_ARRVAL_P(*arr);
+  _SERVER = Z_ARRVAL_P(data);
   extract_request_uri(_SERVER TSRMLS_CC);
   mode = extract_step_clock_and_mode(_SERVER TSRMLS_CC);
   if (mode == -1) {

@@ -7,8 +7,13 @@
  */
 void hp_mode_dummy_init_cb(TSRMLS_D) { }
 void hp_mode_dummy_exit_cb(TSRMLS_D) { }
-void hp_mode_dummy_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC) { }
-void hp_mode_dummy_endfn_cb(hp_entry_t **entries   TSRMLS_DC) { }
+void hp_mode_dummy_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC) {
+  (void)entries;
+  (void)current;
+}
+void hp_mode_dummy_endfn_cb(hp_entry_t **entries   TSRMLS_DC) {
+  (void)entries;
+}
 
 
 /**
@@ -57,47 +62,9 @@ void hp_mode_common_beginfn(hp_entry_t **entries, hp_entry_t  *current  TSRMLS_D
  * @author kannan, veeve
  */
 void hp_mode_common_endfn(hp_entry_t **entries, hp_entry_t *current TSRMLS_DC) {
+  (void)entries;
   hp_globals.func_hash_counters[current->hash_code]--;
 }
-
-
-/**
- * *********************************
- * QUANTA_MON INIT MODULE CALLBACKS
- * *********************************
- */
-/**
- * QUANTA_MON_MODE_SAMPLED's init callback
- *
- * @author veeve
- */
-void hp_mode_sampled_init_cb(TSRMLS_D) {
-  struct timeval  now;
-  uint64_t truncated_us;
-  uint64_t truncated_tsc;
-  double cpu_freq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
-
-  /* Init the last_sample in tsc */
-  hp_globals.last_sample_tsc = cycle_timer();
-
-  /* Find the microseconds that need to be truncated */
-  gettimeofday(&hp_globals.last_sample_time, 0);
-  now = hp_globals.last_sample_time;
-  hp_trunc_time(&hp_globals.last_sample_time, QUANTA_MON_SAMPLING_INTERVAL);
-
-  /* Subtract truncated time from last_sample_tsc */
-  truncated_us  = get_us_interval(&hp_globals.last_sample_time, &now);
-  truncated_tsc = get_tsc_from_us(truncated_us, cpu_freq);
-  if (hp_globals.last_sample_tsc > truncated_tsc) {
-    /* just to be safe while subtracting unsigned ints */
-    hp_globals.last_sample_tsc -= truncated_tsc;
-  }
-
-  /* Convert sampling interval to ticks */
-  hp_globals.sampling_interval_tsc =
-    get_tsc_from_us(QUANTA_MON_SAMPLING_INTERVAL, cpu_freq);
-}
-
 
 /**
  * ************************************
@@ -111,7 +78,8 @@ void hp_mode_sampled_init_cb(TSRMLS_D) {
  * @author kannan
  */
 void hp_mode_hier_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC) {
-  /* Get start tsc counter */
+  (void)entries;
+
   current->tsc_start = cycle_timer();
 
   /* Get CPU usage */
@@ -132,6 +100,8 @@ void hp_mode_hier_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_D
  * @author ch
  */
 void hp_mode_magento_profil_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC) {
+  (void)entries;
+  (void)current;
 }
 /**
  * QUANTA_MON_MODE_EVENTS_ONLY's begin function callback
@@ -139,16 +109,8 @@ void hp_mode_magento_profil_beginfn_cb(hp_entry_t **entries, hp_entry_t *current
  * @author ch
  */
 void hp_mode_events_only_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC) {
-}
-
-/**
- * QUANTA_MON_MODE_SAMPLED's begin function callback
- *
- * @author veeve
- */
-void hp_mode_sampled_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC) {
-  /* See if its time to take a sample */
-  hp_sample_check(entries  TSRMLS_CC);
+  (void)entries;
+  (void)current;
 }
 
 
@@ -159,48 +121,43 @@ void hp_mode_sampled_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRML
  */
 
 /**
- * QUANTA_MON shared end function callback
- *
- * @author kannan
- */
-zval * hp_mode_shared_endfn_cb(hp_entry_t *top, char *symbol  TSRMLS_DC) {
-  zval    *counts;
-  uint64_t   tsc_end;
-
-  /* Get end tsc counter */
-  tsc_end = cycle_timer();
-
-  /* Get the stat array */
-  if (!(counts = hp_hash_lookup(symbol TSRMLS_CC))) {
-    return (zval *) 0;
-  }
-
-  /* Bump stats in the counts hashtable */
-  hp_inc_count(counts, "ct", 1  TSRMLS_CC);
-
-  hp_inc_count(counts, "wt", get_us_from_tsc(tsc_end - top->tsc_start,
-        hp_globals.cpu_frequencies[hp_globals.cur_cpu_id]) TSRMLS_CC);
-  return counts;
-}
-
-/**
  * QUANTA_MON_MODE_HIERARCHICAL's end function callback
  *
  * @author kannan
  */
 void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
-  hp_entry_t   *top = (*entries);
-  zval            *counts;
+  hp_entry_t       *top = (*entries);
+  zval             *counts;
+  zval             counts_val;
   struct rusage    ru_end;
   char             symbol[SCRATCH_BUF_LEN];
   long int         mu_end;
   long int         pmu_end;
+  uint64_t         tsc_end;
+  HashTable        *ht;
 
-  /* Get the stat array */
+
+  tsc_end = cycle_timer();
   hp_get_function_stack(top, 2, symbol, sizeof(symbol));
-  if (!(counts = hp_mode_shared_endfn_cb(top, symbol  TSRMLS_CC))) {
+  if (Z_TYPE(hp_globals.stats_count) != IS_ARRAY
+  || !(ht = HASH_OF(&hp_globals.stats_count))) {
     return;
   }
+  if (!(counts = zend_hash_find_compat(ht, symbol, strlen(symbol) + 1))) {
+#if PHP_MAJOR_VERSION < 7
+    MAKE_STD_ZVAL(counts);
+    array_init(counts);
+    zend_hash_update(ht, symbol, strlen(symbol)+1, &counts, sizeof(counts), NULL);
+#else
+    counts = &counts_val;
+    array_init(counts);
+    zend_hash_str_update(ht, symbol, strlen(symbol), counts);
+#endif
+  }
+
+  hp_inc_count(counts, "ct", 1  TSRMLS_CC);
+  hp_inc_count(counts, "wt", get_us_from_tsc(tsc_end - top->tsc_start,
+        hp_globals.cpu_frequencies[hp_globals.cur_cpu_id]) TSRMLS_CC);
 
   if (hp_globals.quanta_mon_flags & QUANTA_MON_FLAGS_CPU) {
     /* Get CPU usage */
@@ -226,21 +183,12 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
 }
 
 /**
- * QUANTA_MON_MODE_SAMPLED's end function callback
- *
- * @author veeve
- */
-void hp_mode_sampled_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
-  /* See if its time to take a sample */
-  hp_sample_check(entries  TSRMLS_CC);
-}
-
-/**
  * QUANTA_MON_MODE_MAGENTO_PROFILING's end function callback
  *
  * @author ch
  */
 void hp_mode_magento_profil_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
+  (void)entries;
 }
 
 
@@ -250,4 +198,5 @@ void hp_mode_magento_profil_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
  * @author ch
  */
 void hp_mode_events_only_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
+  (void)entries;
 }

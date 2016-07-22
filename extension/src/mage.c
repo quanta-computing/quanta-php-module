@@ -2,23 +2,23 @@
 
 zval *get_mage_model_zdata(HashTable *attrs, char *key, int type TSRMLS_DC) {
   HashTable *model_data;
-  zval **data;
-  zval **ret;
+  zval *data;
+  zval *ret;
 
-  if (zend_hash_find(attrs, "\0*\0_data", 9, (void **)&data) == FAILURE) {
+  if (!(data = zend_hash_find_compat(attrs, "\0*\0_data", 9))) {
     PRINTF_QUANTA("Cannot fetch model data\n");
     return NULL;
   }
-  model_data = Z_ARRVAL_PP(data);
-  if (zend_hash_find(model_data, key, strlen(key) + 1, (void **)&ret) == FAILURE) {
+  model_data = Z_ARRVAL_P(data);
+  if (!(ret = zend_hash_find_compat(model_data, key, strlen(key)))) {
     PRINTF_QUANTA("Cannot fetch %s in model data\n", key);
     return NULL;
   }
-  if (Z_TYPE_PP(ret) != type) {
-    PRINTF_QUANTA("%s is not a %d, it's a %d :(\n", key, type, Z_TYPE_PP(ret));
+  if (Z_TYPE_P(ret) != type) {
+    PRINTF_QUANTA("%s is not a %d, it's a %d :(\n", key, type, Z_TYPE_P(ret));
     return NULL;
   }
-  return *ret;
+  return ret;
 }
 
 char *get_mage_model_data(HashTable *attrs, char *key TSRMLS_DC) {
@@ -54,32 +54,30 @@ end:
 
 static void fetch_magento2_version(TSRMLS_D) {
   int ret;
-  zval directory_root;
   char composer_path[1024];
+  zval *directory_root = NULL;
   FILE *composer_file_handle = NULL;
-  zval *edition = NULL;
+  zval edition;
 
-  ZVAL_NULL(&directory_root);
-  if (!zend_get_constant("BP", 2, &directory_root)) {
+  ZVAL_NULL(&edition);
+  if (!(directory_root = safe_get_constant("BP", IS_STRING))) {
     PRINTF_QUANTA("Cannot get dir root\n");
     goto end;
   }
-  ret = snprintf(composer_path, 1024, "%s/composer.json", Z_STRVAL(directory_root));
+  ret = snprintf(composer_path, 1024, "%s/composer.json", Z_STRVAL_P(directory_root));
   if (ret == -1 || ret >= 1024
   || (composer_file_handle = fopen(composer_path, "r")) == NULL
   || !(hp_globals.magento_version = get_magento2_composer_version(composer_file_handle))) {
     PRINTF_QUANTA("Cannot get magento2 version\n");
     goto end;
   }
-  edition = safe_get_class_constant("Magento\\Framework\\App\\ProductMetadata",
-    "EDITION_NAME", IS_STRING TSRMLS_CC);
-  if (edition)
-    hp_globals.magento_edition = estrdup(Z_STRVAL_P(edition));
+  ret = safe_get_class_constant("Magento\\Framework\\App\\ProductMetadata",
+    "EDITION_NAME", &edition, IS_STRING TSRMLS_CC);
+  if (!ret)
+    hp_globals.magento_edition = estrdup(Z_STRVAL(edition));
 
 end:
-  if (edition)
-    FREE_ZVAL(edition);
-  zval_dtor(&directory_root);
+  zval_dtor(&edition);
   if (composer_file_handle)
     fclose(composer_file_handle);
 }
