@@ -93,6 +93,7 @@ size_t call_params_count, zval call_params[] TSRMLS_DC) {
   zval func;
 
   ZVAL_STRING_COMPAT(&func, "is_callable");
+  ZVAL_NULL(&is_callable);
   if (object) {
     array_init(&params[0]);
     add_next_index_zval(&params[0], object);
@@ -102,6 +103,10 @@ size_t call_params_count, zval call_params[] TSRMLS_DC) {
   }
   ret = call_user_function(CG(function_table), NULL, &func, &is_callable, 1, params TSRMLS_CC);
   if (ret != SUCCESS || Z_TYPE(is_callable) != IS_TRUE) {
+    PRINTF_QUANTA("%s::%s is not callable (%d == %d), ztype %d\n",
+      object ? get_obj_class_name(object TSRMLS_CC) : NULL,
+      function_name, ret, SUCCESS,
+      Z_TYPE(is_callable));
     ret = FAILURE;
     goto end;
   }
@@ -113,6 +118,9 @@ end:
   zval_dtor(&params[0]);
   zval_dtor(&is_callable);
   zval_dtor(&func);
+  if (ret == SUCCESS && Z_TYPE_P(ret_val) != ret_type)
+    PRINTF_QUANTA("_safe_call_function: ret is of type %d (expected %d)\n",
+      Z_TYPE_P(ret_val), ret_type);
   return ret != SUCCESS || Z_TYPE_P(ret_val) != ret_type ? -1 : 0;
 }
 #endif
@@ -176,25 +184,29 @@ int safe_new(char *class, zval *object, int params_count, zval params[] TSRMLS_D
   return 0;
 }
 
-int safe_get_class_constant(char *class, char *name, zval *constant, int type TSRMLS_DC) {
-  zval reflection;
-  zval reflection_params[1];
-  zval get_constant_params[1];
-  int ret = 0;
+int safe_get_class_constant(char *class, char *name, zval *retval, int type TSRMLS_DC) {
+  zend_class_entry *ce;
+  zval *constant;
 
-  ZVAL_NULL(constant);
-  ZVAL_NULL(&reflection);
-  ZVAL_STRING_COMPAT(&reflection_params[0], class);
-  ZVAL_STRING_COMPAT(&get_constant_params[0], name);
-  if (safe_new("ReflectionClass", &reflection, 1, reflection_params TSRMLS_CC)
-  || safe_call_method(&reflection, "getConstant", constant, type, 1, get_constant_params TSRMLS_CC)) {
-    PRINTF_QUANTA("Cannot get constant %s::%s\n", class, name);
-    ret = -1;
+  if (!(ce = _zend_fetch_class_compat(class, ZEND_FETCH_CLASS_SILENT))) {
+    PRINTF_QUANTA("Cannot find zend_class_entry for class %s\n", class);
+    return -1;
   }
-  zval_dtor(&reflection_params[0]);
-  zval_dtor(&get_constant_params[0]);
-  zval_dtor(&reflection);
-  return ret;
+  if (!(constant = zend_hash_find_compat(&ce->constants_table, name, strlen(name)))) {
+    PRINTF_QUANTA("Cannot find constant %s::%s\n", class, name);
+    return -1;
+  }
+  if (Z_TYPE_P(constant) != type) {
+    PRINTF_QUANTA("Constant %s::%s is not of type %d (it's a %d)\n",
+      class, name, type, Z_TYPE_P(constant));
+    return -1;
+  }
+#if PHP_MAJOR_VERSION < 7
+  MAKE_COPY_ZVAL(&constant, retval)
+#else
+  ZVAL_DUP(retval, constant);
+#endif
+  return 0;
 }
 
 zval *safe_get_constant(const char *name, int type TSRMLS_DC) {
@@ -219,13 +231,15 @@ zval *safe_get_argument(zend_execute_data *ex, size_t num, int type) {
   zval *ret;
 
 #if PHP_MAJOR_VERSION < 7
-  if (!ex || (int)ex->function_state.arguments[0] < num)
+  if (!ex || (size_t)(zend_uintptr_t)ex->function_state.arguments[0] < num)
     return NULL;
   ret = (zval *)ex->function_state.arguments[
     -((size_t)(zend_uintptr_t)ex->function_state.arguments[0] - num)];
 #else
-  if (ZEND_CALL_NUM_ARGS(ex) < num)
+  if (ZEND_CALL_NUM_ARGS(ex) < num) {
+    PRINTF_QUANTA("Method does not take so much arguments (it takes %d)\n", ZEND_CALL_NUM_ARGS(ex));
     return NULL;
+  }
   ret = ZEND_CALL_ARG(ex, num);
 #endif
   if (!ret || Z_TYPE_P(ret) != type)

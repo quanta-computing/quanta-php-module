@@ -49,20 +49,18 @@ int qm_record_cache_system_flush_event(int profile_curr, zend_execute_data *exec
 int qm_record_reindex_event(int profile_curr, zend_execute_data *execute_data TSRMLS_DC) {
   zval *this;
   zval *title;
-  zval title_text;
+  zval *title_text;
 
   if (!(this = get_this(execute_data TSRMLS_CC))
   || !(title = get_mage_model_zdata(Z_OBJPROP_P(this), "title", IS_OBJECT TSRMLS_CC))
-  || safe_call_method(title, "getText", &title_text, IS_STRING, 0, NULL TSRMLS_CC)) {
+  || !(title_text = zend_read_property_compat(Z_OBJCE_P(title), title, "text"))) {
     PRINTF_QUANTA("Cannot get reindex type\n");
     return -1;
   }
-  if (push_magento_event(MAGENTO_EVENT_REINDEX, "Reindex", Z_STRVAL(title_text))) {
+  if (push_magento_event(MAGENTO_EVENT_REINDEX, "Reindex", Z_STRVAL_P(title_text))) {
     PRINTF_QUANTA("Cannot push reindex event\n");
-    zval_dtor(&title_text);
     return -1;
   }
-  zval_dtor(&title_text);
   return profile_curr;
 }
 

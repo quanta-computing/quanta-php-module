@@ -128,13 +128,15 @@ void hp_mode_events_only_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  T
 void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
   hp_entry_t       *top = (*entries);
   zval             *counts;
-  zval             counts_val;
   struct rusage    ru_end;
   char             symbol[SCRATCH_BUF_LEN];
   long int         mu_end;
   long int         pmu_end;
   uint64_t         tsc_end;
   HashTable        *ht;
+#if PHP_MAJOR_VERSION >= 7
+  zval             counts_val;
+#endif
 
 
   tsc_end = cycle_timer();
@@ -143,7 +145,7 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
   || !(ht = HASH_OF(&hp_globals.stats_count))) {
     return;
   }
-  if (!(counts = zend_hash_find_compat(ht, symbol, strlen(symbol) + 1))) {
+  if (!(counts = zend_hash_find_compat(ht, symbol, strlen(symbol)))) {
 #if PHP_MAJOR_VERSION < 7
     MAKE_STD_ZVAL(counts);
     array_init(counts);

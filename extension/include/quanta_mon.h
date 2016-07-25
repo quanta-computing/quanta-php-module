@@ -138,7 +138,7 @@ PHP_MINFO_FUNCTION(quanta_mon);
  * profile operation, recursion depth, and the name of the function being
  * profiled. */
 typedef struct hp_entry_t {
-  char                   *name_hprof;                       /* function name */
+  const char                   *name_hprof;                       /* function name */
   int                     rlvl_hprof;        /* recursion level for function */
   uint64_t                  tsc_start;         /* start value for TSC counter  */
   long int                mu_start_hprof;                    /* memory usage */
@@ -347,6 +347,7 @@ zval *safe_get_constant(const char *name, int type TSRMLS_DC);
 //Compat
 zval *zend_hash_find_compat(HashTable *ht, const char *key, size_t key_len);
 zend_bool zend_hash_exists_compat(HashTable *ht, const char *key, size_t key_len);
+zval *zend_read_property_compat(zend_class_entry *ce, zval *obj, const char *name);
 
 // Zend hijacks
 #if PHP_VERSION_ID < 50500

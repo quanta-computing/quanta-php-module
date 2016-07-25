@@ -4,7 +4,7 @@
 static void extract_request_uri(HashTable *_SERVER TSRMLS_DC) {
   zval *request_uri;
 
-  request_uri = zend_hash_find_compat(_SERVER, "REQUEST_URI", sizeof("REQUEST_URI"));
+  request_uri = zend_hash_find_compat(_SERVER, "REQUEST_URI", sizeof("REQUEST_URI") - 1);
   if (!request_uri || Z_TYPE_P(request_uri) != IS_STRING) {
     PRINTF_QUANTA("NO REQUEST URI\n");
     hp_globals.request_uri = NULL;
@@ -21,7 +21,7 @@ static int extract_step_clock_and_mode(HashTable *_SERVER TSRMLS_DC) {
   char *quanta_clock;
 
 
-  data = zend_hash_find_compat(_SERVER, QUANTA_HTTP_HEADER, sizeof(QUANTA_HTTP_HEADER));
+  data = zend_hash_find_compat(_SERVER, QUANTA_HTTP_HEADER, sizeof(QUANTA_HTTP_HEADER) - 1);
   if (!data || Z_TYPE_P(data) != IS_STRING) {
     PRINTF_QUANTA("NO QUANTA HEADER\n");
     return -1;
@@ -62,9 +62,15 @@ static int extract_headers_info(TSRMLS_D) {
   /* _SERVER is lazy-initialized, force population
   */
   if (!zend_hash_exists_compat(&EG(symbol_table), "_SERVER", sizeof("_SERVER"))) {
+    zval *auto_global_zval;
     zend_auto_global* auto_global;
-    auto_global = (zend_auto_global *)zend_hash_find_compat(
-      CG(auto_globals), "_SERVER", sizeof("_SERVER"));
+    auto_global_zval = zend_hash_find_compat(
+      CG(auto_globals), "_SERVER", sizeof("_SERVER") - 1);
+#if PHP_MAJOR_VERSION < 7
+    auto_global = (zend_auto_global *)auto_global_zval;
+#else
+    auto_global = (zend_auto_global *)Z_PTR_P(auto_global_zval);
+#endif
     if (auto_global) {
       #if PHP_MAJOR_VERSION < 7
       auto_global->armed = auto_global->auto_global_callback(auto_global->name,
@@ -75,7 +81,7 @@ static int extract_headers_info(TSRMLS_D) {
     }
   }
   hp_globals.quanta_clock = 0;
-  data = zend_hash_find_compat(&EG(symbol_table), "_SERVER", sizeof("_SERVER"));
+  data = zend_hash_find_compat(&EG(symbol_table), "_SERVER", sizeof("_SERVER") - 1);
   if (!data || Z_TYPE_P(data) != IS_ARRAY) {
     PRINTF_QUANTA("NO _SERVER\n");
     return -1;

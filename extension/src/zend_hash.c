@@ -4,7 +4,7 @@ zval *zend_hash_find_compat(HashTable *ht, const char *key, size_t key_len) {
 #if PHP_MAJOR_VERSION < 7
   zval **data;
 
-  if (zend_hash_find(ht, key, key_len, (void **)&data) == FAILURE) {
+  if (zend_hash_find(ht, key, key_len + 1, (void **)&data) == FAILURE) {
     return NULL;
   }
   return *data;

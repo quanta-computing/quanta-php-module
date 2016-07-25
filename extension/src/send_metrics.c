@@ -320,12 +320,12 @@ magento_block_t *block TSRMLS_DC) {
     block->renderize_children_cycles + block->tsc_renderize_first_start,
     block->tsc_renderize_last_stop
   );
-  // PRINTF_QUANTA("BLOCK %s rendered in %f\n  - class: %s (%s)\n  - template: %s\n  - SQL: %zu (%fms)\n",
-  //   block->name, rendering_time,
-  //   block->class, block->class_file,
-  //   block->template,
-  //   block->sql_queries_count, cpu_cycles_to_ms(cpufreq, block->sql_cpu_cycles)
-  // );
+  PRINTF_QUANTA("BLOCK %s rendered in %f\n  - class: %s (%s)\n  - template: %s\n  - SQL: %zu (%fms)\n",
+    block->name, rendering_time,
+    block->class, block->class_file,
+    block->template,
+    block->sql_queries_count, cpu_cycles_to_ms(cpufreq, block->sql_cpu_cycles)
+  );
   metric = monikor_metric_float(metric_name, clock, rendering_time, 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);

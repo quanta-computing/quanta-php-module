@@ -43,5 +43,6 @@ if test "$PHP_QUANTAMON" != "no"; then
     src/send_metrics.c \
     src/utils.c \
     src/zend_hash.c \
-    src/zend.c, $ext_shared,,-W -Wall -D_GNU_SOURCE)
+    src/zend_zval.c \
+    src/zend.c, $ext_shared,,-W -Wall -Wextra -Wno-unused-parameter -D_GNU_SOURCE)
 fi

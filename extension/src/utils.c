@@ -26,7 +26,9 @@ char *hp_get_function_name_fast(zend_execute_data *execute_data TSRMLS_DC) {
 #if PHP_MAJOR_VERSION < 7
   return execute_data ? execute_data->function_state.function->common.function_name : NULL;
 #else
-  return execute_data ? ZSTR_VAL(execute_data->func->common.function_name) : NULL;
+  return (execute_data && execute_data->func && execute_data->func->common.function_name) ?
+    ZSTR_VAL(execute_data->func->common.function_name)
+    : NULL;
 #endif
 }
 
