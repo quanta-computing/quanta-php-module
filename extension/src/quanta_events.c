@@ -21,8 +21,7 @@ static int push_magento_event(uint8_t class, char *type, char *subtype) {
 int qm_record_cache_clean_event(int profile_curr, zend_execute_data *execute_data TSRMLS_DC) {
   zval *subtype;
 
-  if (!execute_data || !execute_data->prev_execute_data
-  || !(subtype = safe_get_argument(execute_data->prev_execute_data, 0, IS_STRING))
+  if (!(subtype = safe_get_argument(execute_data, 1, IS_STRING))
   || push_magento_event(MAGENTO_EVENT_CACHE_CLEAR, "clean", Z_STRVAL_P(subtype)))
     return -1;
   else

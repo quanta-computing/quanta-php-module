@@ -230,11 +230,13 @@ zval *safe_get_constant(const char *name, int type TSRMLS_DC) {
 zval *safe_get_argument(zend_execute_data *ex, size_t num, int type) {
   zval *ret;
 
+  if (!ex)
+    return NULL;
 #if PHP_MAJOR_VERSION < 7
   if (!ex || (size_t)(zend_uintptr_t)ex->function_state.arguments[0] < num)
     return NULL;
   ret = (zval *)ex->function_state.arguments[
-    -((size_t)(zend_uintptr_t)ex->function_state.arguments[0] - num)];
+    -((size_t)(zend_uintptr_t)ex->function_state.arguments[0] - (num - 1))];
 #else
   if (ZEND_CALL_NUM_ARGS(ex) < num) {
     PRINTF_QUANTA("Method does not take so much arguments (it takes %d)\n", ZEND_CALL_NUM_ARGS(ex));
