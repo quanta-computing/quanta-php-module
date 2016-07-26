@@ -82,7 +82,6 @@ static int extract_headers_info(TSRMLS_D) {
   int mode;
 
   hp_globals.quanta_clock = 0;
-  // _SERVER is lazy-initialized, force population
   arm_server_auto_global(TSRMLS_C);
   zserver = zend_hash_find_compat(&EG(symbol_table), "_SERVER", sizeof("_SERVER") - 1);
   if (!zserver || Z_TYPE_P(zserver) != IS_ARRAY) {
