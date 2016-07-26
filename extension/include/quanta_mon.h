@@ -33,17 +33,12 @@
 ** Full debug mode
 */
 
-#define DEBUG_QUANTA
+// #define DEBUG_QUANTA
 
 #ifdef DEBUG_QUANTA
 # define PRINTF_QUANTA(...) dprintf(1, __VA_ARGS__)
 #else
-# define PRINTF_QUANTA dummy_printf
-  static void dummy_printf(char *unused, ...)
-  {
-    (void)unused;
-    return;
-  }
+# define PRINTF_QUANTA(...) do {} while (0)
 #endif
 
 /* Fictitious function name to represent top of the call tree. The paranthesis
