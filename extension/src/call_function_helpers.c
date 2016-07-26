@@ -230,6 +230,8 @@ zval *safe_get_constant(const char *name, int type TSRMLS_DC) {
 zval *safe_get_argument(zend_execute_data *ex, size_t num, int type) {
   zval *ret;
 
+  PRINTF_QUANTA("???\n");
+  
   if (!ex)
     return NULL;
 #if PHP_MAJOR_VERSION < 7
@@ -244,6 +246,7 @@ zval *safe_get_argument(zend_execute_data *ex, size_t num, int type) {
   }
   ret = ZEND_CALL_ARG(ex, num);
 #endif
+  PRINTF_QUANTA("arg %zu is a %d (expected %d)\n", num, ret ? Z_TYPE_P(ret) : 0, type);
   if (!ret || Z_TYPE_P(ret) != type)
     return NULL;
   return ret;
