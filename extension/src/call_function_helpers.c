@@ -235,7 +235,7 @@ zval *safe_get_argument(zend_execute_data *ex, size_t num, int type) {
 #if PHP_MAJOR_VERSION < 7
 # if PHP_VERSION_ID >= 50500
   if (!ex->function_state.arguments)
-    ex = ex->prev_execute_data
+    ex = ex->prev_execute_data;
 # endif
   if (!ex || (size_t)(zend_uintptr_t)ex->function_state.arguments[0] < num)
     return NULL;
