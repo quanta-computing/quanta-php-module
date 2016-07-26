@@ -149,7 +149,7 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
 #if PHP_MAJOR_VERSION < 7
     MAKE_STD_ZVAL(counts);
     array_init(counts);
-    zend_hash_update(ht, symbol, strlen(symbol)+1, &counts, sizeof(counts), NULL);
+    zend_hash_update(ht, symbol, strlen(symbol) + 1, &counts, sizeof(counts), NULL);
 #else
     counts = &counts_val;
     array_init(counts);
