@@ -230,11 +230,13 @@ zval *safe_get_constant(const char *name, int type TSRMLS_DC) {
 zval *safe_get_argument(zend_execute_data *ex, size_t num, int type) {
   zval *ret;
 
-  PRINTF_QUANTA("???\n");
-  
   if (!ex)
     return NULL;
 #if PHP_MAJOR_VERSION < 7
+# if PHP_VERSION_ID >= 50500
+  if (!ex->function_state.arguments)
+    ex = ex->prev_execute_data
+# endif
   if (!ex || (size_t)(zend_uintptr_t)ex->function_state.arguments[0] < num)
     return NULL;
   ret = (zval *)ex->function_state.arguments[
