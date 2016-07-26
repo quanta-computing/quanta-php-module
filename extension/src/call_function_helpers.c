@@ -54,7 +54,7 @@ zval *get_prev_this(zend_execute_data *execute_data TSRMLS_DC) {
 
 #if PHP_MAJOR_VERSION < 7
 static int _safe_call_function(char *function_name, zval *object, zval *ret_val, int ret_type,
-size_t call_params_count, zval **call_params TSRMLS_DC) {
+size_t call_params_count, zval *call_params[] TSRMLS_DC) {
   int ret;
   zval *params[1];
   zval is_callable;
@@ -130,11 +130,19 @@ int safe_call_function(char *function, zval *ret, int ret_type,
 size_t params_count, zval params[] TSRMLS_DC) {
 #if PHP_MAJOR_VERSION < 7
   zval *php5_params[params_count];
+  zval *tmp;
   size_t i;
+  int retcode;
 
+  for (i = 0; i < params_count; i++) {
+    MAKE_STD_ZVAL(php5_params[i]);
+    tmp = &params[i];
+    MAKE_COPY_ZVAL(&tmp, php5_params[i]);
+  }
+  retcode = _safe_call_function(function, NULL, ret, ret_type, params_count, php5_params TSRMLS_CC);
   for (i = 0; i < params_count; i++)
-    php5_params[i] = &params[i];
-  return _safe_call_function(function, NULL, ret, ret_type, params_count, php5_params TSRMLS_CC);
+    FREE_ZVAL(php5_params[i]);
+  return retcode;
 #else
   return _safe_call_function(function, NULL, ret, ret_type, params_count, params TSRMLS_CC);
 #endif
@@ -144,11 +152,19 @@ int safe_call_method(zval *object, char *method, zval *ret, int ret_type,
 size_t params_count, zval params[] TSRMLS_DC) {
 #if PHP_MAJOR_VERSION < 7
   zval *php5_params[params_count];
+  zval *tmp;
   size_t i;
+  int retcode;
 
+  for (i = 0; i < params_count; i++) {
+    MAKE_STD_ZVAL(php5_params[i]);
+    tmp = &params[i];
+    MAKE_COPY_ZVAL(&tmp, php5_params[i]);
+  }
+  retcode = _safe_call_function(method, object, ret, ret_type, params_count, php5_params TSRMLS_CC);
   for (i = 0; i < params_count; i++)
-    php5_params[i] = &params[i];
-  return _safe_call_function(method, object, ret, ret_type, params_count, php5_params TSRMLS_CC);
+    FREE_ZVAL(php5_params[i]);
+  return retcode;
 #else
   return _safe_call_function(method, object, ret, ret_type, params_count, params TSRMLS_CC);
 #endif
