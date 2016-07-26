@@ -119,7 +119,6 @@ int qm_after_tohtml(zend_execute_data *execute_data TSRMLS_DC) {
   magento_block_t *block;
   magento_block_t *parent;
 
-  //TODO! Check if we shouldn't use "get_this" instead
   if (!(this = get_this(execute_data TSRMLS_CC))
   || (!(block_name = get_block_name(execute_data TSRMLS_CC)))
   || (!(block_object = get_block_object(this, block_name TSRMLS_CC)))) {
