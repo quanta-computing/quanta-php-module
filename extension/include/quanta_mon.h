@@ -33,7 +33,7 @@
 ** Full debug mode
 */
 
-#define DEBUG_QUANTA
+// #define DEBUG_QUANTA
 
 #ifdef DEBUG_QUANTA
 # define PRINTF_QUANTA(...) dprintf(1, __VA_ARGS__)
