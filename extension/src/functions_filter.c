@@ -91,31 +91,3 @@ void hp_monitored_functions_filter_clear() {
   memset(hp_globals.monitored_function_filter, 0,
          QUANTA_MON_MONITORED_FUNCTION_FILTER_SIZE);
 }
-
-/**
- * Initialize filter for monitored functions using bit vector.
- *
- * @author ch
- */
-void hp_monitored_functions_filter_init() {
-    int i = 0;
-    for(; hp_globals_monitored_function_names()[i] != NULL; i++) {
-      if (!*hp_globals_monitored_function_names()[i])
-        continue;
-      char *str  = strstr(hp_globals_monitored_function_names()[i], "::");
-      uint8_t hash = hp_inline_hash(str ? str + 2 : hp_globals_monitored_function_names()[i]);
-      int   idx  = INDEX_2_BYTE(hash);
-      hp_globals.monitored_function_filter[idx] |= INDEX_2_BIT(hash);
-    }
-    hp_globals.magento_blocks_first = NULL;
-}
-
-/**
- * Check if function collides in filter of functions to be monitored
- *
- * @author ch
- */
-int hp_monitored_functions_filter_collision(uint8_t hash) {
-  uint8_t mask = INDEX_2_BIT(hash);
-  return hp_globals.monitored_function_filter[INDEX_2_BYTE(hash)] & mask;
-}
