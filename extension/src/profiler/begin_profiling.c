@@ -3,8 +3,6 @@
 int hp_begin_profiling(hp_entry_t **entries, const char *symbol, zend_execute_data *data TSRMLS_DC) {
   int profile_curr;
 
-  if (hp_globals.monitored_function_tsc_stop[0])
-    PRINTF_QUANTA("BEGIN OUTSIDE FUNCTION %s\n", symbol);
   profile_curr = qm_begin_profiling(symbol, data TSRMLS_CC);
   if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {
     hp_entry_t *cur_entry = hp_fast_alloc_hprof_entry();

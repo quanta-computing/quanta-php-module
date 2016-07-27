@@ -11,7 +11,7 @@ int magento2_record_reindex_event(int profile_curr, zend_execute_data *execute_d
     PRINTF_QUANTA("Cannot get reindex type\n");
     return -1;
   }
-  if (push_magento_event(MAGENTO_EVENT_REINDEX, "Reindex", Z_STRVAL_P(title_text))) {
+  if (qm_record_event(MAGENTO_EVENT_REINDEX, "Reindex", Z_STRVAL_P(title_text))) {
     PRINTF_QUANTA("Cannot push reindex event\n");
     return -1;
   }
@@ -22,7 +22,7 @@ int magento2_record_cache_clean_event(int profile_curr, zend_execute_data *execu
   zval *subtype;
 
   if (!(subtype = safe_get_argument(execute_data, 1, IS_STRING))
-  || push_magento_event(MAGENTO_EVENT_CACHE_CLEAR, "clean", Z_STRVAL_P(subtype)))
+  || qm_record_event(MAGENTO_EVENT_CACHE_CLEAR, "clean", Z_STRVAL_P(subtype)))
     return -1;
   else
     return profile_curr;

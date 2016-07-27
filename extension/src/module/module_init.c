@@ -52,8 +52,6 @@ PHP_MINIT_FUNCTION(quanta_mon) {
     hp_globals.func_hash_counters[i] = 0;
   }
 
-  hp_monitored_functions_filter_clear();
-
 #if defined(DEBUG)
   /* To make it random number generator repeatable to ease testing. */
   srand(0);

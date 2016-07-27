@@ -1,3 +1,5 @@
+#include "quanta_mon.h"
+
 /**
  * QUANTA_MON universal begin function.
  * This function is called for all modes before the

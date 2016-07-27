@@ -18,7 +18,6 @@ float cpu_cycles_to_ms(float cpufreq, uint64_t count) {
   return count / (cpufreq * 1000000) * 1000;
 }
 
-
 float cpu_cycles_range_to_ms(float cpufreq, long long start, long long end) {
   if (!start && !end)
      return -1.0;

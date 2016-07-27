@@ -1,0 +1,145 @@
+cms:
+  magento2:
+    first_function: bootstrap_create
+    functions:
+      bootstrap_run:
+        name: 'Magento\Framework\App\Bootstrap::run'
+        tree_order: 15
+      bootstrap_create:
+        name: 'Magento\Framework\App\Bootstrap::create'
+        tree_order: 6
+      create_app:
+        name: 'Magento\Framework\App\Bootstrap::createApplication'
+        tree_order: 7
+      get_front_name:
+        name: 'Magento\Framework\App\Request\Http::getFrontName'
+        tree_order: 0
+      frontcontroller_dispatch:
+        name: 'Magento\Framework\App\FrontController\Interceptor::dispatch'
+        tree_order: 13
+      action_dispatch:
+        name: 'Magento\Framework\App\Action\Action::dispatch'
+        tree_order: 12
+      render_result:
+        name: 'Magento\Framework\View\Result\Page\Interceptor::renderResult'
+        tree_order: 14
+      send_response:
+        name: 'Magento\Framework\App\Response\Http\Interceptor::sendResponse'
+      render_block:
+        name: 'Magento\Framework\View\Layout::_renderBlock'
+        tree_order: 4
+      cache_flush_all:
+        name: 'Magento\Backend\Controller\Adminhtml\Cache\FlushAll::execute'
+        tree_order: 10
+      cache_flush_system:
+        name: 'Magento\Backend\Controller\Adminhtml\Cache\FlushSystem::execute'
+        tree_order: 11
+      cache_clean:
+        name: 'Magento\Framework\App\Cache\TypeList::cleanType'
+        tree_order: 8
+      reindex:
+        name: 'Magento\Indexer\Model\Indexer::reindexAll'
+        tree_order: 21
+      sql_query:
+        name: 'PDOStatement::execute'
+        tree_order: 9
+
+    timers:
+      create_bootstrap:
+        start:
+          function: bootstrap_create
+          timer: first_start
+        end:
+          function: bootstrap_create
+          timer: last_stop
+      create_application:
+        start:
+          function: create_app
+          timer: first_start
+        end:
+          function: create_app
+          timer: last_stop
+      after_create_application:
+        start:
+          function: create_app
+          timer: last_stop
+        end:
+          function: get_front_name
+          timer: first_start
+      parse_request:
+        start:
+          function: get_front_name
+          timer: first_start
+        end:
+          function: get_front_name
+          timer: last_stop
+      configure_area:
+        start:
+          function: get_front_name
+          timer: last_stop
+        end:
+          function: frontcontroller_dispatch
+          timer: first_start
+      loading:
+        start:
+          function: bootstrap_create
+          timer: first_start
+        end:
+          function: frontcontroller_dispatch
+          timer: first_start
+      dispatch:
+        start:
+          function: frontcontroller_dispatch
+          timer: first_start
+        end:
+          function: frontcontroller_dispatch
+          timer: last_stop
+      routing:
+        start:
+          function: frontcontroller_dispatch
+          timer: first_start
+        end:
+          function: action_dispatch
+          timer: first_start
+      controller:
+        start:
+          function: action_dispatch
+          timer: first_start
+        end:
+          function: action_dispatch
+          timer: last_stop
+      between_controller_and_layout_rendering:
+        start:
+          function: action_dispatch
+          timer: last_stop
+        end:
+          function: render_result
+          timer: first_start
+      layout_rendering:
+        start:
+          function: render_result
+          timer: first_start
+        end:
+          function: render_result
+          timer: last_stop
+      before_sending_response:
+        start:
+          function: render_result
+          timer: last_stop
+        end:
+          function: send_response
+          timer: first_start
+      sending_response:
+        start:
+          function: send_response
+          timer: first_start
+        end:
+          function: send_response
+          timer: last_stop
+      total:
+        start:
+          function: bootstrap_create
+          timer: first_start
+        end:
+          function: bootstrap_run
+          timer: last_stop

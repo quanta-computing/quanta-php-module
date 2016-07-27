@@ -34,20 +34,5 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
   hp_globals.mode_cb.init_cb(TSRMLS_C);
 
   hp_globals.block_stack = NULL;
-  memset(hp_globals.monitored_function_tsc_start, 0,
-    sizeof(hp_globals.monitored_function_tsc_start));
-  memset(hp_globals.monitored_function_tsc_stop, 0,
-    sizeof(hp_globals.monitored_function_tsc_stop));
-  memset(hp_globals.monitored_function_sql_cpu_cycles, 0,
-    sizeof(hp_globals.monitored_function_sql_cpu_cycles));
-  memset(hp_globals.monitored_function_sql_queries_count, 0,
-    sizeof(hp_globals.monitored_function_sql_queries_count));
-  memset(hp_globals.monitored_function_sql_cpu_cycles_after, 0,
-    sizeof(hp_globals.monitored_function_sql_cpu_cycles_after));
-  memset(hp_globals.monitored_function_sql_queries_count_after, 0,
-    sizeof(hp_globals.monitored_function_sql_queries_count_after));
-
-  hp_globals.current_monitored_function = -1;
-  hp_globals.last_monitored_function = -1;
   hp_globals.magento_blocks_first = NULL;
 }

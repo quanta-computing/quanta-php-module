@@ -81,13 +81,3 @@ void hp_get_monitored_functions_fill() {
 char **hp_globals_monitored_function_names(void) {
   return hp_globals.monitored_function_names[QUANTA_MAGENTO_VERSION_INDEX];
 }
-
-/**
- * Clear filter for functions which should be monitored during profiling.
- *
- * @author ch
- */
-void hp_monitored_functions_filter_clear() {
-  memset(hp_globals.monitored_function_filter, 0,
-         QUANTA_MON_MONITORED_FUNCTION_FILTER_SIZE);
-}

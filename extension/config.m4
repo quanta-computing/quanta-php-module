@@ -19,30 +19,51 @@ if test "$PHP_QUANTAMON" != "no"; then
 
   PHP_SUBST(QUANTA_MON_SHARED_LIBADD)
   PHP_NEW_EXTENSION(quanta_mon,
-    src/block_stack.c \
-    src/call_function_helpers.c \
+    src/magento_common/block_stack.c \
+    src/magento_common/events.c \
+    src/magento_common/model_data.c \
+    src/magento1/events.c \
+    src/magento1/version.c \
+    src/magento2/blocks.c \
+    src/magento2/events.c \
+    src/magento2/version.c \
+    src/module/module_info.c \
+    src/module/module_init.c \
+    src/module/module_shutdown.c \
+    src/module/quanta_mon.c \
+    src/module/register_constants.c \
+    src/module/request_init.c \
+    src/module/request_shutdown.c \
+    src/profiler/application.c \
+    src/profiler/begin_profiling.c \
+    src/profiler/common_callbacks.c \
+    src/profiler/dummy_callbacks.c \
+    src/profiler/end_profiling.c \
+    src/profiler/function_stack.c \
+    src/profiler/hier_callbacks.c \
+    src/profiler/hp_begin.c \
+    src/profiler/hp_end.c \
+    src/profiler/hp_list.c \
+    src/profiler/profiler_clean.c \
+    src/profiler/profiler_init.c \
+    src/profiler/quanta.c \
+    src/profiler/record_event.c \
+    src/profiler/send_metrics.c \
+    src/profiler/zend_execute.c \
+    src/profiler/zend_functions_info.c \
+    src/utils/cpu.c \
+    src/utils/filename.c \
+    src/utils/hash.c \
+    src/utils/profiler.c \
+    src/utils/safe_call_function.c \
+    src/utils/safe_get_argument.c \
+    src/utils/safe_get_constant.c \
+    src/utils/this.c \
+    src/utils/timing.c \
+    src/utils/zend_hash.c \
+    src/utils/zend_obj.c \
+    src/utils/zend_zval.c \
     src/computed_functions_filter.c \
-    src/constants.c \
-    src/cpu.c \
-    src/functions_filter.c \
-    src/hp_begin.c \
-    src/hp_end.c \
-    src/hp_list.c \
-    src/mage.c \
-    src/module_info.c \
-    src/module_init.c \
-    src/module_shutdown.c \
-    src/profiler_callbacks.c \
-    src/profiler.c \
-    src/quanta_blocks.c \
-    src/quanta_events.c \
-    src/quanta_mon.c \
-    src/quanta.c \
-    src/request_init.c \
-    src/request_shutdown.c \
-    src/send_metrics.c \
-    src/utils.c \
-    src/zend_hash.c \
-    src/zend_zval.c \
-    src/zend.c, $ext_shared,,-W -Wall -Wextra -Wno-unused-parameter -D_GNU_SOURCE)
+    ,
+    $ext_shared,,-W -Wall -Wextra -Wno-unused-parameter -D_GNU_SOURCE)
 fi

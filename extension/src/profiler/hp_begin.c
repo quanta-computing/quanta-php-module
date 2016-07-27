@@ -41,11 +41,6 @@ void hp_begin(long level, long quanta_mon_flags TSRMLS_DC) {
     /* one time initializations */
     hp_init_profiler_state(level TSRMLS_CC);
 
-    /* Record request init timestamp */
-    if (level <= QUANTA_MON_MODE_MAGENTO_PROFILING)
-      hp_globals.monitored_function_tsc_start[POS_ENTRY_PHP_TOTAL] = cycle_timer();
-
-
     /* start profiling from fictitious main() */
     hp_begin_profiling(&hp_globals.entries, ROOT_SYMBOL, NULL TSRMLS_CC);
   }
