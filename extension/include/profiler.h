@@ -5,7 +5,6 @@
  * in the name is to ensure we don't conflict with user function names.  */
 #define ROOT_SYMBOL                "main()"
 
-
 /*
 ** Misc #defines to handle profiling triggering
 */
@@ -14,10 +13,8 @@
 #define QUANTA_HTTP_HEADER_MODE_FULL "full"
 #define QUANTA_MON_DEFAULT_ADMIN_URL "/admin/"
 
-
 // Timeout for sending metrics to monikor agent
 #define SEND_METRICS_TIMEOUT_US 50000
-
 
 /* Various QUANTA_MON modes. If you are adding a new mode, register the appropriate
  * callbacks in hp_begin() */
@@ -36,6 +33,8 @@
 #define QUANTA_MON_FLAGS_NO_BUILTINS   0x0001         /* do not profile builtins */
 #define QUANTA_MON_FLAGS_CPU           0x0002      /* gather CPU times for funcs */
 #define QUANTA_MON_FLAGS_MEMORY        0x0004   /* gather memory usage for funcs */
+
+#define MAX_METRIC_NAME_LENGTH 1024
 
 
 /* QuantaMon maintains a stack of entries being profiled. The memory for the entry
@@ -56,6 +55,18 @@ typedef struct hp_entry_t {
   uint8_t                   hash_code;     /* hash_code for the function name  */
 } hp_entry_t;
 
+typedef enum {
+  APP_EV_CACHE_CLEAR = 1,
+  APP_EV_REINDEX = 2
+} applicative_event_class_t;
+
+typedef struct applicative_event {
+  struct applicative_event *prev;
+  uint8_t class;
+  char *type;
+  char *subtype;
+} applicative_event_t;
+
 
 /* Various types for QUANTA_MON callbacks       */
 typedef void (*hp_init_cb)           (TSRMLS_D);
@@ -72,7 +83,7 @@ typedef struct hp_mode_cb {
   hp_end_function_cb     end_fn_cb;
 } hp_mode_cb;
 
-
+typedef struct profiled_application_t profiled_application_t;
 typedef int (*profiled_function_callback_t)(profiled_application_t *app,
   zend_execute_data *ex TSRMLS_DC);
 
@@ -80,8 +91,13 @@ typedef struct profiled_function_t {
   const char *name;
   const size_t index;
 
-  profiled_function_callback_t *begin_callback;
-  profiled_function_callback_t *end_callback;
+  const struct {
+    uint8_t ignore_in_stack;
+    int min_profiling_level;
+  } options;
+
+  profiled_function_callback_t begin_callback;
+  profiled_function_callback_t end_callback;
 
   struct {
     uint64_t first_start;
@@ -100,24 +116,24 @@ typedef struct profiled_function_t {
 } profiled_function_t;
 
 typedef enum {
-  FIRST_START,
-  LAST_START,
-  FIRST_STOP,
-  LAST_STOP
+  PROF_FIRST_START,
+  PROF_LAST_START,
+  PROF_FIRST_STOP,
+  PROF_LAST_STOP
 } profiler_timer_counter_t;
 
 typedef struct {
-  profiled_function_t *func;
+  profiled_function_t *function;
   uint8_t counter;
 } profiler_timer_function_t;
 
 typedef struct {
   const char *name;
-  profiler_function_timer_t start;
-  profiler_function_timer_t end;
+  profiler_timer_function_t start;
+  profiler_timer_function_t end;
 } profiler_timer_t;
 
-typedef struct profiled_application_t {
+struct profiled_application_t {
   const char *name;
 
   profiled_function_t *functions;
@@ -129,11 +145,12 @@ typedef struct profiled_application_t {
   profiled_function_t *last_function;
   void *context;
 
-  void *(*create_context)(TSRMLS_D);
+  void *(*create_context)(struct profiled_application_t *app TSRMLS_DC);
   void (*cleanup_context)(struct profiled_application_t *app TSRMLS_DC);
   profiled_function_t *(*match_function)(const char *name, zend_execute_data *data TSRMLS_DC);
-  // void (*send_metrics)(struct profiled_application_t *app TSRMLS_DC);
-} profiled_application_t;
+  void (*send_metrics)(struct profiled_application_t *app, monikor_metric_list_t *metrics,
+    float cpufreq, struct timeval *clock TSRMLS_DC);
+};
 
 
 // Profiling
@@ -148,6 +165,8 @@ size_t hp_get_function_stack(hp_entry_t *entry, int level, char *result_buf, siz
 
 int hp_begin_profiling(hp_entry_t **entries, const char *symbol, zend_execute_data *data TSRMLS_DC);
 void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data *data TSRMLS_DC);
+int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TSRMLS_DC);
+int qm_end_profiling(int function_idx, zend_execute_data *execute_data TSRMLS_DC);
 void hp_hijack_zend_execute(uint32_t flags, long level);
 void hp_restore_original_zend_execute(void);
 
@@ -161,15 +180,19 @@ void hp_mode_common_endfn(hp_entry_t **entries, hp_entry_t *current TSRMLS_DC);
 void hp_mode_hier_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
 void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC);
 
-// Quanta stuff
+// Metrics stuff
 void send_metrics(TSRMLS_D);
-int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TSRMLS_DC);
-int qm_end_profiling(int profile_curr, zend_execute_data *execute_data TSRMLS_DC);
+void qm_send_events_metrics(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC);
+void qm_send_profiler_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
+  float cpufreq TSRMLS_DC);
+void qm_send_selfprofiling_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
+  float cpufreq TSRMLS_DC);
 
-int qm_record_cache_system_flush_event(int profile_curr, zend_execute_data *execute_data TSRMLS_DC);
-int qm_record_cache_flush_event(int profile_curr, zend_execute_data *execute_data TSRMLS_DC);
-int qm_record_event(uint8_t class, char *type, char *subtype);
-int qm_record_sql_timers(void);
+// Application stuff
+void init_profiled_application(profiled_application_t *app TSRMLS_DC);
+void clean_profiled_application(profiled_application_t *app TSRMLS_DC);
+int qm_record_event(applicative_event_class_t class, char *type, char *subtype);
+int qm_record_sql_query(profiled_application_t *app, zend_execute_data *data TSRMLS_DC);
 
 // HP list
 void hp_free_the_free_list();

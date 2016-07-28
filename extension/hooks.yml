@@ -1,9 +1,13 @@
 cms:
   magento2:
+    create_context_callback: magento_init_context
+    cleanup_context_callback: magento_cleanup_context
+    send_metrics_callback: magento_send_metrics
     first_function: bootstrap_create
     functions:
       bootstrap_run:
         name: 'Magento\Framework\App\Bootstrap::run'
+        begin_callback: magento2_fetch_version
         tree_order: 15
       bootstrap_create:
         name: 'Magento\Framework\App\Bootstrap::create'
@@ -27,21 +31,29 @@ cms:
         name: 'Magento\Framework\App\Response\Http\Interceptor::sendResponse'
       render_block:
         name: 'Magento\Framework\View\Layout::_renderBlock'
+        begin_callback: magento2_block_before_render
+        end_callback: magento2_block_after_render
         tree_order: 4
       cache_flush_all:
         name: 'Magento\Backend\Controller\Adminhtml\Cache\FlushAll::execute'
+        begin_callback: magento_record_cache_flush_event
         tree_order: 10
       cache_flush_system:
         name: 'Magento\Backend\Controller\Adminhtml\Cache\FlushSystem::execute'
+        begin_callback: magento_record_cache_system_flush_event
         tree_order: 11
       cache_clean:
         name: 'Magento\Framework\App\Cache\TypeList::cleanType'
+        begin_callback: magento2_record_cache_clean_event
         tree_order: 8
       reindex:
         name: 'Magento\Indexer\Model\Indexer::reindexAll'
+        end_callback: magento2_record_reindex_event
         tree_order: 21
       sql_query:
         name: 'PDOStatement::execute'
+        end_callback: magento_record_sql_query
+        ignore_in_stack: true
         tree_order: 9
 
     timers:

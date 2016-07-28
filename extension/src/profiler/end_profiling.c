@@ -19,3 +19,25 @@ void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data 
     hp_fast_free_hprof_entry(cur_entry);
   }
 }
+
+int qm_end_profiling(int function_idx, zend_execute_data *execute_data TSRMLS_DC) {
+  profiled_function_t *function;
+
+  if (function_idx < 0)
+    return -1;
+  function = &hp_globals.profiled_application->functions[function_idx];
+  PRINTF_QUANTA("END FUNCTION %d %s\n", function->index, function->name);
+  function->tsc.last_stop = cycle_timer();
+  if (!function->tsc.first_stop)
+    function->tsc.first_stop = function->tsc.last_stop;
+  // TODO! Check profiler level for callbacks
+  if (function->end_callback
+  && function->end_callback(hp_globals.profiled_application, execute_data TSRMLS_CC)) {
+    function_idx = -1;
+  }
+  if (!function->options.ignore_in_stack) {
+    hp_globals.profiled_application->current_function = NULL;
+    hp_globals.profiled_application->last_function = function;
+  }
+  return function_idx;
+}

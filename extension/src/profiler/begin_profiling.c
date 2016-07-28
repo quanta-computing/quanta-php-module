@@ -20,3 +20,37 @@ int hp_begin_profiling(hp_entry_t **entries, const char *symbol, zend_execute_da
   }
   return profile_curr;
 }
+
+/**
+ * Check if this entry should be monitored, first with a conservative Bloomish
+ * filter then with an exact check against the function names.
+ *
+ * @author ch
+ * return -1 if we don't monitor specifically this function, -2 if we don't monitor at all
+ */
+int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TSRMLS_DC) {
+  profiled_function_t *function;
+  uint64_t start;
+  uint64_t end;
+
+  if (!hp_globals.profiled_application)
+    return -1;
+  start = cycle_timer();
+  function = hp_globals.profiled_application->match_function(curr_func, execute_data TSRMLS_CC);
+  end = cycle_timer();
+  hp_globals.internal_match_counters.cycles += end - start;
+  if (!function)
+    return -1;
+  if (!function->options.ignore_in_stack)
+    hp_globals.profiled_application->current_function = function;
+  function->tsc.last_start = cycle_timer();
+  if (!function->tsc.first_start)
+    function->tsc.first_start = function->tsc.last_start;
+  PRINTF_QUANTA("BEGIN FUNCTION %d %s\n", function->index, function->name);
+  // TODO! Check profiler level for callbacks
+  if (function->begin_callback
+  && function->begin_callback(hp_globals.profiled_application, execute_data TSRMLS_CC)) {
+    return -1;
+  }
+  return function->index;
+}

@@ -82,11 +82,13 @@ static char *get_block_attr(const char *key, size_t key_len, zval *this TSRMLS_D
   return estrdup(Z_STRVAL_P(data));
 }
 
-int qm_before_tohtml(int profile_curr, zend_execute_data *execute_data TSRMLS_DC) {
+int magento2_block_before_render(profiled_application_t *app,
+zend_execute_data *execute_data TSRMLS_DC) {
   zval *this;
   zval *block_name;
   zval *zblock;
   magento_block_t *block = NULL;
+  magento_context_t *context = (magento_context_t *)app->context;
 
   if (!(this = get_prev_this(execute_data TSRMLS_CC))
   || !(block_name = get_block_name(execute_data TSRMLS_CC))
@@ -101,35 +103,37 @@ int qm_before_tohtml(int profile_curr, zend_execute_data *execute_data TSRMLS_DC
   if (block->class)
     block->class_file = get_block_class_file(zblock TSRMLS_CC);
   block->template = get_block_attr("\0*\0_template", sizeof("\0*\0_template") - 1, zblock TSRMLS_CC);
-  block_stack_push(block);
-  if (hp_globals.magento_blocks_first == NULL)
-    hp_globals.magento_blocks_first = block;
+  block_stack_push(context, block);
+  if (context->blocks.first == NULL)
+    context->blocks.first = block;
   else
-    hp_globals.magento_blocks_last->next = block;
-  hp_globals.magento_blocks_last = block;
+    context->blocks.last->next = block;
+  context->blocks.last = block;
   block->tsc_renderize_first_start = cycle_timer();
   PRINTF_QUANTA("BEGIN BLOCK %s\n", block->name);
-  return profile_curr;
+  return 0;
 }
 
-int qm_after_tohtml(zend_execute_data *execute_data TSRMLS_DC) {
+int magento2_block_after_render(profiled_application_t *app,
+zend_execute_data *execute_data TSRMLS_DC) {
   zval *this;
   zval *block_name;
   zval *block_object;
   magento_block_t *block;
   magento_block_t *parent;
+  magento_context_t *context = (magento_context_t *)app->context;
 
   if (!(this = get_this(execute_data TSRMLS_CC))
   || (!(block_name = get_block_name(execute_data TSRMLS_CC)))
   || (!(block_object = get_block_object(this, block_name TSRMLS_CC)))) {
     return -1;
   }
-  if (!(block = block_stack_pop())) {
+  if (!(block = block_stack_pop(context))) {
     PRINTF_QUANTA("Block %s not found\n", Z_STRVAL_P(block_name));
     return -1;
   }
   block->tsc_renderize_last_stop = cycle_timer();
-  if ((parent = block_stack_top())) {
+  if ((parent = block_stack_top(context))) {
     parent->renderize_children_cycles += block->tsc_renderize_last_stop -
       block->tsc_renderize_first_start;
   }

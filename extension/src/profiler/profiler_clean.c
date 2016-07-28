@@ -15,10 +15,6 @@ void hp_clean_profiler_state(TSRMLS_D) {
   hp_globals.ever_enabled = 0;
 
   efree(hp_globals.request_uri);
-  efree(hp_globals.magento_version);
-  efree(hp_globals.magento_edition);
-
-  /* Pop all blocks still present in the stack (should be zero) */
-  while (block_stack_pop());
-
+  if (hp_globals.profiled_application)
+    clean_profiled_application(hp_globals.profiled_application);
 }

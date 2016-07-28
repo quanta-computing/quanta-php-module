@@ -1,10 +1,72 @@
-#include "quanta_mon.h"
 
-/**
- * Parse the list of monitored functions from the zval argument.
- *
- * @author ch
- */
+#define PROF_STARTS(i) i, -1
+#define PROF_STOPS(i) -1, i
+
+static const struct {
+  char *name;
+  int8_t starts_a;
+  int8_t stops_a;
+  int8_t starts_b;
+  int8_t stops_b;
+} magento1_metrics[] = {
+  {"loading", PROF_STARTS(0), PROF_STARTS(8)},
+  {"before_init_config", PROF_STARTS(0), PROF_STARTS(1)},
+  {"init_config", PROF_STARTS(1), PROF_STOPS(1)},
+  {"init_cache", PROF_STARTS(2), PROF_STOPS(2)},
+  {"load_modules", PROF_STARTS(3), PROF_STOPS(4)},
+  {"db_updates", PROF_STARTS(5), PROF_STOPS(5)},
+  {"load_db", PROF_STARTS(6), PROF_STOPS(6)},
+  {"init_stores", PROF_STARTS(7), PROF_STOPS(7)},
+  {"routing", PROF_STOPS(7), PROF_STARTS(8)},
+  {"controller", PROF_STARTS(8), PROF_STOPS(11)},
+  {"before_layout_loading", PROF_STARTS(8), PROF_STARTS(9)},
+  {"layout_loading", PROF_STARTS(9), PROF_STOPS(9)},
+  {"between_layout_loading_and_rendering", PROF_STOPS(9), PROF_STARTS(10)},
+  {"layout_rendering", PROF_STARTS(10), PROF_STOPS(10)},
+  {"after_layout_rendering", PROF_STOPS(10), PROF_STOPS(11)},
+  {"before_sending_response", PROF_STOPS(11), PROF_STARTS(12)},
+  {"total", PROF_STARTS(0), PROF_STOPS(0)},
+  {"before_magento", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STARTS(0)},
+  {"after_magento", PROF_STOPS(0), PROF_STOPS(POS_ENTRY_PHP_TOTAL)},
+  {"php_total", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STOPS(POS_ENTRY_PHP_TOTAL)},
+  {0}
+};
+
+static const struct {
+  char *name;
+  int8_t starts_a;
+  int8_t stops_a;
+  int8_t starts_b;
+  int8_t stops_b;
+} magento_metrics[] = {
+  {"create_bootstrap", PROF_STARTS(1), PROF_STOPS(1)},
+  {"create_application", PROF_STARTS(2), PROF_STOPS(2)},
+  {"after_create_application", PROF_STOPS(2), PROF_STARTS(4)},
+  // {"before_init_config", PROF_STARTS(2), PROF_STARTS(3)},
+  // {"init_config", PROF_STARTS(3), PROF_STOPS(3)},
+  // {"after_init_config", PROF_STOPS(3), PROF_STARTS(4)},
+  {"parse_request", PROF_STARTS(4), PROF_STOPS(4)},
+  {"configure_area", PROF_STOPS(4), PROF_STARTS(7)},
+  {"loading", PROF_STARTS(1), PROF_STARTS(7)},
+
+  {"dispatch", PROF_STARTS(7), PROF_STOPS(7)},
+  {"routing", PROF_STARTS(7), PROF_STARTS(8)},
+  {"controller", PROF_STARTS(8), PROF_STOPS(8)},
+  // {"before_layout_loading", PROF_STARTS(8), PROF_STARTS(9)},
+  // {"layout_loading", PROF_STARTS(9), PROF_STOPS(9)},
+  // {"between_layout_loading_and_rendering", PROF_STOPS(9), PROF_STARTS(10)},
+  {"between_controller_and_layout_rendering", PROF_STOPS(8), PROF_STARTS(10)},
+  {"layout_rendering", PROF_STARTS(10), PROF_STOPS(10)},
+
+  {"before_sending_response", PROF_STOPS(10), PROF_STARTS(12)},
+  {"sending_response", PROF_STARTS(12), PROF_STOPS(12)},
+  {"total", PROF_STARTS(1), PROF_STOPS(0)},
+  {"before_magento", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STARTS(1)},
+  {"after_magento", PROF_STOPS(0), PROF_STOPS(POS_ENTRY_PHP_TOTAL)},
+  {"php_total", PROF_STARTS(POS_ENTRY_PHP_TOTAL), PROF_STOPS(POS_ENTRY_PHP_TOTAL)},
+  {0}
+};
+
 void hp_get_monitored_functions_fill() {
   /* Already initialized ? */
   if (hp_globals.monitored_function_names[0][0] != NULL) {
@@ -76,8 +138,4 @@ void hp_get_monitored_functions_fill() {
   hp_globals.monitored_function_names[1][22] = NULL;
 
   // Don't forget to change QUANTA_MON_MAX_MONITORED_FUNCTIONS. It must be equal to the last entry ([x] = NULL) + 1
-}
-
-char **hp_globals_monitored_function_names(void) {
-  return hp_globals.monitored_function_names[QUANTA_MAGENTO_VERSION_INDEX];
 }

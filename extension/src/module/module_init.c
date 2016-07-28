@@ -5,6 +5,7 @@
 */
 PHP_INI_BEGIN()
 PHP_INI_ENTRY("quanta_mon.path_quanta_agent_socket", "", PHP_INI_SYSTEM, NULL)
+PHP_INI_ENTRY("quanta_mon.admin_url", "", PHP_INI_SYSTEM, NULL)
 PHP_INI_END()
 
 PHP_MINIT_FUNCTION(quanta_mon) {
@@ -21,8 +22,6 @@ PHP_MINIT_FUNCTION(quanta_mon) {
       "quanta_mon.path_quanta_agent_socket configuration missing or invalid. Module disabled.");
     return FAILURE;
   }
-
-  hp_register_constants(INIT_FUNC_ARGS_PASSTHRU);
 
   /* Get the number of available logical CPUs. */
   hp_globals.cpu_num = sysconf(_SC_NPROCESSORS_CONF);

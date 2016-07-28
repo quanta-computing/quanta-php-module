@@ -1,18 +1,6 @@
 #ifndef QM_MAGENTO_COMMON_H_
 #define QM_MAGENTO_COMMON_H_
 
-/* Monitored functions positions */
-#define POS_ENTRY_APP_RUN 0
-#define POS_ENTRY_TOHTML     15
-#define POS_ENTRY_PDO_EXECUTE      16
-#define POS_ENTRY_EVENTS_ONLY      17 /* Anything below won't be processed unless the special cookie is set */
-#define POS_ENTRY_EV_CACHE_FLUSH   17
-#define POS_ENTRY_EV_CLEAN_TYPE    18
-#define POS_ENTRY_EV_MAGE_CLEAN    19
-#define POS_ENTRY_EV_BEFORE_SAVE   20
-#define POS_ENTRY_PHP_TOTAL        21
-
-
 typedef struct magento_block_t {
   uint64_t  tsc_renderize_first_start; /* Might be re-entrant, record the first call */
   uint64_t  tsc_renderize_last_stop;   /* Always record the latest timestamp */
@@ -31,23 +19,34 @@ typedef struct block_stack {
   magento_block_t *block;
 } block_stack_t;
 
-#define MAGENTO_EVENT_CACHE_CLEAR 1
-#define MAGENTO_EVENT_REINDEX 2
-typedef struct magento_event {
-  struct magento_event *prev;
-  uint8_t class;
-  char *type;
-  char *subtype;
-} magento_event_t;
+typedef struct {
+  char *version;
+  char *edition;
+
+  struct {
+    magento_block_t *first;
+    magento_block_t *last;
+  } blocks;
+  block_stack_t *block_stack;
+
+} magento_context_t;
 
 // Block stack
-magento_block_t *block_stack_pop(void);
-void block_stack_push(magento_block_t *block);
-magento_block_t *block_stack_top(void);
+magento_block_t *block_stack_pop(magento_context_t *context);
+magento_block_t *block_stack_top(magento_context_t *context);
+void block_stack_push(magento_context_t *context, magento_block_t *block);
 
 char *get_mage_model_data(HashTable *attrs, char *key TSRMLS_DC);
 zval *get_mage_model_zdata(HashTable *attrs, char *key, int type TSRMLS_DC);
 
-// void fetch_magento_version(TSRMLS_D);
+int magento_record_cache_system_flush_event(profiled_application_t *app, zend_execute_data *execute_data TSRMLS_DC);
+int magento_record_cache_flush_event(profiled_application_t *app, zend_execute_data *execute_data TSRMLS_DC);
+
+int magento_record_sql_query(profiled_application_t *app, zend_execute_data *data TSRMLS_DC);
+
+void *magento_init_context(profiled_application_t *app TSRMLS_DC);
+void magento_cleanup_context(profiled_application_t *app TSRMLS_DC);
+void magento_send_metrics(profiled_application_t *app, monikor_metric_list_t *metrics,
+float cpufreq, struct timeval *clock TSRMLS_DC);
 
 #endif /* end of include guard: QM_MAGENTO_COMMON_H_ */

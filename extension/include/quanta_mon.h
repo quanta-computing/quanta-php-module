@@ -112,14 +112,7 @@ typedef struct hp_global_t {
 
   profiled_application_t *profiled_application;
 
-  magento_block_t *magento_blocks_first;
-  magento_block_t *magento_blocks_last;
-  block_stack_t *block_stack;
-
-  magento_event_t *magento_events;
-
-  char *magento_version;
-  char *magento_edition;
+  applicative_event_t *app_events;
 
   struct {
     uint64_t total;

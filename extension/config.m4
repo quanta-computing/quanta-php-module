@@ -20,8 +20,11 @@ if test "$PHP_QUANTAMON" != "no"; then
   PHP_SUBST(QUANTA_MON_SHARED_LIBADD)
   PHP_NEW_EXTENSION(quanta_mon,
     src/magento_common/block_stack.c \
+    src/magento_common/context.c \
     src/magento_common/events.c \
+    src/magento_common/metrics.c \
     src/magento_common/model_data.c \
+    src/magento_common/sql.c \
     src/magento1/events.c \
     src/magento1/version.c \
     src/magento2/blocks.c \
@@ -31,7 +34,6 @@ if test "$PHP_QUANTAMON" != "no"; then
     src/module/module_init.c \
     src/module/module_shutdown.c \
     src/module/quanta_mon.c \
-    src/module/register_constants.c \
     src/module/request_init.c \
     src/module/request_shutdown.c \
     src/profiler/application.c \
@@ -39,6 +41,7 @@ if test "$PHP_QUANTAMON" != "no"; then
     src/profiler/common_callbacks.c \
     src/profiler/dummy_callbacks.c \
     src/profiler/end_profiling.c \
+    src/profiler/events_metrics.c \
     src/profiler/function_stack.c \
     src/profiler/hier_callbacks.c \
     src/profiler/hp_begin.c \
@@ -46,8 +49,10 @@ if test "$PHP_QUANTAMON" != "no"; then
     src/profiler/hp_list.c \
     src/profiler/profiler_clean.c \
     src/profiler/profiler_init.c \
-    src/profiler/quanta.c \
+    src/profiler/profiling_metrics.c \
     src/profiler/record_event.c \
+    src/profiler/record_sql_query.c \
+    src/profiler/selfprofiling_metrics.c \
     src/profiler/send_metrics.c \
     src/profiler/zend_execute.c \
     src/profiler/zend_functions_info.c \
@@ -63,7 +68,5 @@ if test "$PHP_QUANTAMON" != "no"; then
     src/utils/zend_hash.c \
     src/utils/zend_obj.c \
     src/utils/zend_zval.c \
-    src/computed_functions_filter.c \
-    ,
-    $ext_shared,,-W -Wall -Wextra -Wno-unused-parameter -D_GNU_SOURCE)
+    src/applications.c, $ext_shared,,-W -Wall -Wextra -Wno-unused-parameter -D_GNU_SOURCE)
 fi

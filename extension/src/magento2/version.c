@@ -23,12 +23,13 @@ end:
   return ptr;
 }
 
-void magento2_fetch_version(TSRMLS_D) {
+int magento2_fetch_version(profiled_application_t *app, zend_execute_data *ex TSRMLS_DC) {
   int ret;
+  zval edition;
   char composer_path[1024];
   zval *directory_root = NULL;
   FILE *composer_file_handle = NULL;
-  zval edition;
+  magento_context_t *context = (magento_context_t *)app->context;
 
   ZVAL_NULL(&edition);
   if (!(directory_root = safe_get_constant("BP", IS_STRING))) {
@@ -38,16 +39,17 @@ void magento2_fetch_version(TSRMLS_D) {
   ret = snprintf(composer_path, 1024, "%s/composer.json", Z_STRVAL_P(directory_root));
   if (ret == -1 || ret >= 1024
   || (composer_file_handle = fopen(composer_path, "r")) == NULL
-  || !(hp_globals.magento_version = get_magento2_composer_version(composer_file_handle))) {
+  || !(context->version = get_magento2_composer_version(composer_file_handle))) {
     PRINTF_QUANTA("Cannot get magento2 version\n");
     goto end;
   }
   ret = safe_get_class_constant("Magento\\Framework\\App\\ProductMetadata",
     "EDITION_NAME", &edition, IS_STRING TSRMLS_CC);
   if (!ret)
-    hp_globals.magento_edition = estrdup(Z_STRVAL(edition));
+    context->edition = estrdup(Z_STRVAL(edition));
 end:
   zval_dtor(&edition);
   if (composer_file_handle)
     fclose(composer_file_handle);
+  return 0;
 }

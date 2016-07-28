@@ -70,10 +70,16 @@ end
 
 def compile_profiled_functions name, app
   puts "static profiled_function_t #{name}_profiled_functions[] = {"
-  app['functions'].each_with_index do |((_, function), index)|
-    puts "{\"#{function['name']}\", #{index}, NULL, NULL, {0, 0, 0,0}, {0, 0, 0, 0}},"
+  app['functions'].each_with_index do |(_, function), index|
+    begin_cb = function['begin_callback'] || 'NULL'
+    end_cb = function['end_callback'] || 'NULL'
+    ignore_in_stack = function['ignore_in_stack'] ? 1 : 0
+    min_level = 0 #TODO!
+    puts "{\"#{function['name'].gsub '\\', '\\\\\\\\'}\", #{index}, {#{
+      ignore_in_stack}, #{min_level}}, #{
+      begin_cb}, #{end_cb}, {0, 0, 0, 0}, {0, 0, 0, 0}},"
   end
-  puts "{NULL, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}}"
+  puts "{NULL, 0, {0, 0}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}}"
   puts "};"
   puts
 end
@@ -89,11 +95,11 @@ def compile_profiler_timers name, app
     end
     puts "{"
     puts "  \"#{timer_name}\","
-    puts "  {&#{name}_profiled_functions[#{start_idx}], #{timer['start']['timer'].upcase}},"
-    puts "  {&#{name}_profiled_functions[#{end_idx}], #{timer['end']['timer'].upcase}}"
+    puts "  {&#{name}_profiled_functions[#{start_idx}], PROF_#{timer['start']['timer'].upcase}},"
+    puts "  {&#{name}_profiled_functions[#{end_idx}], PROF_#{timer['end']['timer'].upcase}}"
     puts "},"
   end
-  puts "{{0, 0}, {0, 0}}"
+  puts "{NULL, {0, 0}, {0, 0}}"
   puts "};"
   puts
 end
@@ -105,16 +111,17 @@ def compile_profiler_match_function name, app
 end
 
 def compile_profiled_application name, app
-  puts "static profiled_application_t #{name}_application = {"
+  puts "static profiled_application_t #{name}_profiled_application = {"
   puts "\"#{name}\","
   puts "#{name}_profiled_functions,"
   puts "#{app['functions'].length},"
   puts "#{name}_profiler_timers,"
   puts "#{app['timers'].length},"
-  puts "NULL, NULL, NULL"
-  puts "NULL,"
-  puts "NULL,"
-  puts "#{name}_match_function"
+  puts "NULL, NULL, NULL,"
+  puts "#{app['create_context_callback'] || 'NULL'},"
+  puts "#{app['cleanup_context_callback'] || 'NULL'},"
+  puts "#{name}_match_function,"
+  puts "#{app['send_metrics_callback'] || 'NULL'}"
   puts "};"
   puts
 end

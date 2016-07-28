@@ -1,5 +1,7 @@
 #include "quanta_mon.h"
 
+void register_application(void);
+
 /**
  * Initialize profiler state
  *
@@ -12,9 +14,13 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
     hp_globals.entries = NULL;
   }
   hp_globals.profiler_level  = (int) level;
-  hp_globals.magento_events = NULL;
-  hp_globals.magento_version = NULL;
-  hp_globals.magento_edition = NULL;
+  hp_globals.profiled_application = NULL;
+  hp_globals.app_events = NULL;
+
+  // TODO! TMP until we find something better
+  register_application();
+  if (hp_globals.profiled_application)
+    init_profiled_application(hp_globals.profiled_application);
 
   if (level != QUANTA_MON_MODE_EVENTS_ONLY) {
 
@@ -30,9 +36,7 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
     /* bind to a random cpu so that we can use rdtsc instruction. */
     bind_to_cpu((int) (rand() % hp_globals.cpu_num));
   }
+
   /* Call current mode's init cb */
   hp_globals.mode_cb.init_cb(TSRMLS_C);
-
-  hp_globals.block_stack = NULL;
-  hp_globals.magento_blocks_first = NULL;
 }

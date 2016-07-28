@@ -4,14 +4,15 @@ static void init_profiled_application_functions_counters(profiled_application_t 
   size_t i;
 
   for (i = 0; i < app->nb_functions; i++) {
-    memset(app->functions[i].tsc, 0, sizeof(app->functions[i].tsc));
-    memset(app->functions[i].sql_counters, 0, sizeof(app->functions[i].sql_counters));
+    memset(&app->functions[i].tsc, 0, sizeof(app->functions[i].tsc));
+    memset(&app->functions[i].sql_counters, 0, sizeof(app->functions[i].sql_counters));
   }
 }
 
 void init_profiled_application(profiled_application_t *app TSRMLS_DC) {
   app->current_function = NULL;
   app->last_function = NULL;
+  init_profiled_application_functions_counters(app);
   if (app->create_context)
     app->context = app->create_context(app TSRMLS_CC);
   else
@@ -19,6 +20,8 @@ void init_profiled_application(profiled_application_t *app TSRMLS_DC) {
 }
 
 void clean_profiled_application(profiled_application_t *app TSRMLS_DC) {
+  if (!app)
+    return;
   if (app->cleanup_context)
-    app->cleanup_context(app);
+    app->cleanup_context(app TSRMLS_CC);
 }

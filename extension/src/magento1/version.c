@@ -1,6 +1,6 @@
 #include "quanta_mon.h"
 
-void magento1_fetch_version(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
+void magento1_fetch_version(profiled_application_t *app, zend_execute_data *data TSRMLS_DC) {
   zval version;
   zval edition;
 
@@ -11,8 +11,9 @@ void magento1_fetch_version(struct timeval *clock, monikor_metric_list_t *metric
     PRINTF_QUANTA("Could not get magento version\n");
     goto end;
   }
-  hp_globals.magento_version = estrdup(Z_STRVAL(version));
-  hp_globals.magento_edition = estrdup(Z_STRVAL(edition));
+  // TODO! context
+  // hp_globals.magento_version = estrdup(Z_STRVAL(version));
+  // hp_globals.magento_edition = estrdup(Z_STRVAL(edition));
 
 end:
   zval_dtor(&version);
