@@ -4,6 +4,7 @@ cms:
     cleanup_context_callback: magento_cleanup_context
     send_metrics_callback: magento_send_metrics
     first_function: bootstrap_create
+    last_function: bootstrap_run
     functions:
       bootstrap_run:
         name: 'Magento\Framework\App\Bootstrap::run'

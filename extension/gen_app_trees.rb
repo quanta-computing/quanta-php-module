@@ -84,15 +84,17 @@ def compile_profiled_functions name, app
   puts
 end
 
+def function_index function_name, app
+  app['functions'].find_index do |name, _|
+    function_name == name
+  end
+end
+
 def compile_profiler_timers name, app
   puts "static const profiler_timer_t #{name}_profiler_timers[] = {"
   app['timers'].each do |timer_name, timer|
-    start_idx = app['functions'].find_index do |function_name, _|
-      function_name == timer['start']['function']
-    end
-    end_idx = app['functions'].find_index do |function_name, _|
-      function_name == timer['end']['function']
-    end
+    start_idx = function_index timer['start']['function'], app
+    end_idx = function_index timer['end']['function'], app
     puts "{"
     puts "  \"#{timer_name}\","
     puts "  {&#{name}_profiled_functions[#{start_idx}], PROF_#{timer['start']['timer'].upcase}},"
@@ -111,12 +113,16 @@ def compile_profiler_match_function name, app
 end
 
 def compile_profiled_application name, app
+  first_idx = function_index app['first_function'], app
+  last_idx = function_index app['last_function'], app
   puts "static profiled_application_t #{name}_profiled_application = {"
   puts "\"#{name}\","
   puts "#{name}_profiled_functions,"
   puts "#{app['functions'].length},"
   puts "#{name}_profiler_timers,"
   puts "#{app['timers'].length},"
+  puts "&#{name}_profiled_functions[#{first_idx}],"
+  puts "&#{name}_profiled_functions[#{last_idx}],"
   puts "NULL, NULL, NULL,"
   puts "#{app['create_context_callback'] || 'NULL'},"
   puts "#{app['cleanup_context_callback'] || 'NULL'},"

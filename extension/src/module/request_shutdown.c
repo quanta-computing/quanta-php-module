@@ -5,7 +5,8 @@
  */
 PHP_RSHUTDOWN_FUNCTION(quanta_mon) {
   PRINTF_QUANTA("REQUEST SHUTDOWN();\n");
-  hp_globals.internal_match_counters.shutdown_cycles = cycle_timer();
+  hp_globals.global_tsc.stop = cycle_timer();
+  hp_globals.internal_match_counters.shutdown_cycles = hp_globals.global_tsc.stop;
   hp_end(TSRMLS_C);
   if (!hp_globals.cpu_frequencies) {
     PRINTF_QUANTA("CPU frequencies not initialized, cannot profile myself\n");

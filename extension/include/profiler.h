@@ -141,6 +141,9 @@ struct profiled_application_t {
   const profiler_timer_t *timers;
   size_t nb_timers;
 
+  profiled_function_t *first_app_function;
+  profiled_function_t *last_app_function;
+
   profiled_function_t *current_function;
   profiled_function_t *last_function;
   void *context;
@@ -187,6 +190,16 @@ void qm_send_profiler_metrics(struct timeval *clock, monikor_metric_list_t *metr
   float cpufreq TSRMLS_DC);
 void qm_send_selfprofiling_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
   float cpufreq TSRMLS_DC);
+
+  struct {
+    uint64_t start;
+    uint64_t stop;
+  } global_tsc;
+
+  struct {
+    uint64_t start;
+    uint64_t stop;
+  } global_sql_counters;
 
 // Application stuff
 void init_profiled_application(profiled_application_t *app TSRMLS_DC);

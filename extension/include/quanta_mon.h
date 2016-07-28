@@ -110,6 +110,11 @@ typedef struct hp_global_t {
   /* counter table indexed by hash value of function names. */
   uint8_t  func_hash_counters[256];
 
+  struct {
+    uint64_t start;
+    uint64_t stop;
+  } global_tsc;
+
   profiled_application_t *profiled_application;
 
   applicative_event_t *app_events;

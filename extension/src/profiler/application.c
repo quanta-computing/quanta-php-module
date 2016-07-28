@@ -1,6 +1,6 @@
 #include "quanta_mon.h"
 
-static void init_profiled_application_functions_counters(profiled_application_t *app) {
+static void init_profiled_application_counters(profiled_application_t *app) {
   size_t i;
 
   for (i = 0; i < app->nb_functions; i++) {
@@ -12,7 +12,7 @@ static void init_profiled_application_functions_counters(profiled_application_t 
 void init_profiled_application(profiled_application_t *app TSRMLS_DC) {
   app->current_function = NULL;
   app->last_function = NULL;
-  init_profiled_application_functions_counters(app);
+  init_profiled_application_counters(app);
   if (app->create_context)
     app->context = app->create_context(app TSRMLS_CC);
   else
