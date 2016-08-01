@@ -167,6 +167,9 @@ void hp_stop(TSRMLS_D);
 void hp_end(TSRMLS_D);
 void hp_init_profiler_state(int level TSRMLS_DC);
 void hp_clean_profiler_state(TSRMLS_D);
+void hp_hijack_zend_execute(uint32_t flags, long level);
+void hp_restore_original_zend_execute(void);
+
 void hp_inc_count(zval *counts, char *name, long count TSRMLS_DC);
 size_t hp_get_entry_name(hp_entry_t  *entry, char *result_buf, size_t result_len);
 size_t hp_get_function_stack(hp_entry_t *entry, int level, char *result_buf, size_t result_len);
@@ -175,8 +178,6 @@ int hp_begin_profiling(hp_entry_t **entries, const char *symbol, zend_execute_da
 void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data *data TSRMLS_DC);
 int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TSRMLS_DC);
 int qm_end_profiling(int function_idx, zend_execute_data *execute_data TSRMLS_DC);
-void hp_hijack_zend_execute(uint32_t flags, long level);
-void hp_restore_original_zend_execute(void);
 
 // Profiling callbacks
 void hp_mode_dummy_init_cb(TSRMLS_D);
@@ -207,6 +208,8 @@ void qm_send_selfprofiling_metrics(struct timeval *clock, monikor_metric_list_t 
   } global_sql_counters;
 
 // Application stuff
+profiled_application_t *qm_match_first_app_function(const char* function_name,
+  zend_execute_data* data TSRMLS_DC);
 void init_profiled_application(profiled_application_t *app TSRMLS_DC);
 void clean_profiled_application(profiled_application_t *app TSRMLS_DC);
 int qm_record_event(applicative_event_class_t class, char *type, char *subtype);
@@ -217,10 +220,6 @@ int qm_record_sql_query(profiled_application_t *app, profiled_function_t *functi
 void hp_free_the_free_list();
 hp_entry_t *hp_fast_alloc_hprof_entry();
 void hp_fast_free_hprof_entry(hp_entry_t *p);
-
-// Monitored functions filter
-void hp_fill_monitored_functions(char **function_names);
-int hp_match_monitored_function(const char* function_name, zend_execute_data* data TSRMLS_DC);
 
 // Zend hijacks
 #if PHP_VERSION_ID < 50500

@@ -19,7 +19,8 @@ def compute_functions methods
     klass, function_name = function['name'].split '::'
     (functions[function_name] ||= []).push class_name: klass,
       index: index,
-      order: function['tree_order'].to_i
+      order: function['tree_order'].to_i,
+      app: function['app']
     functions[function_name].sort_by! { |tree_function| tree_function[:order] }
     functions
   end.sort_by do |function_name, functions|
@@ -133,6 +134,45 @@ def compile_profiled_application name, app
   puts
 end
 
+def compile_app_first_node node, depth = 0
+  if node[:children].empty?
+    print depth, "++hp_globals.internal_match_counters.function;"
+    print depth, "const char *class_name = hp_get_class_name(data TSRMLS_CC);";
+    print depth, "if (!class_name) return NULL;"
+    node[:value].each do |value|
+      print depth, "if (!strcmp(class_name, \"#{value[:class_name].gsub '\\', '\\\\\\\\'}\"))"
+      print depth + 1, "return &#{value[:app]}_profiled_application;"
+    end
+    print depth, "++hp_globals.internal_match_counters.class_unmatched;"
+  end
+  node[:children].each do |letter, child|
+    print depth, "if (function_name[#{depth}] == '#{letter}') {"
+    compile_app_first_node child, depth + 1
+    print depth, '}'
+  end
+  print depth, "return NULL;"
+end
+
+def compile_app_first_tree tree
+  puts "profiled_application_t *qm_match_first_app_function(const char* function_name,"
+  puts "zend_execute_data* data TSRMLS_DC) {"
+  puts " ++hp_globals.internal_match_counters.total;"
+  compile_app_first_node tree
+  puts "}"
+end
+
+def compile_profiler_match_app_first_function apps
+  functions = apps.reduce Hash.new do |_functions, (name, app)|
+    _functions.merge(app['first_function'] => {
+      'name' => app['functions'][app['first_function']]['name'],
+      'tree_order' => 0,
+      'app' => name})
+  end
+  tree = create_tree compute_functions functions
+  compile_app_first_tree tree
+  puts
+end
+
 def header
   puts "#include \"quanta_mon.h\""
   puts
@@ -146,9 +186,4 @@ apps.each do |(name, app)|
   compile_profiler_match_function name, app
   compile_profiled_application name, app
 end
-
-#TMP until we detect application at runtime
-puts "void register_application(void) {"
-print 2, "hp_globals.profiled_application = &magento2_profiled_application;"
-print 2, "init_profiled_application(&magento2_profiled_application);"
-puts "}"
+compile_profiler_match_app_first_function apps

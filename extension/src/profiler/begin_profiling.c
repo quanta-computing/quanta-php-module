@@ -33,8 +33,13 @@ int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TS
   uint64_t start;
   uint64_t end;
 
-  if (!hp_globals.profiled_application)
-    return -1;
+  if (!hp_globals.profiled_application) {
+    hp_globals.profiled_application = qm_match_first_app_function(curr_func, execute_data TSRMLS_CC);
+    if (!hp_globals.profiled_application)
+      return -1;
+    PRINTF_QUANTA("APPLICATION FOUND: %s\n", hp_globals.profiled_application->name);
+    init_profiled_application(hp_globals.profiled_application);
+  }
   start = cycle_timer();
   function = hp_globals.profiled_application->match_function(curr_func, execute_data TSRMLS_CC);
   end = cycle_timer();

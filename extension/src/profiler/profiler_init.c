@@ -1,7 +1,5 @@
 #include "quanta_mon.h"
 
-void register_application(void);
-
 /**
  * Initialize profiler state
  *
@@ -17,10 +15,7 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
   hp_globals.profiled_application = NULL;
   hp_globals.app_events = NULL;
 
-  // TODO! TMP until we find something better
-  register_application();
-  if (hp_globals.profiled_application)
-    init_profiled_application(hp_globals.profiled_application);
+  hp_globals.profiled_application = NULL;
 
   if (level != QUANTA_MON_MODE_EVENTS_ONLY) {
 

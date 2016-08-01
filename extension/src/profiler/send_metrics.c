@@ -9,6 +9,7 @@ static void fetch_request_uri(struct timeval *clock, monikor_metric_list_t *metr
 
   if (!hp_globals.request_uri)
     return;
+  // TODO! magento2 -> app_name
   if (hp_globals.profiler_level == QUANTA_MON_MODE_MAGENTO_PROFILING)
     sprintf(metric_name, "magento2.%zu.request_uri", hp_globals.quanta_step_id);
   else
@@ -109,20 +110,20 @@ void send_metrics(TSRMLS_D) {
   if (hp_globals.quanta_clock)
     now.tv_sec = hp_globals.quanta_clock;
   qm_send_events_metrics(&now, metrics);
-  if (hp_globals.profiler_level <= QUANTA_MON_MODE_MAGENTO_PROFILING) {
-    if (!hp_globals.cpu_frequencies) {
-      PRINTF_QUANTA("CPU frequencies not initialized, cannot profile\n");
-    } else {
-      float cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
+  //TODO! refactor
+  if (hp_globals.profiler_level <= QUANTA_MON_MODE_MAGENTO_PROFILING
+  && hp_globals.cpu_frequencies) {
+    float cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
 
-      fetch_request_uri(&now, metrics);
-      fetch_xhprof_metrics(&now, metrics TSRMLS_CC);
+    fetch_request_uri(&now, metrics);
+    fetch_xhprof_metrics(&now, metrics TSRMLS_CC);
+    if (hp_globals.profiled_application) {
       qm_send_profiler_metrics(&now, metrics, cpufreq);
-      if (hp_globals.profiled_application && hp_globals.profiled_application->send_metrics) {
+      qm_send_selfprofiling_metrics(&now, metrics, cpufreq TSRMLS_CC);
+      if (hp_globals.profiled_application->send_metrics) {
         hp_globals.profiled_application->send_metrics(hp_globals.profiled_application, metrics,
           cpufreq, &now TSRMLS_CC);
       }
-      qm_send_selfprofiling_metrics(&now, metrics, cpufreq TSRMLS_CC);
     }
   }
   /* We only want to provide context information such as versions when we actually have some metrics

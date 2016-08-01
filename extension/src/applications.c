@@ -525,6 +525,39 @@ magento2_match_function,
 magento_send_metrics
 };
 
+profiled_application_t *qm_match_first_app_function(const char* function_name,
+zend_execute_data* data TSRMLS_DC) {
+ ++hp_globals.internal_match_counters.total;
+ if (function_name[0] == 'c') {
+  if (function_name[1] == 'r') {
+   if (function_name[2] == 'e') {
+    if (function_name[3] == 'a') {
+     if (function_name[4] == 't') {
+      if (function_name[5] == 'e') {
+       if (function_name[6] == '\0') {
+        ++hp_globals.internal_match_counters.function;
+        const char *class_name = hp_get_class_name(data TSRMLS_CC);
+        if (!class_name) return NULL;
+        if (!strcmp(class_name, "Magento\\Framework\\App\\Bootstrap"))
+         return &magento2_profiled_application;
+        ++hp_globals.internal_match_counters.class_unmatched;
+        return NULL;
+       }
+       return NULL;
+      }
+      return NULL;
+     }
+     return NULL;
+    }
+    return NULL;
+   }
+   return NULL;
+  }
+  return NULL;
+ }
+ return NULL;
+}
+
 void register_application(void) {
    hp_globals.profiled_application = &magento2_profiled_application;
    init_profiled_application(&magento2_profiled_application);
