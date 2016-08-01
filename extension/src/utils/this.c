@@ -22,7 +22,6 @@ zval *get_this(zend_execute_data *execute_data TSRMLS_DC) {
     PRINTF_QUANTA ("GET THIS: 'this' is an object of unknown class\n");
     return NULL;
   }
-  PRINTF_QUANTA("This is an object of class %s\n", class_name);
   return this;
 }
 

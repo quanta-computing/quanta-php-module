@@ -23,7 +23,8 @@ end:
   return ptr;
 }
 
-int magento2_fetch_version(profiled_application_t *app, zend_execute_data *ex TSRMLS_DC) {
+int magento2_fetch_version(profiled_application_t *app, profiled_function_t *function,
+zend_execute_data *ex TSRMLS_DC) {
   int ret;
   zval edition;
   char composer_path[1024];
@@ -31,6 +32,7 @@ int magento2_fetch_version(profiled_application_t *app, zend_execute_data *ex TS
   FILE *composer_file_handle = NULL;
   magento_context_t *context = (magento_context_t *)app->context;
 
+  (void)function;
   ZVAL_NULL(&edition);
   if (!(directory_root = safe_get_constant("BP", IS_STRING))) {
     PRINTF_QUANTA("Cannot get dir root\n");

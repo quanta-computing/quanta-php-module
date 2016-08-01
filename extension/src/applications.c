@@ -9,11 +9,11 @@ static profiled_function_t magento2_profiled_functions[] = {
 {"Magento\\Framework\\App\\Action\\Action::dispatch", 5, {0, 0}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
 {"Magento\\Framework\\View\\Result\\Page\\Interceptor::renderResult", 6, {0, 0}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
 {"Magento\\Framework\\App\\Response\\Http\\Interceptor::sendResponse", 7, {0, 0}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Magento\\Framework\\View\\Layout::_renderBlock", 8, {0, 0}, magento2_block_before_render, magento2_block_after_render, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushAll::execute", 9, {0, 0}, magento_record_cache_flush_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushSystem::execute", 10, {0, 0}, magento_record_cache_system_flush_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Magento\\Framework\\App\\Cache\\TypeList::cleanType", 11, {0, 0}, magento2_record_cache_clean_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Magento\\Indexer\\Model\\Indexer::reindexAll", 12, {0, 0}, NULL, magento2_record_reindex_event, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Magento\\Framework\\View\\Layout::_renderBlock", 8, {1, 0}, magento2_block_before_render, magento2_block_after_render, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushAll::execute", 9, {1, 0}, magento_record_cache_flush_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushSystem::execute", 10, {1, 0}, magento_record_cache_system_flush_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Magento\\Framework\\App\\Cache\\TypeList::cleanType", 11, {1, 0}, magento2_record_cache_clean_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Magento\\Indexer\\Model\\Indexer::reindexAll", 12, {1, 0}, NULL, magento2_record_reindex_event, {0, 0, 0, 0}, {0, 0, 0, 0}},
 {"PDOStatement::execute", 13, {1, 0}, NULL, magento_record_sql_query, {0, 0, 0, 0}, {0, 0, 0, 0}},
 {NULL, 0, {0, 0}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}}
 };
@@ -22,74 +22,88 @@ static const profiler_timer_t magento2_profiler_timers[] = {
 {
   "create_bootstrap",
   {&magento2_profiled_functions[1], PROF_FIRST_START},
-  {&magento2_profiled_functions[1], PROF_LAST_STOP}
+  {&magento2_profiled_functions[1], PROF_LAST_STOP},
+  {0}
 },
 {
   "create_application",
   {&magento2_profiled_functions[2], PROF_FIRST_START},
-  {&magento2_profiled_functions[2], PROF_LAST_STOP}
+  {&magento2_profiled_functions[2], PROF_LAST_STOP},
+  {0}
 },
 {
   "after_create_application",
   {&magento2_profiled_functions[2], PROF_LAST_STOP},
-  {&magento2_profiled_functions[3], PROF_FIRST_START}
+  {&magento2_profiled_functions[3], PROF_FIRST_START},
+  {0}
 },
 {
   "parse_request",
   {&magento2_profiled_functions[3], PROF_FIRST_START},
-  {&magento2_profiled_functions[3], PROF_LAST_STOP}
+  {&magento2_profiled_functions[3], PROF_LAST_STOP},
+  {0}
 },
 {
   "configure_area",
   {&magento2_profiled_functions[3], PROF_LAST_STOP},
-  {&magento2_profiled_functions[4], PROF_FIRST_START}
+  {&magento2_profiled_functions[4], PROF_FIRST_START},
+  {0}
 },
 {
   "loading",
   {&magento2_profiled_functions[1], PROF_FIRST_START},
-  {&magento2_profiled_functions[4], PROF_FIRST_START}
+  {&magento2_profiled_functions[4], PROF_FIRST_START},
+  {0}
 },
 {
   "dispatch",
   {&magento2_profiled_functions[4], PROF_FIRST_START},
-  {&magento2_profiled_functions[4], PROF_LAST_STOP}
+  {&magento2_profiled_functions[4], PROF_LAST_STOP},
+  {0}
 },
 {
   "routing",
   {&magento2_profiled_functions[4], PROF_FIRST_START},
-  {&magento2_profiled_functions[5], PROF_FIRST_START}
+  {&magento2_profiled_functions[5], PROF_FIRST_START},
+  {0}
 },
 {
   "controller",
   {&magento2_profiled_functions[5], PROF_FIRST_START},
-  {&magento2_profiled_functions[5], PROF_LAST_STOP}
+  {&magento2_profiled_functions[5], PROF_LAST_STOP},
+  {0}
 },
 {
   "between_controller_and_layout_rendering",
   {&magento2_profiled_functions[5], PROF_LAST_STOP},
-  {&magento2_profiled_functions[6], PROF_FIRST_START}
+  {&magento2_profiled_functions[6], PROF_FIRST_START},
+  {0}
 },
 {
   "layout_rendering",
   {&magento2_profiled_functions[6], PROF_FIRST_START},
-  {&magento2_profiled_functions[6], PROF_LAST_STOP}
+  {&magento2_profiled_functions[6], PROF_LAST_STOP},
+  {0}
 },
 {
   "before_sending_response",
   {&magento2_profiled_functions[6], PROF_LAST_STOP},
-  {&magento2_profiled_functions[7], PROF_FIRST_START}
+  {&magento2_profiled_functions[7], PROF_FIRST_START},
+  {0}
 },
 {
   "sending_response",
   {&magento2_profiled_functions[7], PROF_FIRST_START},
-  {&magento2_profiled_functions[7], PROF_LAST_STOP}
+  {&magento2_profiled_functions[7], PROF_LAST_STOP},
+  {0}
 },
 {
   "total",
   {&magento2_profiled_functions[1], PROF_FIRST_START},
-  {&magento2_profiled_functions[0], PROF_LAST_STOP}
+  {&magento2_profiled_functions[0], PROF_LAST_STOP},
+  {1}
 },
-{NULL, {0, 0}, {0, 0}}
+{NULL, {0, 0}, {0, 0}, {0}}
 };
 
 profiled_function_t *magento2_match_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {

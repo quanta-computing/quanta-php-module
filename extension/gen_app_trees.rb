@@ -98,10 +98,11 @@ def compile_profiler_timers name, app
     puts "{"
     puts "  \"#{timer_name}\","
     puts "  {&#{name}_profiled_functions[#{start_idx}], PROF_#{timer['start']['timer'].upcase}},"
-    puts "  {&#{name}_profiled_functions[#{end_idx}], PROF_#{timer['end']['timer'].upcase}}"
+    puts "  {&#{name}_profiled_functions[#{end_idx}], PROF_#{timer['end']['timer'].upcase}},"
+    puts "  {#{timer['ignore_sql'] ? 1 : 0}}"
     puts "},"
   end
-  puts "{NULL, {0, 0}, {0, 0}}"
+  puts "{NULL, {0, 0}, {0, 0}, {0}}"
   puts "};"
   puts
 end

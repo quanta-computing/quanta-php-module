@@ -82,7 +82,7 @@ static char *get_block_attr(const char *key, size_t key_len, zval *this TSRMLS_D
   return estrdup(Z_STRVAL_P(data));
 }
 
-int magento2_block_before_render(profiled_application_t *app,
+int magento2_block_before_render(profiled_application_t *app, profiled_function_t *function,
 zend_execute_data *execute_data TSRMLS_DC) {
   zval *this;
   zval *block_name;
@@ -90,6 +90,7 @@ zend_execute_data *execute_data TSRMLS_DC) {
   magento_block_t *block = NULL;
   magento_context_t *context = (magento_context_t *)app->context;
 
+  (void)function;
   if (!(this = get_prev_this(execute_data TSRMLS_CC))
   || !(block_name = get_block_name(execute_data TSRMLS_CC))
   || !(zblock = get_block_object(this, block_name TSRMLS_CC))
@@ -114,7 +115,7 @@ zend_execute_data *execute_data TSRMLS_DC) {
   return 0;
 }
 
-int magento2_block_after_render(profiled_application_t *app,
+int magento2_block_after_render(profiled_application_t *app, profiled_function_t *function,
 zend_execute_data *execute_data TSRMLS_DC) {
   zval *this;
   zval *block_name;
@@ -123,6 +124,7 @@ zend_execute_data *execute_data TSRMLS_DC) {
   magento_block_t *parent;
   magento_context_t *context = (magento_context_t *)app->context;
 
+  (void)function;
   if (!(this = get_this(execute_data TSRMLS_CC))
   || (!(block_name = get_block_name(execute_data TSRMLS_CC)))
   || (!(block_object = get_block_object(this, block_name TSRMLS_CC)))) {

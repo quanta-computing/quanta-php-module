@@ -46,10 +46,11 @@ int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TS
   function->tsc.last_start = cycle_timer();
   if (!function->tsc.first_start)
     function->tsc.first_start = function->tsc.last_start;
-  PRINTF_QUANTA("BEGIN FUNCTION %d %s\n", function->index, function->name);
+  if (!function->options.ignore_in_stack)
+    PRINTF_QUANTA("BEGIN FUNCTION %zu %s\n", function->index, function->name);
   // TODO! Check profiler level for callbacks
   if (function->begin_callback
-  && function->begin_callback(hp_globals.profiled_application, execute_data TSRMLS_CC)) {
+  && function->begin_callback(hp_globals.profiled_application, function, execute_data TSRMLS_CC)) {
     return -1;
   }
   return function->index;

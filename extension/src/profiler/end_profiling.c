@@ -26,13 +26,14 @@ int qm_end_profiling(int function_idx, zend_execute_data *execute_data TSRMLS_DC
   if (function_idx < 0)
     return -1;
   function = &hp_globals.profiled_application->functions[function_idx];
-  PRINTF_QUANTA("END FUNCTION %d %s\n", function->index, function->name);
+  if (!function->options.ignore_in_stack)
+    PRINTF_QUANTA("END FUNCTION %zu %s\n", function->index, function->name);
   function->tsc.last_stop = cycle_timer();
   if (!function->tsc.first_stop)
     function->tsc.first_stop = function->tsc.last_stop;
   // TODO! Check profiler level for callbacks
   if (function->end_callback
-  && function->end_callback(hp_globals.profiled_application, execute_data TSRMLS_CC)) {
+  && function->end_callback(hp_globals.profiled_application, function, execute_data TSRMLS_CC)) {
     function_idx = -1;
   }
   if (!function->options.ignore_in_stack) {

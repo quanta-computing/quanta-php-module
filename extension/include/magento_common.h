@@ -39,14 +39,17 @@ void block_stack_push(magento_context_t *context, magento_block_t *block);
 char *get_mage_model_data(HashTable *attrs, char *key TSRMLS_DC);
 zval *get_mage_model_zdata(HashTable *attrs, char *key, int type TSRMLS_DC);
 
-int magento_record_cache_system_flush_event(profiled_application_t *app, zend_execute_data *execute_data TSRMLS_DC);
-int magento_record_cache_flush_event(profiled_application_t *app, zend_execute_data *execute_data TSRMLS_DC);
+int magento_record_cache_system_flush_event(profiled_application_t *app,
+  profiled_function_t *function, zend_execute_data *execute_data TSRMLS_DC);
+int magento_record_cache_flush_event(profiled_application_t *app, profiled_function_t *function,
+  zend_execute_data *execute_data TSRMLS_DC);
 
-int magento_record_sql_query(profiled_application_t *app, zend_execute_data *data TSRMLS_DC);
+int magento_record_sql_query(profiled_application_t *app, profiled_function_t *function,
+  zend_execute_data *data TSRMLS_DC);
 
 void *magento_init_context(profiled_application_t *app TSRMLS_DC);
 void magento_cleanup_context(profiled_application_t *app TSRMLS_DC);
 void magento_send_metrics(profiled_application_t *app, monikor_metric_list_t *metrics,
-float cpufreq, struct timeval *clock TSRMLS_DC);
+  float cpufreq, struct timeval *clock TSRMLS_DC);
 
 #endif /* end of include guard: QM_MAGENTO_COMMON_H_ */

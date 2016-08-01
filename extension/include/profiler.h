@@ -84,10 +84,12 @@ typedef struct hp_mode_cb {
 } hp_mode_cb;
 
 typedef struct profiled_application_t profiled_application_t;
-typedef int (*profiled_function_callback_t)(profiled_application_t *app,
+typedef struct profiled_function_t profiled_function_t;
+
+typedef int (*profiled_function_callback_t)(profiled_application_t *app, profiled_function_t *func,
   zend_execute_data *ex TSRMLS_DC);
 
-typedef struct profiled_function_t {
+struct profiled_function_t {
   const char *name;
   const size_t index;
 
@@ -113,7 +115,7 @@ typedef struct profiled_function_t {
     uint64_t count_after;
   } sql_counters;
 
-} profiled_function_t;
+};
 
 typedef enum {
   PROF_FIRST_START,
@@ -131,6 +133,9 @@ typedef struct {
   const char *name;
   profiler_timer_function_t start;
   profiler_timer_function_t end;
+  struct {
+    uint8_t ignore_sql;
+  } options;
 } profiler_timer_t;
 
 struct profiled_application_t {
@@ -205,7 +210,8 @@ void qm_send_selfprofiling_metrics(struct timeval *clock, monikor_metric_list_t 
 void init_profiled_application(profiled_application_t *app TSRMLS_DC);
 void clean_profiled_application(profiled_application_t *app TSRMLS_DC);
 int qm_record_event(applicative_event_class_t class, char *type, char *subtype);
-int qm_record_sql_query(profiled_application_t *app, zend_execute_data *data TSRMLS_DC);
+int qm_record_sql_query(profiled_application_t *app, profiled_function_t *function,
+  zend_execute_data *data TSRMLS_DC);
 
 // HP list
 void hp_free_the_free_list();

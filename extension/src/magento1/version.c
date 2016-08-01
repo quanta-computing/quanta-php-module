@@ -1,6 +1,7 @@
 #include "quanta_mon.h"
 
-void magento1_fetch_version(profiled_application_t *app, zend_execute_data *data TSRMLS_DC) {
+void magento1_fetch_version(profiled_application_t *app, profiled_function_t *function,
+zend_execute_data *data TSRMLS_DC) {
   zval version;
   zval edition;
 

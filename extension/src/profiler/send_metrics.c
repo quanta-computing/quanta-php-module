@@ -118,6 +118,10 @@ void send_metrics(TSRMLS_D) {
       fetch_request_uri(&now, metrics);
       fetch_xhprof_metrics(&now, metrics TSRMLS_CC);
       qm_send_profiler_metrics(&now, metrics, cpufreq);
+      if (hp_globals.profiled_application && hp_globals.profiled_application->send_metrics) {
+        hp_globals.profiled_application->send_metrics(hp_globals.profiled_application, metrics,
+          cpufreq, &now TSRMLS_CC);
+      }
       qm_send_selfprofiling_metrics(&now, metrics, cpufreq TSRMLS_CC);
     }
   }

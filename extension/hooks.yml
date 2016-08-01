@@ -34,22 +34,27 @@ cms:
         name: 'Magento\Framework\View\Layout::_renderBlock'
         begin_callback: magento2_block_before_render
         end_callback: magento2_block_after_render
+        ignore_in_stack: true
         tree_order: 4
       cache_flush_all:
         name: 'Magento\Backend\Controller\Adminhtml\Cache\FlushAll::execute'
         begin_callback: magento_record_cache_flush_event
+        ignore_in_stack: true
         tree_order: 10
       cache_flush_system:
         name: 'Magento\Backend\Controller\Adminhtml\Cache\FlushSystem::execute'
         begin_callback: magento_record_cache_system_flush_event
+        ignore_in_stack: true
         tree_order: 11
       cache_clean:
         name: 'Magento\Framework\App\Cache\TypeList::cleanType'
         begin_callback: magento2_record_cache_clean_event
+        ignore_in_stack: true
         tree_order: 8
       reindex:
         name: 'Magento\Indexer\Model\Indexer::reindexAll'
         end_callback: magento2_record_reindex_event
+        ignore_in_stack: true
         tree_order: 21
       sql_query:
         name: 'PDOStatement::execute'
@@ -150,6 +155,7 @@ cms:
           function: send_response
           timer: last_stop
       total:
+        ignore_sql: true
         start:
           function: bootstrap_create
           timer: first_start

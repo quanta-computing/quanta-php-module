@@ -1,7 +1,7 @@
 #include "quanta_mon.h"
 
 
-int magento1_record_reindex_event(profiled_application_t *app,
+int magento1_record_reindex_event(profiled_application_t *app, profiled_function_t *function,
 zend_execute_data *execute_data TSRMLS_DC) {
   HashTable *attributes;
   zval *this;

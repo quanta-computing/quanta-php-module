@@ -1,53 +1,44 @@
 #include "quanta_mon.h"
 
-// static void fetch_profiler_sql_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
-// float cpufreq, size_t metric_idx) {
-//   char metric_name[MAX_METRIC_NAME_LENGTH];
-//   char *metric_base_end;
-//   monikor_metric_t *metric;
-//   uint64_t sql_cycles;
-//   uint64_t sql_count;
-//   size_t start;
-//   size_t stop;
-//   size_t i;
-//
-//   // Ignore if we have no Magento time
-//   if (hp_globals.monitored_function_tsc_start[0] <= 0)
-//     return;
-//   start = magento_metrics[metric_idx].starts_a == -1 ?
-//     magento_metrics[metric_idx].stops_a + 1 : magento_metrics[metric_idx].starts_a;
-//   stop = magento_metrics[metric_idx].starts_b == -1 ?
-//     magento_metrics[metric_idx].stops_b + 1: magento_metrics[metric_idx].starts_b;
-//   /* Mage::run has all queries, so ignore it unless we are counting queries for the total */
-//   if (!start && strcmp(magento_metrics[metric_idx].name, "total"))
-//     start = 1;
-//   if (magento_metrics[metric_idx].starts_a == -1) {
-//     sql_cycles = hp_globals.monitored_function_sql_cpu_cycles_after[magento_metrics[metric_idx].stops_a];
-//     sql_count = hp_globals.monitored_function_sql_queries_count_after[magento_metrics[metric_idx].stops_a];
-//   } else {
-//     sql_cycles = 0;
-//     sql_count = 0;
-//   }
-//   for (i = start; i < stop; i++) {
-//     sql_cycles += hp_globals.monitored_function_sql_cpu_cycles[i];
-//     sql_count += hp_globals.monitored_function_sql_queries_count[i];
-//     if (i != stop -1 || magento_metrics[metric_idx].starts_b != -1) {
-//       sql_cycles += hp_globals.monitored_function_sql_cpu_cycles_after[i];
-//       sql_count += hp_globals.monitored_function_sql_queries_count_after[i];
-//     }
-//   }
-//   sprintf(metric_name, "magento2.%zu.profiling.%s.sql.", hp_globals.quanta_step_id,
-//     magento_metrics[metric_idx].name);
-//   metric_base_end = metric_name + strlen(metric_name);
-//   strcpy(metric_base_end, "count");
-//   metric = monikor_metric_integer(metric_name, clock, sql_count, 0);
-//   if (metric)
-//     monikor_metric_list_push(metrics, metric);
-//   strcpy(metric_base_end, "time");
-//   metric = monikor_metric_float(metric_name, clock, cpu_cycles_to_ms(cpufreq, sql_cycles), 0);
-//   if (metric)
-//     monikor_metric_list_push(metrics, metric);
-// }
+static void qm_send_profiled_function_sql_metrics(char *metric_name, char *metric_base_end,
+const profiler_timer_t *timer, struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
+  profiled_application_t *app = hp_globals.profiled_application;
+  monikor_metric_t *metric;
+  uint64_t cycles;
+  uint64_t count;
+  size_t i;
+
+  if (timer->options.ignore_sql)
+    return;
+  if (timer->start.counter == PROF_FIRST_STOP
+  || timer->start.counter == PROF_LAST_STOP) {
+    cycles += timer->start.function->sql_counters.cycles_after;
+    count += timer->start.function->sql_counters.count_after;
+    i = timer->start.function->index + 1;
+  } else {
+    cycles = 0;
+    count = 0;
+    i = timer->start.function->index;
+  }
+  for (; i < timer->end.function->index; i++) {
+    cycles += app->functions[i].sql_counters.cycles + app->functions[i].sql_counters.cycles_after;
+    count += app->functions[i].sql_counters.count + app->functions[i].sql_counters.count_after;
+  }
+  if (timer->end.counter == PROF_FIRST_STOP || PROF_LAST_STOP) {
+    cycles += timer->end.function->sql_counters.cycles;
+    count += timer->end.function->sql_counters.count;
+  }
+  strcpy(metric_base_end, "sql.time");
+  metric = monikor_metric_float(metric_name, clock, cpu_cycles_to_ms(cpufreq, cycles), 0);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+  PRINTF_QUANTA("METRIC %s: %f\n", metric_name, cpu_cycles_to_ms(cpufreq, cycles));
+  strcpy(metric_base_end, "sql.count");
+  metric = monikor_metric_integer(metric_name, clock, count, 0);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+  PRINTF_QUANTA("METRIC %s: %"PRIu64"\n", metric_name, count);
+}
 
 static inline uint64_t fetch_timed_function_counter_value(const profiler_timer_function_t *f) {
   switch (f->counter) {
@@ -64,32 +55,40 @@ static inline uint64_t fetch_timed_function_counter_value(const profiler_timer_f
   }
 }
 
+static void qm_send_profiled_function_time_metrics(char *metric_name, char *metric_base_end,
+const profiler_timer_t *timer, struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
+  monikor_metric_t *metric;
+  uint64_t start;
+  uint64_t end;
+
+  start = fetch_timed_function_counter_value(&timer->start);
+  end = fetch_timed_function_counter_value(&timer->end);
+  strcpy(metric_base_end, "time");
+  metric = monikor_metric_float(metric_name, clock, cpu_cycles_range_to_ms(cpufreq, start, end), 0);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+  PRINTF_QUANTA("METRIC %s: %f\n", metric_name, cpu_cycles_range_to_ms(cpufreq, start, end));
+}
+
 static void qm_send_profiled_functions_metrics(char *metric_name, char *metric_base_end,
 struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
   profiled_application_t *app = hp_globals.profiled_application;
-  monikor_metric_t *metric;
   size_t i;
 
   if (hp_globals.profiler_level != QUANTA_MON_MODE_MAGENTO_PROFILING)
     return;
   for (i = 0; i < app->nb_timers; i++) {
-    uint64_t a = fetch_timed_function_counter_value(&app->timers[i].start);
-    uint64_t b = fetch_timed_function_counter_value(&app->timers[i].end);
-    strcpy(metric_base_end, app->timers[i].name);
-    strcpy(metric_base_end + strlen(app->timers[i].name), ".time");
-    PRINTF_QUANTA("METRIC %s: a: %"PRIu64" b: %"PRIu64" = %f ms\n", metric_name, a, b,
-      cpu_cycles_range_to_ms(cpufreq, a, b));
-    metric = monikor_metric_float(metric_name, clock, cpu_cycles_range_to_ms(cpufreq, a, b), 0);
-    if (metric) {
-      monikor_metric_list_push(metrics, metric);
-      // fetch_profiler_sql_metrics(clock, metrics, cpufreq, i);
-    }
+    char *metric_timer_end = metric_base_end + strlen(app->timers[i].name) + 1;
+    sprintf(metric_base_end, "%s.", app->timers[i].name);
+    qm_send_profiled_function_time_metrics(metric_name, metric_timer_end, &app->timers[i],
+      clock, metrics, cpufreq);
+    qm_send_profiled_function_sql_metrics(metric_name, metric_timer_end, &app->timers[i],
+      clock, metrics, cpufreq);
   }
 }
 
-static void qm_send_total_metrics(char *metric_name, char *metric_base_end,
-struct timeval *clock, monikor_metric_list_t *metrics,
-float cpufreq) {
+static void qm_send_total_time_metrics(char *metric_name, char *metric_base_end,
+struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
   profiled_application_t *app = hp_globals.profiled_application;
   monikor_metric_t *metric;
 
@@ -122,5 +121,5 @@ float cpufreq TSRMLS_DC) {
   sprintf(metric_name, "%s.%zu.profiling.", app->name, hp_globals.quanta_step_id);
   metric_base_end = metric_name + strlen(metric_name);
   qm_send_profiled_functions_metrics(metric_name, metric_base_end, clock, metrics, cpufreq);
-  qm_send_total_metrics(metric_name, metric_base_end, clock, metrics, cpufreq);
+  qm_send_total_time_metrics(metric_name, metric_base_end, clock, metrics, cpufreq);
 }
