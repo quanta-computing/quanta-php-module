@@ -22,3 +22,16 @@ zend_execute_data *execute_data TSRMLS_DC) {
   else
     return -1;
 }
+
+int magento1_record_cache_clean_event(profiled_application_t *app, profiled_function_t *function,
+zend_execute_data *execute_data TSRMLS_DC) {
+  zval *subtype;
+
+  (void)app;
+  (void)function;
+  if (!(subtype = safe_get_argument(execute_data, 1, IS_STRING))
+  || qm_record_event(APP_EV_CACHE_CLEAR, "clean", Z_STRVAL_P(subtype)))
+    return -1;
+  else
+    return 0;
+}

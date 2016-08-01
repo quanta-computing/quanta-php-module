@@ -20,11 +20,13 @@ if test "$PHP_QUANTAMON" != "no"; then
   PHP_SUBST(QUANTA_MON_SHARED_LIBADD)
   PHP_NEW_EXTENSION(quanta_mon,
     src/magento_common/block_stack.c \
+    src/magento_common/blocks.c \
     src/magento_common/context.c \
     src/magento_common/events.c \
     src/magento_common/metrics.c \
     src/magento_common/model_data.c \
     src/magento_common/sql.c \
+    src/magento1/blocks.c \
     src/magento1/events.c \
     src/magento1/version.c \
     src/magento2/blocks.c \

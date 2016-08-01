@@ -93,6 +93,7 @@ static int extract_headers_info(TSRMLS_D) {
   mode = extract_step_clock_and_mode(_SERVER TSRMLS_CC);
   if (mode == -1) {
     if (!hp_globals.request_uri || strstr(hp_globals.request_uri, hp_globals.admin_url)) {
+      PRINTF_QUANTA("ENABLING EVENTS %s %s\n", hp_globals.request_uri, hp_globals.admin_url);
       return QUANTA_MON_MODE_EVENTS_ONLY;
     } else {
       efree(hp_globals.request_uri);

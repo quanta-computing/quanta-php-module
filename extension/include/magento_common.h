@@ -36,6 +36,12 @@ magento_block_t *block_stack_pop(magento_context_t *context);
 magento_block_t *block_stack_top(magento_context_t *context);
 void block_stack_push(magento_context_t *context, magento_block_t *block);
 
+char *magento_get_block_class_name(zval *block TSRMLS_DC);
+char *magento_get_block_class_file(zval *block);
+char *magento_get_block_attr(const char *key, size_t key_len, zval *this TSRMLS_DC);
+int magento_block_after_render(profiled_application_t *app, profiled_function_t *function,
+  zend_execute_data *execute_data TSRMLS_DC);
+
 char *get_mage_model_data(HashTable *attrs, char *key TSRMLS_DC);
 zval *get_mage_model_zdata(HashTable *attrs, char *key, int type TSRMLS_DC);
 

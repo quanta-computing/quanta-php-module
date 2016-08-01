@@ -15,7 +15,7 @@ PHP_MINIT_FUNCTION(quanta_mon) {
 
   hp_globals.path_quanta_agent_socket = INI_STR("quanta_mon.path_quanta_agent_socket");
   hp_globals.admin_url = INI_STR("quanta_mon.admin_url");
-  if (!hp_globals.admin_url)
+  if (!hp_globals.admin_url || !*hp_globals.admin_url)
     hp_globals.admin_url = QUANTA_MON_DEFAULT_ADMIN_URL;
   if ((!hp_globals.path_quanta_agent_socket) || (strlen(hp_globals.path_quanta_agent_socket) < 4)) {
     php_error_docref(NULL TSRMLS_CC, E_WARNING,
