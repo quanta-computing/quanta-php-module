@@ -24,7 +24,7 @@ const profiler_timer_t *timer, struct timeval *clock, monikor_metric_list_t *met
     cycles += app->functions[i].sql_counters.cycles + app->functions[i].sql_counters.cycles_after;
     count += app->functions[i].sql_counters.count + app->functions[i].sql_counters.count_after;
   }
-  if (timer->end.counter == PROF_FIRST_STOP || PROF_LAST_STOP) {
+  if (timer->end.counter == PROF_FIRST_STOP || timer->end.counter == PROF_LAST_STOP) {
     cycles += timer->end.function->sql_counters.cycles;
     count += timer->end.function->sql_counters.count;
   }

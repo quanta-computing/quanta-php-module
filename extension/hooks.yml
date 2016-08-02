@@ -168,11 +168,14 @@ cms:
     create_context_callback: magento_init_context
     cleanup_context_callback: magento_cleanup_context
     send_metrics_callback: magento_send_metrics
-    first_function: mage_run
+    first_function: create_app
     last_function: mage_run
     functions:
+      create_app:
+        name: 'Mage_Core_Model_App::__construct'
       mage_run:
-        name: 'Mage::run'
+        name: 'Mage_Core_Model_App::run'
+        begin_callback: magento1_fetch_version
       init_config:
         name: 'Mage_Core_Model_App::_initBaseConfig'
       init_cache:
@@ -215,9 +218,12 @@ cms:
         begin_callback: magento1_record_cache_clean_event
         ignore_in_stack: true
       reindex:
-        name: 'Mage_Index_Model_Event::_beforeSave'
+        name: 'Mage_Index_Model_Process::reindexAll'
         end_callback: magento1_record_reindex_event
         ignore_in_stack: true
+      process_index_event:
+        name: 'Mage_Index_Model_Indexer_Abstract::processEvent'
+        begin_callback: magento1_record_process_index_event
       sql_query:
         name: 'PDOStatement::execute'
         end_callback: magento_record_sql_query
@@ -226,7 +232,7 @@ cms:
     timers:
       before_init_config:
         start:
-          function: mage_run
+          function: create_app
           timer: first_start
         end:
           function: init_config
@@ -282,7 +288,7 @@ cms:
           timer: first_start
       loading:
         start:
-          function: mage_run
+          function: create_app
           timer: first_start
         end:
           function: action_predispatch
@@ -339,7 +345,7 @@ cms:
       total:
         ignore_sql: true
         start:
-          function: mage_run
+          function: create_app
           timer: first_start
         end:
           function: mage_run

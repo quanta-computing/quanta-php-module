@@ -17,6 +17,8 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
 
   hp_globals.profiled_application = NULL;
 
+  memset(&hp_globals.internal_match_counters, 0, sizeof(hp_globals.internal_match_counters));
+
   if (level != QUANTA_MON_MODE_EVENTS_ONLY) {
 
     array_init(&hp_globals.stats_count);

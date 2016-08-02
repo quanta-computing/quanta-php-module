@@ -126,7 +126,6 @@ PHP_RINIT_FUNCTION(quanta_mon) {
   else
     flags = 0;
   hp_globals.global_tsc.start = start;
-  bzero(&hp_globals.internal_match_counters, sizeof(hp_globals.internal_match_counters));
   hp_begin(mode, flags TSRMLS_CC);
   end = cycle_timer();
   hp_globals.internal_match_counters.init_cycles += end - start;

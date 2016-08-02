@@ -9,11 +9,16 @@ static void fetch_request_uri(struct timeval *clock, monikor_metric_list_t *metr
 
   if (!hp_globals.request_uri)
     return;
-  // TODO! magento2 -> app_name
-  if (hp_globals.profiler_level == QUANTA_MON_MODE_MAGENTO_PROFILING)
-    sprintf(metric_name, "magento2.%zu.request_uri", hp_globals.quanta_step_id);
-  else
+  if (hp_globals.profiled_application &&
+  hp_globals.profiler_level == QUANTA_MON_MODE_MAGENTO_PROFILING) {
+    sprintf(metric_name, "%s.%zu.request_uri",
+      hp_globals.profiled_application->name, hp_globals.quanta_step_id);
+  } else if (hp_globals.profiler_level == QUANTA_MON_MODE_HIERARCHICAL) {
     sprintf(metric_name, "qtracer.%zu.request_uri", hp_globals.quanta_step_id);
+  } else {
+    PRINTF_QUANTA("Cannot fetch request_uri\n");
+    return;
+  }
   metric = monikor_metric_string(metric_name, clock, hp_globals.request_uri);
   if (metric)
     monikor_metric_list_push(metrics, metric);
@@ -23,7 +28,7 @@ static void fetch_xhprof_metrics(struct timeval *clock, monikor_metric_list_t *m
   char metric_name[MAX_METRIC_NAME_LENGTH];
   zval encoded;
 
-  if (hp_globals.profiler_level > QUANTA_MON_MODE_SAMPLED)
+  if (hp_globals.profiler_level != QUANTA_MON_MODE_HIERARCHICAL)
     return;
   ZVAL_NULL(&encoded);
   if (safe_call_function("json_encode", &encoded, IS_STRING, 1, &hp_globals.stats_count TSRMLS_CC)) {
@@ -37,14 +42,20 @@ static void fetch_xhprof_metrics(struct timeval *clock, monikor_metric_list_t *m
   zval_dtor(&encoded);
 }
 
+// TODO! magento.version -> app.version
 static void fetch_php_version(struct timeval *clock, monikor_metric_list_t *metrics) {
-  monikor_metric_t *metric = monikor_metric_string("magento.version.php", clock, PHP_VERSION);
+  monikor_metric_t *metric;
+
+  metric = monikor_metric_string("magento.version.php", clock, PHP_VERSION);
   if (metric)
     monikor_metric_list_push(metrics, metric);
 }
 
+// TODO! magento.version -> app.version
 static void fetch_module_version(struct timeval *clock, monikor_metric_list_t *metrics) {
-  monikor_metric_t *metric = monikor_metric_string("magento.version.module", clock, QUANTA_MON_VERSION);
+  monikor_metric_t *metric;
+
+  metric = monikor_metric_string("magento.version.module", clock, QUANTA_MON_VERSION);
   if (metric)
     monikor_metric_list_push(metrics, metric);
 }
@@ -110,20 +121,17 @@ void send_metrics(TSRMLS_D) {
   if (hp_globals.quanta_clock)
     now.tv_sec = hp_globals.quanta_clock;
   qm_send_events_metrics(&now, metrics);
-  //TODO! refactor
   if (hp_globals.profiler_level <= QUANTA_MON_MODE_MAGENTO_PROFILING
   && hp_globals.cpu_frequencies) {
     float cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
 
     fetch_request_uri(&now, metrics);
     fetch_xhprof_metrics(&now, metrics TSRMLS_CC);
-    if (hp_globals.profiled_application) {
-      qm_send_profiler_metrics(&now, metrics, cpufreq);
-      qm_send_selfprofiling_metrics(&now, metrics, cpufreq TSRMLS_CC);
-      if (hp_globals.profiled_application->send_metrics) {
-        hp_globals.profiled_application->send_metrics(hp_globals.profiled_application, metrics,
-          cpufreq, &now TSRMLS_CC);
-      }
+    qm_send_profiler_metrics(&now, metrics, cpufreq TSRMLS_CC);
+    qm_send_selfprofiling_metrics(&now, metrics, cpufreq TSRMLS_CC);
+    if (hp_globals.profiled_application && hp_globals.profiled_application->send_metrics) {
+      hp_globals.profiled_application->send_metrics(hp_globals.profiled_application, metrics,
+        cpufreq, &now TSRMLS_CC);
     }
   }
   /* We only want to provide context information such as versions when we actually have some metrics
