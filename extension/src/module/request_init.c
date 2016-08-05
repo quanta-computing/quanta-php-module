@@ -38,7 +38,7 @@ static int extract_step_clock_and_mode(HashTable *_SERVER TSRMLS_DC) {
   while (*quanta_mode == ' ')
     quanta_mode++;
   if (!*quanta_mode || !strcmp(quanta_mode, QUANTA_HTTP_HEADER_MODE_MAGE))
-    return QUANTA_MON_MODE_MAGENTO_PROFILING;
+    return QUANTA_MON_MODE_APP_PROFILING;
   else if (!strcmp(quanta_mode, QUANTA_HTTP_HEADER_MODE_FULL))
     return QUANTA_MON_MODE_HIERARCHICAL;
   else
@@ -110,7 +110,6 @@ static int extract_headers_info(TSRMLS_D) {
  */
 PHP_RINIT_FUNCTION(quanta_mon) {
   int mode;
-  long flags;
   uint64_t start;
   uint64_t end;
 
@@ -121,12 +120,8 @@ PHP_RINIT_FUNCTION(quanta_mon) {
     return SUCCESS;
   }
   PRINTF_QUANTA("PROFILER ENABLED WITH MODE %d\n", mode);
-  if (mode <= QUANTA_MON_MODE_SAMPLED)
-    flags = QUANTA_MON_FLAGS_CPU | QUANTA_MON_FLAGS_MEMORY;
-  else
-    flags = 0;
   hp_globals.global_tsc.start = start;
-  hp_begin(mode, flags TSRMLS_CC);
+  hp_begin(mode TSRMLS_CC);
   end = cycle_timer();
   hp_globals.internal_match_counters.init_cycles += end - start;
   return SUCCESS;

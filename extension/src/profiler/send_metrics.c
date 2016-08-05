@@ -10,7 +10,7 @@ static void fetch_request_uri(struct timeval *clock, monikor_metric_list_t *metr
   if (!hp_globals.request_uri)
     return;
   if (hp_globals.profiled_application &&
-  hp_globals.profiler_level == QUANTA_MON_MODE_MAGENTO_PROFILING) {
+  hp_globals.profiler_level == QUANTA_MON_MODE_APP_PROFILING) {
     sprintf(metric_name, "%s.%zu.request_uri",
       hp_globals.profiled_application->name, hp_globals.quanta_step_id);
   } else if (hp_globals.profiler_level == QUANTA_MON_MODE_HIERARCHICAL) {
@@ -121,7 +121,7 @@ void send_metrics(TSRMLS_D) {
   if (hp_globals.quanta_clock)
     now.tv_sec = hp_globals.quanta_clock;
   qm_send_events_metrics(&now, metrics);
-  if (hp_globals.profiler_level <= QUANTA_MON_MODE_MAGENTO_PROFILING
+  if (hp_globals.profiler_level <= QUANTA_MON_MODE_APP_PROFILING
   && hp_globals.cpu_frequencies) {
     float cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
 

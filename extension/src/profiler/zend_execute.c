@@ -38,7 +38,7 @@ void hp_restore_original_zend_execute(void) {
     zend_compile_string   = _zend_compile_string;
 }
 
-void hp_hijack_zend_execute(uint32_t flags, long level) {
+void hp_hijack_zend_execute(long level) {
 #if PHP_VERSION_ID < 50500
   _zend_execute = zend_execute;
   zend_execute  = hp_execute;
@@ -48,16 +48,11 @@ void hp_hijack_zend_execute(uint32_t flags, long level) {
 #endif
 
   _zend_execute_internal = zend_execute_internal;
-  if (!(flags & QUANTA_MON_FLAGS_NO_BUILTINS)) {
-    /* if NO_BUILTINS is not set (i.e. user wants to profile builtins),
-     * then we intercept internal (builtin) function calls.
-     */
-    zend_execute_internal = hp_execute_internal;
-  }
+  zend_execute_internal = hp_execute_internal;
 
   _zend_compile_file = zend_compile_file;
   _zend_compile_string = zend_compile_string;
-  if (level <= QUANTA_MON_MODE_SAMPLED) {
+  if (level == QUANTA_MON_MODE_HIERARCHICAL) {
     zend_compile_string = hp_compile_string;
     zend_compile_file  = hp_compile_file;
   }
@@ -90,7 +85,7 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
   uint64_t last;
 
   start1 = cycle_timer();
-  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {
+  if (hp_globals.profiler_level == QUANTA_MON_MODE_HIERARCHICAL) {
     func = hp_get_function_name(execute_data TSRMLS_CC);
   } else {
     func = hp_get_function_name_fast(execute_data TSRMLS_CC);
@@ -113,7 +108,7 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
 #endif
   start2 = cycle_timer();
   hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data TSRMLS_CC);
-  if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED)
+  if (hp_globals.profiler_level == QUANTA_MON_MODE_HIERARCHICAL)
     efree(func);
   end2 = cycle_timer();
   last = hp_globals.internal_match_counters.profiling_cycles;
@@ -151,7 +146,7 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
      uint64_t last;
 
      start1 = cycle_timer();
-     if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED) {
+     if (hp_globals.profiler_level == QUANTA_MON_MODE_HIERARCHICAL) {
        func = hp_get_function_name(execute_data TSRMLS_CC);
      } else {
        func = hp_get_function_name_fast(execute_data TSRMLS_CC);
@@ -183,7 +178,7 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
      if (func) {
        hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data TSRMLS_CC);
      }
-     if (hp_globals.profiler_level <= QUANTA_MON_MODE_SAMPLED)
+     if (hp_globals.profiler_level == QUANTA_MON_MODE_HIERARCHICAL)
        efree(func);
      end2 = cycle_timer();
      last = hp_globals.internal_match_counters.profiling_cycles;

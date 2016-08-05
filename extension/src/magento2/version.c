@@ -49,6 +49,7 @@ zend_execute_data *ex TSRMLS_DC) {
     "EDITION_NAME", &edition, IS_STRING TSRMLS_CC);
   if (!ret)
     context->edition = estrdup(Z_STRVAL(edition));
+
 end:
   zval_dtor(&edition);
   if (composer_file_handle)

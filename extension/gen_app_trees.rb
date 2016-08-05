@@ -75,7 +75,7 @@ def compile_profiled_functions name, app
     begin_cb = function['begin_callback'] || 'NULL'
     end_cb = function['end_callback'] || 'NULL'
     ignore_in_stack = function['ignore_in_stack'] ? 1 : 0
-    min_level = 0 #TODO!
+    min_level = function['min_profiling_level'] || 'QUANTA_MON_MODE_APP_PROFILING'
     puts "{\"#{function['name'].gsub '\\', '\\\\\\\\'}\", #{index}, {#{
       ignore_in_stack}, #{min_level}}, #{
       begin_cb}, #{end_cb}, {0, 0, 0, 0}, {0, 0, 0, 0}},"

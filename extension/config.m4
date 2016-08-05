@@ -38,14 +38,13 @@ if test "$PHP_QUANTAMON" != "no"; then
     src/module/quanta_mon.c \
     src/module/request_init.c \
     src/module/request_shutdown.c \
+    src/profiler/app_profiler.c \
     src/profiler/application.c \
     src/profiler/begin_profiling.c \
-    src/profiler/common_callbacks.c \
-    src/profiler/dummy_callbacks.c \
     src/profiler/end_profiling.c \
     src/profiler/events_metrics.c \
     src/profiler/function_stack.c \
-    src/profiler/hier_callbacks.c \
+    src/profiler/hier_profiler.c \
     src/profiler/hp_begin.c \
     src/profiler/hp_end.c \
     src/profiler/hp_list.c \

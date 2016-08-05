@@ -75,7 +75,7 @@ struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
   profiled_application_t *app = hp_globals.profiled_application;
   size_t i;
 
-  if (hp_globals.profiler_level != QUANTA_MON_MODE_MAGENTO_PROFILING)
+  if (hp_globals.profiler_level != QUANTA_MON_MODE_APP_PROFILING)
     return;
   for (i = 0; i < app->nb_timers; i++) {
     char *metric_timer_end = metric_base_end + strlen(app->timers[i].name) + 1;

@@ -16,24 +16,12 @@
 // Timeout for sending metrics to monikor agent
 #define SEND_METRICS_TIMEOUT_US 50000
 
-/* Various QUANTA_MON modes. If you are adding a new mode, register the appropriate
- * callbacks in hp_begin() */
+// Profiling Levels
 #define QUANTA_MON_MODE_HIERARCHICAL            1      /* Complete profiling of every single PHP calls */
-#define QUANTA_MON_MODE_SAMPLED                 2      /* Statistical sample of most PHP calls (not used anymore) */
-#define QUANTA_MON_MODE_MAGENTO_PROFILING       3      /* Profiling of selected Magento calls (see hp_get_monitored_functions_fill) */
-#define QUANTA_MON_MODE_EVENTS_ONLY             4      /* No profiling, deal only with calls >= POS_ENTRY_EVENTS_ONLY */
+#define QUANTA_MON_MODE_APP_PROFILING           2      /* Profiling of selected Magento calls (see hp_get_monitored_functions_fill) */
+#define QUANTA_MON_MODE_EVENTS_ONLY             3      /* No profiling, deal only with calls >= POS_ENTRY_EVENTS_ONLY */
 
-
-/* Hierarchical profiling flags.
- *
- * Note: Function call counts and wall (elapsed) time are always profiled.
- * The following optional flags can be used to control other aspects of
- * profiling.
- */
-#define QUANTA_MON_FLAGS_NO_BUILTINS   0x0001         /* do not profile builtins */
-#define QUANTA_MON_FLAGS_CPU           0x0002      /* gather CPU times for funcs */
-#define QUANTA_MON_FLAGS_MEMORY        0x0004   /* gather memory usage for funcs */
-
+// Misc utility #defines
 #define MAX_METRIC_NAME_LENGTH 1024
 
 
@@ -62,26 +50,10 @@ typedef enum {
 
 typedef struct applicative_event {
   struct applicative_event *prev;
-  uint8_t class;
+  applicative_event_class_t class;
   char *type;
   char *subtype;
 } applicative_event_t;
-
-
-/* Various types for QUANTA_MON callbacks       */
-typedef void (*hp_init_cb)           (TSRMLS_D);
-typedef void (*hp_exit_cb)           (TSRMLS_D);
-typedef void (*hp_begin_function_cb) (hp_entry_t **entries,
-                                      hp_entry_t *current   TSRMLS_DC);
-typedef void (*hp_end_function_cb)   (hp_entry_t **entries  TSRMLS_DC);
-
-/* Struct to hold the various callbacks for a single quanta_mon mode */
-typedef struct hp_mode_cb {
-  hp_init_cb             init_cb;
-  hp_exit_cb             exit_cb;
-  hp_begin_function_cb   begin_fn_cb;
-  hp_end_function_cb     end_fn_cb;
-} hp_mode_cb;
 
 typedef struct profiled_application_t profiled_application_t;
 typedef struct profiled_function_t profiled_function_t;
@@ -126,7 +98,7 @@ typedef enum {
 
 typedef struct {
   profiled_function_t *function;
-  uint8_t counter;
+  profiler_timer_counter_t counter;
 } profiler_timer_function_t;
 
 typedef struct {
@@ -162,12 +134,12 @@ struct profiled_application_t {
 
 
 // Profiling
-void hp_begin(long level, long quanta_mon_flags TSRMLS_DC);
+void hp_begin(long level TSRMLS_DC);
 void hp_stop(TSRMLS_D);
 void hp_end(TSRMLS_D);
 void hp_init_profiler_state(int level TSRMLS_DC);
 void hp_clean_profiler_state(TSRMLS_D);
-void hp_hijack_zend_execute(uint32_t flags, long level);
+void hp_hijack_zend_execute(long level);
 void hp_restore_original_zend_execute(void);
 
 void hp_inc_count(zval *counts, char *name, long count TSRMLS_DC);
@@ -178,16 +150,8 @@ int hp_begin_profiling(hp_entry_t **entries, const char *symbol, zend_execute_da
 void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data *data TSRMLS_DC);
 int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TSRMLS_DC);
 int qm_end_profiling(int function_idx, zend_execute_data *execute_data TSRMLS_DC);
-
-// Profiling callbacks
-void hp_mode_dummy_init_cb(TSRMLS_D);
-void hp_mode_dummy_exit_cb(TSRMLS_D);
-void hp_mode_dummy_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
-void hp_mode_dummy_endfn_cb(hp_entry_t **entries   TSRMLS_DC);
-void hp_mode_common_beginfn(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
-void hp_mode_common_endfn(hp_entry_t **entries, hp_entry_t *current TSRMLS_DC);
-void hp_mode_hier_beginfn_cb(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
-void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC);
+void hp_hier_begin_profiling(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
+void hp_hier_end_profiling(hp_entry_t **entries  TSRMLS_DC);
 
 // Metrics stuff
 void send_metrics(TSRMLS_D);
@@ -196,16 +160,6 @@ void qm_send_profiler_metrics(struct timeval *clock, monikor_metric_list_t *metr
   float cpufreq TSRMLS_DC);
 void qm_send_selfprofiling_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
   float cpufreq TSRMLS_DC);
-
-  struct {
-    uint64_t start;
-    uint64_t stop;
-  } global_tsc;
-
-  struct {
-    uint64_t start;
-    uint64_t stop;
-  } global_sql_counters;
 
 // Application stuff
 profiled_application_t *qm_match_first_app_function(const char* function_name,

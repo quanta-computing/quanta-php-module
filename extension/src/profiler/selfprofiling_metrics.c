@@ -6,7 +6,7 @@ float cpufreq TSRMLS_DC) {
   char *metric_base_end;
   monikor_metric_t *metric;
 
-  if (hp_globals.profiler_level != QUANTA_MON_MODE_MAGENTO_PROFILING)
+  if (hp_globals.profiler_level != QUANTA_MON_MODE_APP_PROFILING)
     return;
   sprintf(metric_name, "magento2.%zu.selfprofiling.", hp_globals.quanta_step_id);
   metric_base_end = metric_name + strlen(metric_name);

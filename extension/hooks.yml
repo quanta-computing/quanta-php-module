@@ -39,21 +39,25 @@ cms:
       cache_flush_all:
         name: 'Magento\Backend\Controller\Adminhtml\Cache\FlushAll::execute'
         begin_callback: magento_record_cache_flush_event
+        min_profiling_level: QUANTA_MON_MODE_EVENTS_ONLY
         ignore_in_stack: true
         tree_order: 10
       cache_flush_system:
         name: 'Magento\Backend\Controller\Adminhtml\Cache\FlushSystem::execute'
         begin_callback: magento_record_cache_system_flush_event
+        min_profiling_level: QUANTA_MON_MODE_EVENTS_ONLY
         ignore_in_stack: true
         tree_order: 11
       cache_clean:
         name: 'Magento\Framework\App\Cache\TypeList::cleanType'
         begin_callback: magento2_record_cache_clean_event
+        min_profiling_level: QUANTA_MON_MODE_EVENTS_ONLY
         ignore_in_stack: true
         tree_order: 8
       reindex:
         name: 'Magento\Indexer\Model\Indexer::reindexAll'
         end_callback: magento2_record_reindex_event
+        min_profiling_level: QUANTA_MON_MODE_EVENTS_ONLY
         ignore_in_stack: true
         tree_order: 21
       sql_query:
@@ -208,21 +212,26 @@ cms:
       cache_flush_all:
         name: 'Mage_Core_Model_Cache::flush'
         begin_callback: magento_record_cache_flush_event
+        min_profiling_level: QUANTA_MON_MODE_EVENTS_ONLY
         ignore_in_stack: true
       cache_flush_system:
         name: 'Mage_Adminhtml_CacheController::flushSystemAction'
         begin_callback: magento_record_cache_system_flush_event
+        min_profiling_level: QUANTA_MON_MODE_EVENTS_ONLY
         ignore_in_stack: true
       cache_clean:
         name: 'Mage_Core_Model_Cache::cleanType'
         begin_callback: magento1_record_cache_clean_event
+        min_profiling_level: QUANTA_MON_MODE_EVENTS_ONLY
         ignore_in_stack: true
       reindex:
         name: 'Mage_Index_Model_Process::reindexAll'
         end_callback: magento1_record_reindex_event
+        min_profiling_level: QUANTA_MON_MODE_EVENTS_ONLY
         ignore_in_stack: true
       process_index_event:
         name: 'Mage_Index_Model_Indexer_Abstract::processEvent'
+        min_profiling_level: QUANTA_MON_MODE_EVENTS_ONLY
         begin_callback: magento1_record_process_index_event
       sql_query:
         name: 'PDOStatement::execute'

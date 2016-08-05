@@ -23,9 +23,16 @@ int bind_to_cpu(uint32_t cpu_id) {
     return -1;
   }
 
-  /* record the cpu_id the process is bound to. */
+  // Lazy initialize cpu frequencies
+  if (!hp_globals.cpu_frequencies
+  && !(hp_globals.cpu_frequencies = calloc(hp_globals.cpu_num, sizeof(double)))) {
+    return -1;
+  }
+  /* record the cpu_id the process is bound to and init it's frequency if needed. */
   hp_globals.cur_cpu_id = cpu_id;
-
+  if (hp_globals.cpu_frequencies[cpu_id] == 0.0)
+    hp_globals.cpu_frequencies[cpu_id] = get_cpu_frequency();
+  printf("CPUFREQ %f\n", hp_globals.cpu_frequencies[cpu_id]);
   return 0;
 }
 
@@ -39,20 +46,20 @@ int bind_to_cpu(uint32_t cpu_id) {
 double get_cpu_frequency() {
   struct timeval start;
   struct timeval end;
+  uint64_t tsc_start;
+  uint64_t tsc_end;
 
   if (gettimeofday(&start, 0)) {
     perror("gettimeofday");
     return 0.0;
   }
-  uint64_t tsc_start = cycle_timer();
-  /* Sleep for 5 miliseconds. Comparaing with gettimeofday's  few microseconds
-   * execution time, this should be enough. */
+  tsc_start = cycle_timer();
   usleep(5000);
   if (gettimeofday(&end, 0)) {
     perror("gettimeofday");
     return 0.0;
   }
-  uint64_t tsc_end = cycle_timer();
+  tsc_end = cycle_timer();
   return (tsc_end - tsc_start) * 1.0 / (get_us_interval(&start, &end));
 }
 
@@ -86,39 +93,4 @@ int restore_cpu_affinity(cpu_set_t * prev_mask) {
   /* default value ofor cur_cpu_id is 0. */
   hp_globals.cur_cpu_id = 0;
   return 0;
-}
-
-/**
- * Calculate frequencies for all available cpus.
- *
- * @author cjiang
- */
-void get_all_cpu_frequencies() {
-  uint32_t id;
-  double frequency;
-
-  hp_globals.cpu_frequencies = malloc(sizeof(double) * hp_globals.cpu_num);
-  if (hp_globals.cpu_frequencies == NULL) {
-    return;
-  }
-
-  /* Iterate over all cpus found on the machine. */
-  for (id = 0; id < hp_globals.cpu_num; ++id) {
-    /* Only get the previous cpu affinity mask for the first call. */
-    if (bind_to_cpu(id)) {
-      clear_frequencies();
-      return;
-    }
-
-    /* Make sure the current process gets scheduled to the target cpu. This
-     * might not be necessary though. */
-    usleep(0);
-
-    frequency = get_cpu_frequency();
-    if (frequency == 0.0) {
-      clear_frequencies();
-      return;
-    }
-    hp_globals.cpu_frequencies[id] = frequency;
-  }
 }

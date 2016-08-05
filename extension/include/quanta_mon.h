@@ -82,9 +82,6 @@ typedef struct hp_global_t {
   /* freelist of hp_entry_t chunks for reuse... */
   hp_entry_t      *entry_free_list;
 
-  /* Callbacks for various quanta_mon modes */
-  hp_mode_cb       mode_cb;
-
   /* Path of the quanta agent unix socket */
   char             *path_quanta_agent_socket;
 
@@ -103,9 +100,6 @@ typedef struct hp_global_t {
 
   /* The cpu id current process is bound to. (default 0) */
   uint32_t cur_cpu_id;
-
-  /* QuantaMon flags */
-  uint32_t quanta_mon_flags;
 
   /* counter table indexed by hash value of function names. */
   uint8_t  func_hash_counters[256];

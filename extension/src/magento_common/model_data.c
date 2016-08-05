@@ -16,7 +16,6 @@ zval *get_mage_model_zdata(HashTable *attrs, char *key, int type TSRMLS_DC) {
     PRINTF_QUANTA("_data is not an array\n");
     return NULL;
   }
-  // TODO! Segfault
   if (!(ret = zend_hash_find_compat(Z_ARRVAL_P(data), key, strlen(key)))) {
     PRINTF_QUANTA("Cannot fetch %s in model data\n", key);
     return NULL;

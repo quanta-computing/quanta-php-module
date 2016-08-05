@@ -22,18 +22,8 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
   if (level != QUANTA_MON_MODE_EVENTS_ONLY) {
 
     array_init(&hp_globals.stats_count);
-    /* NOTE(cjiang): some fields such as cpu_frequencies take relatively longer
-     * to initialize, (5 milisecond per logical cpu right now), therefore we
-     * calculate them lazily. */
-    if (hp_globals.cpu_frequencies == NULL) {
-      get_all_cpu_frequencies();
-      restore_cpu_affinity(&hp_globals.prev_mask);
-    }
 
     /* bind to a random cpu so that we can use rdtsc instruction. */
-    bind_to_cpu((int) (rand() % hp_globals.cpu_num));
+    bind_to_cpu((uint32_t)(rand() % hp_globals.cpu_num));
   }
-
-  /* Call current mode's init cb */
-  hp_globals.mode_cb.init_cb(TSRMLS_C);
 }
