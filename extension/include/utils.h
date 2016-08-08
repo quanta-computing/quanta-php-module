@@ -6,7 +6,6 @@ int restore_cpu_affinity(cpu_set_t * prev_mask);
 int bind_to_cpu(uint32_t cpu_id);
 double get_cpu_frequency();
 void clear_frequencies();
-void get_all_cpu_frequencies();
 
 // Timings
 uint64_t cycle_timer();

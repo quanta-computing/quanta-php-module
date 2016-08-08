@@ -8,7 +8,8 @@ float cpufreq TSRMLS_DC) {
 
   if (hp_globals.profiler_level != QUANTA_MON_MODE_APP_PROFILING)
     return;
-  sprintf(metric_name, "magento2.%zu.selfprofiling.", hp_globals.quanta_step_id);
+  sprintf(metric_name, "%s.%zu.selfprofiling.",
+    hp_globals.profiled_application->name, hp_globals.quanta_step_id);
   metric_base_end = metric_name + strlen(metric_name);
   strcpy(metric_base_end, "init_time");
   metric = monikor_metric_float(metric_name, clock,

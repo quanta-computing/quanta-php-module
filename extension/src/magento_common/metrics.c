@@ -106,7 +106,7 @@ monikor_metric_list_t *metrics) {
   ret = snprintf(value, 512, "%s %s", context->version,
     context->edition ? context->edition : "unknown");
   if (ret < 512) {
-    monikor_metric_t *metric = monikor_metric_string("magento.version.magento", clock, value);
+    monikor_metric_t *metric = monikor_metric_string("app.version.app", clock, value);
     if (metric) {
       monikor_metric_list_push(metrics, metric);
       PRINTF_QUANTA("Magento version %s\n", value);

@@ -42,20 +42,18 @@ static void fetch_xhprof_metrics(struct timeval *clock, monikor_metric_list_t *m
   zval_dtor(&encoded);
 }
 
-// TODO! magento.version -> app.version
 static void fetch_php_version(struct timeval *clock, monikor_metric_list_t *metrics) {
   monikor_metric_t *metric;
 
-  metric = monikor_metric_string("magento.version.php", clock, PHP_VERSION);
+  metric = monikor_metric_string("app.version.php", clock, PHP_VERSION);
   if (metric)
     monikor_metric_list_push(metrics, metric);
 }
 
-// TODO! magento.version -> app.version
 static void fetch_module_version(struct timeval *clock, monikor_metric_list_t *metrics) {
   monikor_metric_t *metric;
 
-  metric = monikor_metric_string("magento.version.module", clock, QUANTA_MON_VERSION);
+  metric = monikor_metric_string("app.version.module", clock, QUANTA_MON_VERSION);
   if (metric)
     monikor_metric_list_push(metrics, metric);
 }

@@ -65,5 +65,4 @@ void hp_stop(TSRMLS_D) {
   restore_cpu_affinity(&hp_globals.prev_mask);
   /* Stop profiling */
   hp_globals.enabled = 0;
-  PRINTF_QUANTA("hp_stop();\n");
 }

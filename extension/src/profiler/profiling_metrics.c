@@ -98,13 +98,13 @@ struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
   ), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
-  strcpy(metric_base_end, "before_magento.time");
+  strcpy(metric_base_end, "before_app.time");
   metric = monikor_metric_float(metric_name, clock, cpu_cycles_range_to_ms(cpufreq,
     hp_globals.global_tsc.start, app->first_app_function->tsc.first_start
   ), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
-  strcpy(metric_base_end, "after_magento.time");
+  strcpy(metric_base_end, "after_app.time");
   metric = monikor_metric_float(metric_name, clock, cpu_cycles_range_to_ms(cpufreq,
     app->last_app_function->tsc.last_stop, hp_globals.global_tsc.stop
   ), 0);
