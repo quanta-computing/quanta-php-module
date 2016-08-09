@@ -52,12 +52,12 @@ struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq, magento_bl
     block->renderize_children_cycles + block->tsc_renderize_first_start,
     block->tsc_renderize_last_stop
   );
-  PRINTF_QUANTA("BLOCK %s rendered in %f\n  - class: %s (%s)\n  - template: %s\n  - SQL: %zu (%fms)\n",
-    block->name, rendering_time,
-    block->class, block->class_file,
-    block->template,
-    block->sql_queries_count, cpu_cycles_to_ms(cpufreq, block->sql_cpu_cycles)
-  );
+  // PRINTF_QUANTA("BLOCK %s rendered in %f\n  - class: %s (%s)\n  - template: %s\n  - SQL: %zu (%fms)\n",
+  //   block->name, rendering_time,
+  //   block->class, block->class_file,
+  //   block->template,
+  //   block->sql_queries_count, cpu_cycles_to_ms(cpufreq, block->sql_cpu_cycles)
+  // );
   metric = monikor_metric_float(metric_name, clock, rendering_time, 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
@@ -118,6 +118,8 @@ monikor_metric_list_t *metrics) {
 
 void magento_send_metrics(profiled_application_t *app, monikor_metric_list_t *metrics,
 float cpufreq, struct timeval *clock TSRMLS_DC) {
+  if (hp_globals.profiler_level != QUANTA_MON_MODE_APP_PROFILING)
+    return;
   push_blocks_metrics(app, clock, metrics, cpufreq);
   push_magento_version_metric(app, clock, metrics);
 }

@@ -2,14 +2,14 @@
 
 void qm_send_selfprofiling_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
 float cpufreq TSRMLS_DC) {
+  profiled_application_t *app = hp_globals.profiled_application;
   char metric_name[MAX_METRIC_NAME_LENGTH];
   char *metric_base_end;
   monikor_metric_t *metric;
 
-  if (hp_globals.profiler_level != QUANTA_MON_MODE_APP_PROFILING)
+  if (hp_globals.profiler_level != QUANTA_MON_MODE_APP_PROFILING || !app)
     return;
-  sprintf(metric_name, "%s.%zu.selfprofiling.",
-    hp_globals.profiled_application->name, hp_globals.quanta_step_id);
+  sprintf(metric_name, "%s.%zu.selfprofiling.", app->name, hp_globals.quanta_step_id);
   metric_base_end = metric_name + strlen(metric_name);
   strcpy(metric_base_end, "init_time");
   metric = monikor_metric_float(metric_name, clock,

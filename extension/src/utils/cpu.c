@@ -32,7 +32,6 @@ int bind_to_cpu(uint32_t cpu_id) {
   hp_globals.cur_cpu_id = cpu_id;
   if (hp_globals.cpu_frequencies[cpu_id] == 0.0)
     hp_globals.cpu_frequencies[cpu_id] = get_cpu_frequency();
-  printf("CPUFREQ %f\n", hp_globals.cpu_frequencies[cpu_id]);
   return 0;
 }
 
