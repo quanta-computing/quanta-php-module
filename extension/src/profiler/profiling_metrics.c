@@ -60,9 +60,14 @@ const profiler_timer_t *timer, struct timeval *clock, monikor_metric_list_t *met
   monikor_metric_t *metric;
   uint64_t start;
   uint64_t end;
+  size_t i;
 
   start = fetch_timed_function_counter_value(&timer->start);
+  for (i = 0; !start && i < timer->nb_alt_start; i++)
+    start = fetch_timed_function_counter_value(&timer->alt_start[i]);
   end = fetch_timed_function_counter_value(&timer->end);
+  for (i = 0; !end && i < timer->nb_alt_end; i++)
+    end = fetch_timed_function_counter_value(&timer->alt_end[i]);
   strcpy(metric_base_end, "time");
   metric = monikor_metric_float(metric_name, clock, cpu_cycles_range_to_ms(cpufreq, start, end), 0);
   if (metric)
@@ -118,6 +123,8 @@ float cpufreq TSRMLS_DC) {
   char metric_name[MAX_METRIC_NAME_LENGTH];
   char *metric_base_end;
 
+  if (hp_globals.profiler_level != QUANTA_MON_MODE_APP_PROFILING || !app)
+    return;
   sprintf(metric_name, "%s.%zu.profiling.", app->name, hp_globals.quanta_step_id);
   metric_base_end = metric_name + strlen(metric_name);
   qm_send_profiled_functions_metrics(metric_name, metric_base_end, clock, metrics, cpufreq);

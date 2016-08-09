@@ -91,7 +91,23 @@ def function_index function_name, app
   end
 end
 
+def compile_profiler_timers_alt name, app, stop
+  app['timers'].each do |timer_name, timer|
+    next if timer[stop]['alt'].nil?
+    puts "static const profiler_timer_function_t #{name}_profiler_timer_#{timer_name}_alt_#{stop}[] = {"
+    timer[stop]['alt'].each do |alt_stop|
+      idx = function_index alt_stop['function'], app
+      puts "  {&#{name}_profiled_functions[#{idx}], PROF_#{alt_stop['timer'].upcase}},"
+    end
+    puts "  {NULL, 0}"
+    puts "};"
+  end
+end
+
 def compile_profiler_timers name, app
+  ['start', 'end'].each do |stop|
+    compile_profiler_timers_alt name, app, stop
+  end
   puts "static const profiler_timer_t #{name}_profiler_timers[] = {"
   app['timers'].each do |timer_name, timer|
     start_idx = function_index timer['start']['function'], app
@@ -100,10 +116,17 @@ def compile_profiler_timers name, app
     puts "  \"#{timer_name}\","
     puts "  {&#{name}_profiled_functions[#{start_idx}], PROF_#{timer['start']['timer'].upcase}},"
     puts "  {&#{name}_profiled_functions[#{end_idx}], PROF_#{timer['end']['timer'].upcase}},"
+    ['start', 'end'].each do |stop|
+      if timer[stop]['alt']
+        puts "  #{name}_profiler_timer_#{timer_name}_alt_#{stop}, #{timer[stop]['alt'].length},"
+      else
+        puts "  NULL, 0,"
+      end
+    end
     puts "  {#{timer['ignore_sql'] ? 1 : 0}}"
     puts "},"
   end
-  puts "{NULL, {0, 0}, {0, 0}, {0}}"
+  puts "{NULL, {0, 0}, {0, 0}, NULL, 0, NULL, 0, {0}}"
   puts "};"
   puts
 end

@@ -23,87 +23,115 @@ static const profiler_timer_t magento2_profiler_timers[] = {
   "create_bootstrap",
   {&magento2_profiled_functions[1], PROF_FIRST_START},
   {&magento2_profiled_functions[1], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "create_application",
   {&magento2_profiled_functions[2], PROF_FIRST_START},
   {&magento2_profiled_functions[2], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "after_create_application",
   {&magento2_profiled_functions[2], PROF_LAST_STOP},
   {&magento2_profiled_functions[3], PROF_FIRST_START},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "parse_request",
   {&magento2_profiled_functions[3], PROF_FIRST_START},
   {&magento2_profiled_functions[3], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "configure_area",
   {&magento2_profiled_functions[3], PROF_LAST_STOP},
   {&magento2_profiled_functions[4], PROF_FIRST_START},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "loading",
   {&magento2_profiled_functions[1], PROF_FIRST_START},
   {&magento2_profiled_functions[4], PROF_FIRST_START},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "dispatch",
   {&magento2_profiled_functions[4], PROF_FIRST_START},
   {&magento2_profiled_functions[4], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "routing",
   {&magento2_profiled_functions[4], PROF_FIRST_START},
   {&magento2_profiled_functions[5], PROF_FIRST_START},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "controller",
   {&magento2_profiled_functions[5], PROF_FIRST_START},
   {&magento2_profiled_functions[5], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "between_controller_and_layout_rendering",
   {&magento2_profiled_functions[5], PROF_LAST_STOP},
   {&magento2_profiled_functions[6], PROF_FIRST_START},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "layout_rendering",
   {&magento2_profiled_functions[6], PROF_FIRST_START},
   {&magento2_profiled_functions[6], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "before_sending_response",
   {&magento2_profiled_functions[6], PROF_LAST_STOP},
   {&magento2_profiled_functions[7], PROF_FIRST_START},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "sending_response",
   {&magento2_profiled_functions[7], PROF_FIRST_START},
   {&magento2_profiled_functions[7], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "total",
   {&magento2_profiled_functions[1], PROF_FIRST_START},
   {&magento2_profiled_functions[0], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {1}
 },
-{NULL, {0, 0}, {0, 0}, {0}}
+{NULL, {0, 0}, {0, 0}, NULL, 0, NULL, 0, {0}}
 };
 
 profiled_function_t *magento2_match_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {
@@ -530,130 +558,226 @@ static profiled_function_t magento_profiled_functions[] = {
 {"Mage_Core_Model_App::run", 1, {0, QUANTA_MON_MODE_APP_PROFILING}, magento1_fetch_version, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
 {"Mage_Core_Model_App::_initBaseConfig", 2, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
 {"Mage_Core_Model_App::_initCache", 3, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Core_Model_Config::loadModulesCache", 4, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Core_Model_Config::loadModules", 5, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Core_Model_Resource_Setup::applyAllUpdates", 6, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Core_Model_Config::loadDb", 7, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Core_Model_App::_initStores", 8, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Core_Controller_Varien_Action::preDispatch", 9, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Core_Controller_Varien_Action::loadLayoutUpdates", 10, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Core_Controller_Varien_Action::renderLayout", 11, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Core_Controller_Varien_Action::postDispatch", 12, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Core_Controller_Response_Http::sendResponse", 13, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Core_Block_Abstract::toHtml", 14, {1, QUANTA_MON_MODE_APP_PROFILING}, magento1_block_before_render, magento_block_after_render, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Core_Model_Cache::flush", 15, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_flush_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Adminhtml_CacheController::flushSystemAction", 16, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_system_flush_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Core_Model_Cache::cleanType", 17, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento1_record_cache_clean_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Index_Model_Process::reindexAll", 18, {1, QUANTA_MON_MODE_EVENTS_ONLY}, NULL, magento1_record_reindex_event, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Mage_Index_Model_Indexer_Abstract::processEvent", 19, {0, QUANTA_MON_MODE_EVENTS_ONLY}, magento1_record_process_index_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"PDOStatement::execute", 20, {1, QUANTA_MON_MODE_APP_PROFILING}, NULL, magento_record_sql_query, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Model_Cache::processRequest", 4, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Model_Config::loadModulesCache", 5, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Model_Config::loadModules", 6, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Model_Resource_Setup::applyAllUpdates", 7, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Model_Config::loadDb", 8, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Model_App::loadAreaPart", 9, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Model_App::_initStores", 10, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Model_App::_initRequest", 11, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Model_Resource_Setup::applyAllDataUpdates", 12, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Controller_Varien_Action::preDispatch", 13, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Controller_Varien_Action::loadLayoutUpdates", 14, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Controller_Varien_Action::renderLayout", 15, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Controller_Varien_Action::postDispatch", 16, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Controller_Response_Http::sendResponse", 17, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Block_Abstract::toHtml", 18, {1, QUANTA_MON_MODE_APP_PROFILING}, magento1_block_before_render, magento_block_after_render, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Model_Cache::flush", 19, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_flush_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Adminhtml_CacheController::flushSystemAction", 20, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_system_flush_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Core_Model_Cache::cleanType", 21, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento1_record_cache_clean_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Index_Model_Process::reindexAll", 22, {1, QUANTA_MON_MODE_EVENTS_ONLY}, NULL, magento1_record_reindex_event, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Mage_Index_Model_Indexer_Abstract::processEvent", 23, {0, QUANTA_MON_MODE_EVENTS_ONLY}, magento1_record_process_index_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"PDOStatement::execute", 24, {1, QUANTA_MON_MODE_APP_PROFILING}, NULL, magento_record_sql_query, {0, 0, 0, 0}, {0, 0, 0, 0}},
 {NULL, 0, {0, 0}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}}
 };
 
+static const profiler_timer_function_t magento_profiler_timer_routing_alt_start[] = {
+  {&magento_profiled_functions[9], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_load_modules_alt_end[] = {
+  {&magento_profiled_functions[5], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_loading_alt_end[] = {
+  {&magento_profiled_functions[10], PROF_LAST_STOP},
+  {&magento_profiled_functions[8], PROF_LAST_STOP},
+  {&magento_profiled_functions[7], PROF_LAST_STOP},
+  {&magento_profiled_functions[6], PROF_LAST_STOP},
+  {&magento_profiled_functions[5], PROF_LAST_STOP},
+  {&magento_profiled_functions[4], PROF_LAST_STOP},
+  {&magento_profiled_functions[3], PROF_LAST_STOP},
+  {NULL, 0}
+};
 static const profiler_timer_t magento_profiler_timers[] = {
 {
   "before_init_config",
   {&magento_profiled_functions[0], PROF_FIRST_START},
   {&magento_profiled_functions[2], PROF_FIRST_START},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "init_config",
   {&magento_profiled_functions[2], PROF_FIRST_START},
   {&magento_profiled_functions[2], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "init_cache",
   {&magento_profiled_functions[3], PROF_FIRST_START},
   {&magento_profiled_functions[3], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
+  {0}
+},
+{
+  "fpc_process_request",
+  {&magento_profiled_functions[4], PROF_FIRST_START},
+  {&magento_profiled_functions[4], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "load_modules",
-  {&magento_profiled_functions[4], PROF_FIRST_START},
-  {&magento_profiled_functions[5], PROF_LAST_STOP},
+  {&magento_profiled_functions[5], PROF_FIRST_START},
+  {&magento_profiled_functions[6], PROF_LAST_STOP},
+  NULL, 0,
+  magento_profiler_timer_load_modules_alt_end, 1,
   {0}
 },
 {
   "db_updates",
-  {&magento_profiled_functions[6], PROF_FIRST_START},
-  {&magento_profiled_functions[6], PROF_LAST_STOP},
+  {&magento_profiled_functions[7], PROF_FIRST_START},
+  {&magento_profiled_functions[7], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "load_db",
-  {&magento_profiled_functions[7], PROF_FIRST_START},
-  {&magento_profiled_functions[7], PROF_LAST_STOP},
+  {&magento_profiled_functions[8], PROF_FIRST_START},
+  {&magento_profiled_functions[8], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
+  {0}
+},
+{
+  "load_area",
+  {&magento_profiled_functions[9], PROF_FIRST_START},
+  {&magento_profiled_functions[9], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "init_stores",
-  {&magento_profiled_functions[8], PROF_FIRST_START},
-  {&magento_profiled_functions[8], PROF_LAST_STOP},
+  {&magento_profiled_functions[10], PROF_FIRST_START},
+  {&magento_profiled_functions[10], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
+  {0}
+},
+{
+  "init_request",
+  {&magento_profiled_functions[11], PROF_FIRST_START},
+  {&magento_profiled_functions[11], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
+  {0}
+},
+{
+  "db_data_updates",
+  {&magento_profiled_functions[12], PROF_FIRST_START},
+  {&magento_profiled_functions[12], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "routing",
-  {&magento_profiled_functions[8], PROF_LAST_STOP},
-  {&magento_profiled_functions[9], PROF_FIRST_START},
+  {&magento_profiled_functions[12], PROF_LAST_STOP},
+  {&magento_profiled_functions[13], PROF_FIRST_START},
+  magento_profiler_timer_routing_alt_start, 1,
+  NULL, 0,
   {0}
 },
 {
   "loading",
   {&magento_profiled_functions[0], PROF_FIRST_START},
-  {&magento_profiled_functions[9], PROF_FIRST_START},
+  {&magento_profiled_functions[13], PROF_FIRST_START},
+  NULL, 0,
+  magento_profiler_timer_loading_alt_end, 7,
   {0}
 },
 {
   "before_layout_loading",
-  {&magento_profiled_functions[9], PROF_FIRST_START},
-  {&magento_profiled_functions[10], PROF_FIRST_START},
+  {&magento_profiled_functions[13], PROF_FIRST_START},
+  {&magento_profiled_functions[14], PROF_FIRST_START},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "layout_loading",
-  {&magento_profiled_functions[10], PROF_FIRST_START},
-  {&magento_profiled_functions[10], PROF_LAST_STOP},
+  {&magento_profiled_functions[14], PROF_FIRST_START},
+  {&magento_profiled_functions[14], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "between_layout_loading_and_rendering",
-  {&magento_profiled_functions[10], PROF_LAST_STOP},
-  {&magento_profiled_functions[11], PROF_FIRST_START},
+  {&magento_profiled_functions[14], PROF_LAST_STOP},
+  {&magento_profiled_functions[15], PROF_FIRST_START},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "layout_rendering",
-  {&magento_profiled_functions[11], PROF_FIRST_START},
-  {&magento_profiled_functions[11], PROF_LAST_STOP},
+  {&magento_profiled_functions[15], PROF_FIRST_START},
+  {&magento_profiled_functions[15], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "after_layout_rendering",
-  {&magento_profiled_functions[11], PROF_LAST_STOP},
-  {&magento_profiled_functions[12], PROF_LAST_STOP},
+  {&magento_profiled_functions[15], PROF_LAST_STOP},
+  {&magento_profiled_functions[16], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
+  {0}
+},
+{
+  "controller",
+  {&magento_profiled_functions[13], PROF_FIRST_START},
+  {&magento_profiled_functions[16], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "before_sending_response",
-  {&magento_profiled_functions[12], PROF_LAST_STOP},
-  {&magento_profiled_functions[13], PROF_FIRST_START},
+  {&magento_profiled_functions[16], PROF_LAST_STOP},
+  {&magento_profiled_functions[17], PROF_FIRST_START},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "sending_response",
-  {&magento_profiled_functions[13], PROF_FIRST_START},
-  {&magento_profiled_functions[13], PROF_LAST_STOP},
+  {&magento_profiled_functions[17], PROF_FIRST_START},
+  {&magento_profiled_functions[1], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {0}
 },
 {
   "total",
   {&magento_profiled_functions[0], PROF_FIRST_START},
   {&magento_profiled_functions[1], PROF_LAST_STOP},
+  NULL, 0,
+  NULL, 0,
   {1}
 },
-{NULL, {0, 0}, {0, 0}, {0}}
+{NULL, {0, 0}, {0, 0}, NULL, 0, NULL, 0, {0}}
 };
 
 profiled_function_t *magento_match_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {
@@ -776,8 +900,38 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
              const char *class_name = hp_get_class_name(data TSRMLS_CC);
              if (!class_name) return NULL;
              if (!strcmp(class_name, "Mage_Core_Model_App"))
-              return &magento_profiled_functions[8];
+              return &magento_profiled_functions[10];
              ++hp_globals.internal_match_counters.class_unmatched;
+             return NULL;
+            }
+            return NULL;
+           }
+           return NULL;
+          }
+          return NULL;
+         }
+         return NULL;
+        }
+        return NULL;
+       }
+       return NULL;
+      }
+      if (function_name[5] == 'R') {
+       if (function_name[6] == 'e') {
+        if (function_name[7] == 'q') {
+         if (function_name[8] == 'u') {
+          if (function_name[9] == 'e') {
+           if (function_name[10] == 's') {
+            if (function_name[11] == 't') {
+             if (function_name[12] == '\0') {
+              ++hp_globals.internal_match_counters.function;
+              const char *class_name = hp_get_class_name(data TSRMLS_CC);
+              if (!class_name) return NULL;
+              if (!strcmp(class_name, "Mage_Core_Model_App"))
+               return &magento_profiled_functions[11];
+              ++hp_globals.internal_match_counters.class_unmatched;
+              return NULL;
+             }
              return NULL;
             }
             return NULL;
@@ -834,7 +988,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
               const char *class_name = hp_get_class_name(data TSRMLS_CC);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Mage_Core_Controller_Varien_Action"))
-               return &magento_profiled_functions[11];
+               return &magento_profiled_functions[15];
               ++hp_globals.internal_match_counters.class_unmatched;
               return NULL;
              }
@@ -871,8 +1025,161 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
             const char *class_name = hp_get_class_name(data TSRMLS_CC);
             if (!class_name) return NULL;
             if (!strcmp(class_name, "Mage_Index_Model_Process"))
-             return &magento_profiled_functions[18];
+             return &magento_profiled_functions[22];
             ++hp_globals.internal_match_counters.class_unmatched;
+            return NULL;
+           }
+           return NULL;
+          }
+          return NULL;
+         }
+         return NULL;
+        }
+        return NULL;
+       }
+       return NULL;
+      }
+      return NULL;
+     }
+     return NULL;
+    }
+    return NULL;
+   }
+   return NULL;
+  }
+  return NULL;
+ }
+ if (function_name[0] == 'p') {
+  if (function_name[1] == 'r') {
+   if (function_name[2] == 'o') {
+    if (function_name[3] == 'c') {
+     if (function_name[4] == 'e') {
+      if (function_name[5] == 's') {
+       if (function_name[6] == 's') {
+        if (function_name[7] == 'R') {
+         if (function_name[8] == 'e') {
+          if (function_name[9] == 'q') {
+           if (function_name[10] == 'u') {
+            if (function_name[11] == 'e') {
+             if (function_name[12] == 's') {
+              if (function_name[13] == 't') {
+               if (function_name[14] == '\0') {
+                ++hp_globals.internal_match_counters.function;
+                const char *class_name = hp_get_class_name(data TSRMLS_CC);
+                if (!class_name) return NULL;
+                if (!strcmp(class_name, "Mage_Core_Model_Cache"))
+                 return &magento_profiled_functions[4];
+                ++hp_globals.internal_match_counters.class_unmatched;
+                return NULL;
+               }
+               return NULL;
+              }
+              return NULL;
+             }
+             return NULL;
+            }
+            return NULL;
+           }
+           return NULL;
+          }
+          return NULL;
+         }
+         return NULL;
+        }
+        if (function_name[7] == 'E') {
+         if (function_name[8] == 'v') {
+          if (function_name[9] == 'e') {
+           if (function_name[10] == 'n') {
+            if (function_name[11] == 't') {
+             if (function_name[12] == '\0') {
+              ++hp_globals.internal_match_counters.function;
+              const char *class_name = hp_get_class_name(data TSRMLS_CC);
+              if (!class_name) return NULL;
+              if (!strcmp(class_name, "Mage_Index_Model_Indexer_Abstract"))
+               return &magento_profiled_functions[23];
+              ++hp_globals.internal_match_counters.class_unmatched;
+              return NULL;
+             }
+             return NULL;
+            }
+            return NULL;
+           }
+           return NULL;
+          }
+          return NULL;
+         }
+         return NULL;
+        }
+        return NULL;
+       }
+       return NULL;
+      }
+      return NULL;
+     }
+     return NULL;
+    }
+    return NULL;
+   }
+   if (function_name[2] == 'e') {
+    if (function_name[3] == 'D') {
+     if (function_name[4] == 'i') {
+      if (function_name[5] == 's') {
+       if (function_name[6] == 'p') {
+        if (function_name[7] == 'a') {
+         if (function_name[8] == 't') {
+          if (function_name[9] == 'c') {
+           if (function_name[10] == 'h') {
+            if (function_name[11] == '\0') {
+             ++hp_globals.internal_match_counters.function;
+             const char *class_name = hp_get_class_name(data TSRMLS_CC);
+             if (!class_name) return NULL;
+             if (!strcmp(class_name, "Mage_Core_Controller_Varien_Action"))
+              return &magento_profiled_functions[13];
+             ++hp_globals.internal_match_counters.class_unmatched;
+             return NULL;
+            }
+            return NULL;
+           }
+           return NULL;
+          }
+          return NULL;
+         }
+         return NULL;
+        }
+        return NULL;
+       }
+       return NULL;
+      }
+      return NULL;
+     }
+     return NULL;
+    }
+    return NULL;
+   }
+   return NULL;
+  }
+  if (function_name[1] == 'o') {
+   if (function_name[2] == 's') {
+    if (function_name[3] == 't') {
+     if (function_name[4] == 'D') {
+      if (function_name[5] == 'i') {
+       if (function_name[6] == 's') {
+        if (function_name[7] == 'p') {
+         if (function_name[8] == 'a') {
+          if (function_name[9] == 't') {
+           if (function_name[10] == 'c') {
+            if (function_name[11] == 'h') {
+             if (function_name[12] == '\0') {
+              ++hp_globals.internal_match_counters.function;
+              const char *class_name = hp_get_class_name(data TSRMLS_CC);
+              if (!class_name) return NULL;
+              if (!strcmp(class_name, "Mage_Core_Controller_Varien_Action"))
+               return &magento_profiled_functions[16];
+              ++hp_globals.internal_match_counters.class_unmatched;
+              return NULL;
+             }
+             return NULL;
+            }
             return NULL;
            }
            return NULL;
@@ -916,7 +1223,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
                   const char *class_name = hp_get_class_name(data TSRMLS_CC);
                   if (!class_name) return NULL;
                   if (!strcmp(class_name, "Mage_Core_Model_Config"))
-                   return &magento_profiled_functions[4];
+                   return &magento_profiled_functions[5];
                   ++hp_globals.internal_match_counters.class_unmatched;
                   return NULL;
                  }
@@ -935,7 +1242,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
              const char *class_name = hp_get_class_name(data TSRMLS_CC);
              if (!class_name) return NULL;
              if (!strcmp(class_name, "Mage_Core_Model_Config"))
-              return &magento_profiled_functions[5];
+              return &magento_profiled_functions[6];
              ++hp_globals.internal_match_counters.class_unmatched;
              return NULL;
             }
@@ -960,8 +1267,41 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
         const char *class_name = hp_get_class_name(data TSRMLS_CC);
         if (!class_name) return NULL;
         if (!strcmp(class_name, "Mage_Core_Model_Config"))
-         return &magento_profiled_functions[7];
+         return &magento_profiled_functions[8];
         ++hp_globals.internal_match_counters.class_unmatched;
+        return NULL;
+       }
+       return NULL;
+      }
+      return NULL;
+     }
+     if (function_name[4] == 'A') {
+      if (function_name[5] == 'r') {
+       if (function_name[6] == 'e') {
+        if (function_name[7] == 'a') {
+         if (function_name[8] == 'P') {
+          if (function_name[9] == 'a') {
+           if (function_name[10] == 'r') {
+            if (function_name[11] == 't') {
+             if (function_name[12] == '\0') {
+              ++hp_globals.internal_match_counters.function;
+              const char *class_name = hp_get_class_name(data TSRMLS_CC);
+              if (!class_name) return NULL;
+              if (!strcmp(class_name, "Mage_Core_Model_App"))
+               return &magento_profiled_functions[9];
+              ++hp_globals.internal_match_counters.class_unmatched;
+              return NULL;
+             }
+             return NULL;
+            }
+            return NULL;
+           }
+           return NULL;
+          }
+          return NULL;
+         }
+         return NULL;
+        }
         return NULL;
        }
        return NULL;
@@ -986,7 +1326,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
                    const char *class_name = hp_get_class_name(data TSRMLS_CC);
                    if (!class_name) return NULL;
                    if (!strcmp(class_name, "Mage_Core_Controller_Varien_Action"))
-                    return &magento_profiled_functions[10];
+                    return &magento_profiled_functions[14];
                    ++hp_globals.internal_match_counters.class_unmatched;
                    return NULL;
                   }
@@ -1044,7 +1384,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
                  const char *class_name = hp_get_class_name(data TSRMLS_CC);
                  if (!class_name) return NULL;
                  if (!strcmp(class_name, "Mage_Core_Model_Resource_Setup"))
-                  return &magento_profiled_functions[6];
+                  return &magento_profiled_functions[7];
                  ++hp_globals.internal_match_counters.class_unmatched;
                  return NULL;
                 }
@@ -1062,119 +1402,38 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
           }
           return NULL;
          }
-         return NULL;
-        }
-        return NULL;
-       }
-       return NULL;
-      }
-      return NULL;
-     }
-     return NULL;
-    }
-    return NULL;
-   }
-   return NULL;
-  }
-  return NULL;
- }
- if (function_name[0] == 'p') {
-  if (function_name[1] == 'r') {
-   if (function_name[2] == 'e') {
-    if (function_name[3] == 'D') {
-     if (function_name[4] == 'i') {
-      if (function_name[5] == 's') {
-       if (function_name[6] == 'p') {
-        if (function_name[7] == 'a') {
-         if (function_name[8] == 't') {
-          if (function_name[9] == 'c') {
-           if (function_name[10] == 'h') {
-            if (function_name[11] == '\0') {
-             ++hp_globals.internal_match_counters.function;
-             const char *class_name = hp_get_class_name(data TSRMLS_CC);
-             if (!class_name) return NULL;
-             if (!strcmp(class_name, "Mage_Core_Controller_Varien_Action"))
-              return &magento_profiled_functions[9];
-             ++hp_globals.internal_match_counters.class_unmatched;
-             return NULL;
-            }
-            return NULL;
-           }
-           return NULL;
-          }
-          return NULL;
-         }
-         return NULL;
-        }
-        return NULL;
-       }
-       return NULL;
-      }
-      return NULL;
-     }
-     return NULL;
-    }
-    return NULL;
-   }
-   if (function_name[2] == 'o') {
-    if (function_name[3] == 'c') {
-     if (function_name[4] == 'e') {
-      if (function_name[5] == 's') {
-       if (function_name[6] == 's') {
-        if (function_name[7] == 'E') {
-         if (function_name[8] == 'v') {
-          if (function_name[9] == 'e') {
-           if (function_name[10] == 'n') {
-            if (function_name[11] == 't') {
-             if (function_name[12] == '\0') {
-              ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
-              if (!class_name) return NULL;
-              if (!strcmp(class_name, "Mage_Index_Model_Indexer_Abstract"))
-               return &magento_profiled_functions[19];
-              ++hp_globals.internal_match_counters.class_unmatched;
-              return NULL;
-             }
-             return NULL;
-            }
-            return NULL;
-           }
-           return NULL;
-          }
-          return NULL;
-         }
-         return NULL;
-        }
-        return NULL;
-       }
-       return NULL;
-      }
-      return NULL;
-     }
-     return NULL;
-    }
-    return NULL;
-   }
-   return NULL;
-  }
-  if (function_name[1] == 'o') {
-   if (function_name[2] == 's') {
-    if (function_name[3] == 't') {
-     if (function_name[4] == 'D') {
-      if (function_name[5] == 'i') {
-       if (function_name[6] == 's') {
-        if (function_name[7] == 'p') {
-         if (function_name[8] == 'a') {
-          if (function_name[9] == 't') {
-           if (function_name[10] == 'c') {
-            if (function_name[11] == 'h') {
-             if (function_name[12] == '\0') {
-              ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
-              if (!class_name) return NULL;
-              if (!strcmp(class_name, "Mage_Core_Controller_Varien_Action"))
-               return &magento_profiled_functions[12];
-              ++hp_globals.internal_match_counters.class_unmatched;
+         if (function_name[8] == 'D') {
+          if (function_name[9] == 'a') {
+           if (function_name[10] == 't') {
+            if (function_name[11] == 'a') {
+             if (function_name[12] == 'U') {
+              if (function_name[13] == 'p') {
+               if (function_name[14] == 'd') {
+                if (function_name[15] == 'a') {
+                 if (function_name[16] == 't') {
+                  if (function_name[17] == 'e') {
+                   if (function_name[18] == 's') {
+                    if (function_name[19] == '\0') {
+                     ++hp_globals.internal_match_counters.function;
+                     const char *class_name = hp_get_class_name(data TSRMLS_CC);
+                     if (!class_name) return NULL;
+                     if (!strcmp(class_name, "Mage_Core_Model_Resource_Setup"))
+                      return &magento_profiled_functions[12];
+                     ++hp_globals.internal_match_counters.class_unmatched;
+                     return NULL;
+                    }
+                    return NULL;
+                   }
+                   return NULL;
+                  }
+                  return NULL;
+                 }
+                 return NULL;
+                }
+                return NULL;
+               }
+               return NULL;
+              }
               return NULL;
              }
              return NULL;
@@ -1218,7 +1477,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
               const char *class_name = hp_get_class_name(data TSRMLS_CC);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Mage_Core_Controller_Response_Http"))
-               return &magento_profiled_functions[13];
+               return &magento_profiled_functions[17];
               ++hp_globals.internal_match_counters.class_unmatched;
               return NULL;
              }
@@ -1257,7 +1516,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
         const char *class_name = hp_get_class_name(data TSRMLS_CC);
         if (!class_name) return NULL;
         if (!strcmp(class_name, "Mage_Core_Block_Abstract"))
-         return &magento_profiled_functions[14];
+         return &magento_profiled_functions[18];
         ++hp_globals.internal_match_counters.class_unmatched;
         return NULL;
        }
@@ -1283,7 +1542,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
        const char *class_name = hp_get_class_name(data TSRMLS_CC);
        if (!class_name) return NULL;
        if (!strcmp(class_name, "Mage_Core_Model_Cache"))
-        return &magento_profiled_functions[15];
+        return &magento_profiled_functions[19];
        ++hp_globals.internal_match_counters.class_unmatched;
        return NULL;
       }
@@ -1304,7 +1563,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
                    const char *class_name = hp_get_class_name(data TSRMLS_CC);
                    if (!class_name) return NULL;
                    if (!strcmp(class_name, "Mage_Adminhtml_CacheController"))
-                    return &magento_profiled_functions[16];
+                    return &magento_profiled_functions[20];
                    ++hp_globals.internal_match_counters.class_unmatched;
                    return NULL;
                   }
@@ -1356,7 +1615,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
            const char *class_name = hp_get_class_name(data TSRMLS_CC);
            if (!class_name) return NULL;
            if (!strcmp(class_name, "Mage_Core_Model_Cache"))
-            return &magento_profiled_functions[17];
+            return &magento_profiled_functions[21];
            ++hp_globals.internal_match_counters.class_unmatched;
            return NULL;
           }
@@ -1390,7 +1649,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
          const char *class_name = hp_get_class_name(data TSRMLS_CC);
          if (!class_name) return NULL;
          if (!strcmp(class_name, "PDOStatement"))
-          return &magento_profiled_functions[20];
+          return &magento_profiled_functions[24];
          ++hp_globals.internal_match_counters.class_unmatched;
          return NULL;
         }
@@ -1414,9 +1673,9 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
 static profiled_application_t magento_profiled_application = {
 "magento",
 magento_profiled_functions,
-21,
+25,
 magento_profiler_timers,
-17,
+22,
 &magento_profiled_functions[0],
 &magento_profiled_functions[1],
 NULL, NULL, NULL,

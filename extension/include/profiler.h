@@ -103,8 +103,15 @@ typedef struct {
 
 typedef struct {
   const char *name;
+
   profiler_timer_function_t start;
   profiler_timer_function_t end;
+
+  const profiler_timer_function_t *alt_start;
+  size_t nb_alt_start;
+  const profiler_timer_function_t *alt_end;
+  size_t nb_alt_end;
+
   struct {
     uint8_t ignore_sql;
   } options;
