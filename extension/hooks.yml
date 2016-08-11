@@ -177,74 +177,99 @@ cms:
     functions:
       create_app:
         name: 'Mage_Core_Model_App::__construct'
+        tree_order: 2
       mage_run:
         name: 'Mage_Core_Model_App::run'
         begin_callback: magento1_fetch_version
+        tree_order: 15
       init_config:
         name: 'Mage_Core_Model_App::_initBaseConfig'
+        tree_order: 3
       init_cache:
         name: 'Mage_Core_Model_App::_initCache'
+        tree_order: 4
       fpc_process_request:
         name: 'Mage_Core_Model_Cache::processRequest'
+        tree_order: 16
       load_modules_cache:
         name: 'Mage_Core_Model_Config::loadModulesCache'
+        tree_order: 21
       load_modules:
         name: 'Mage_Core_Model_Config::loadModules'
+        tree_order: 22
       db_updates:
         name: 'Mage_Core_Model_Resource_Setup::applyAllUpdates'
+        tree_order: 8
       load_db:
         name: 'Mage_Core_Model_Config::loadDb'
+        tree_order: 23
       load_area:
         name: 'Mage_Core_Model_App::loadAreaPart'
+        tree_order: 24
       init_stores:
         name: 'Mage_Core_Model_App::_initStores'
+        tree_order: 5
       init_request:
         name: 'Mage_Core_Model_App::_initRequest'
+        tree_order: 6
       db_data_updates:
         name: 'Mage_Core_Model_Resource_Setup::applyAllDataUpdates'
+        tree_order: 9
       action_predispatch:
         name: 'Mage_Core_Controller_Varien_Action::preDispatch'
+        tree_order: 17
       load_layout_updates:
         name: 'Mage_Core_Controller_Varien_Action::loadLayoutUpdates'
+        tree_order: 25
       render_layout:
         name: 'Mage_Core_Controller_Varien_Action::renderLayout'
+        tree_order: 14
       action_postdispatch:
         name: 'Mage_Core_Controller_Varien_Action::postDispatch'
+        tree_order: 18
       send_response:
         name: 'Mage_Core_Controller_Response_Http::sendResponse'
+        tree_order: 7
       render_block:
         name: 'Mage_Core_Block_Abstract::toHtml'
         ignore_in_stack: true
         begin_callback: magento1_block_before_render
         end_callback: magento_block_after_render
+        tree_order: 20
       cache_flush_all:
         name: 'Mage_Core_Model_Cache::flush'
         begin_callback: magento_record_cache_flush_event
         min_profiling_level: QUANTA_MON_MODE_EVENTS_ONLY
         ignore_in_stack: true
+        tree_order: 11
       cache_flush_system:
         name: 'Mage_Adminhtml_CacheController::flushSystemAction'
         begin_callback: magento_record_cache_system_flush_event
         min_profiling_level: QUANTA_MON_MODE_EVENTS_ONLY
         ignore_in_stack: true
+        tree_order: 12
       cache_clean:
         name: 'Mage_Core_Model_Cache::cleanType'
         begin_callback: magento1_record_cache_clean_event
         min_profiling_level: QUANTA_MON_MODE_EVENTS_ONLY
         ignore_in_stack: true
+        tree_order: 1
       reindex:
         name: 'Mage_Index_Model_Process::reindexAll'
         end_callback: magento1_record_reindex_event
         min_profiling_level: QUANTA_MON_MODE_EVENTS_ONLY
         ignore_in_stack: true
+        tree_order: 13
       process_index_event:
         name: 'Mage_Index_Model_Indexer_Abstract::processEvent'
         min_profiling_level: QUANTA_MON_MODE_EVENTS_ONLY
         begin_callback: magento1_record_process_index_event
+        tree_order: 19
       sql_query:
         name: 'PDOStatement::execute'
         end_callback: magento_record_sql_query
         ignore_in_stack: true
+        tree_order: 10
 
     timers:
       before_init_config:
