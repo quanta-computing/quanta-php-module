@@ -6,132 +6,246 @@ static profiled_function_t magento2_profiled_functions[] = {
 {"Magento\\Framework\\App\\Bootstrap::createApplication", 2, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
 {"Magento\\Framework\\App\\Request\\Http::getFrontName", 3, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
 {"Magento\\Framework\\App\\FrontController\\Interceptor::dispatch", 4, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Magento\\Framework\\App\\Action\\Action::dispatch", 5, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Magento\\Framework\\View\\Result\\Page\\Interceptor::renderResult", 6, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Magento\\Framework\\App\\Response\\Http\\Interceptor::sendResponse", 7, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Magento\\Framework\\View\\Layout::_renderBlock", 8, {1, QUANTA_MON_MODE_APP_PROFILING}, magento2_block_before_render, magento_block_after_render, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushAll::execute", 9, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_flush_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushSystem::execute", 10, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_system_flush_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Magento\\Framework\\App\\Cache\\TypeList::cleanType", 11, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento2_record_cache_clean_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"Magento\\Indexer\\Model\\Indexer::reindexAll", 12, {1, QUANTA_MON_MODE_EVENTS_ONLY}, NULL, magento2_record_reindex_event, {0, 0, 0, 0}, {0, 0, 0, 0}},
-{"PDOStatement::execute", 13, {1, QUANTA_MON_MODE_APP_PROFILING}, NULL, magento_record_sql_query, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Magento\\Framework\\App\\FrontController::dispatch", 5, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Magento\\Framework\\App\\Action\\Action::dispatch", 6, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Magento\\Framework\\View\\Result\\Page\\Interceptor::renderResult", 7, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Magento\\Framework\\App\\Response\\Http\\Interceptor::sendResponse", 8, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Magento\\Framework\\View\\Layout::_renderBlock", 9, {1, QUANTA_MON_MODE_APP_PROFILING}, magento2_block_before_render, magento_block_after_render, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushAll::execute", 10, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_flush_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushSystem::execute", 11, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_system_flush_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Magento\\Framework\\App\\Cache\\TypeList::cleanType", 12, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento2_record_cache_clean_event, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"Magento\\Indexer\\Model\\Indexer::reindexAll", 13, {1, QUANTA_MON_MODE_EVENTS_ONLY}, NULL, magento2_record_reindex_event, {0, 0, 0, 0}, {0, 0, 0, 0}},
+{"PDOStatement::execute", 14, {1, QUANTA_MON_MODE_APP_PROFILING}, NULL, magento_record_sql_query, {0, 0, 0, 0}, {0, 0, 0, 0}},
 {NULL, 0, {0, 0}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}}
 };
 
+static const profiler_timer_function_t magento2_profiler_timer_create_bootstrap_start[] = {
+  {&magento2_profiled_functions[1], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_create_application_start[] = {
+  {&magento2_profiled_functions[2], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_after_create_application_start[] = {
+  {&magento2_profiled_functions[2], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_parse_request_start[] = {
+  {&magento2_profiled_functions[3], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_configure_area_start[] = {
+  {&magento2_profiled_functions[3], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_loading_start[] = {
+  {&magento2_profiled_functions[1], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_dispatch_start[] = {
+  {&magento2_profiled_functions[4], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_before_frontcontroller_dispatch_start[] = {
+  {&magento2_profiled_functions[4], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_after_frontcontroller_dispatch_start[] = {
+  {&magento2_profiled_functions[5], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_routing_start[] = {
+  {&magento2_profiled_functions[5], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_controller_start[] = {
+  {&magento2_profiled_functions[6], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_between_controller_and_layout_rendering_start[] = {
+  {&magento2_profiled_functions[6], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_layout_rendering_start[] = {
+  {&magento2_profiled_functions[7], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_before_sending_response_start[] = {
+  {&magento2_profiled_functions[7], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_sending_response_start[] = {
+  {&magento2_profiled_functions[8], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_total_start[] = {
+  {&magento2_profiled_functions[1], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_create_bootstrap_end[] = {
+  {&magento2_profiled_functions[1], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_create_application_end[] = {
+  {&magento2_profiled_functions[2], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_after_create_application_end[] = {
+  {&magento2_profiled_functions[3], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_parse_request_end[] = {
+  {&magento2_profiled_functions[3], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_configure_area_end[] = {
+  {&magento2_profiled_functions[4], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_loading_end[] = {
+  {&magento2_profiled_functions[4], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_dispatch_end[] = {
+  {&magento2_profiled_functions[4], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_before_frontcontroller_dispatch_end[] = {
+  {&magento2_profiled_functions[5], PROF_FIRST_START},
+  {&magento2_profiled_functions[4], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_after_frontcontroller_dispatch_end[] = {
+  {&magento2_profiled_functions[4], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_routing_end[] = {
+  {&magento2_profiled_functions[6], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_controller_end[] = {
+  {&magento2_profiled_functions[6], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_between_controller_and_layout_rendering_end[] = {
+  {&magento2_profiled_functions[7], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_layout_rendering_end[] = {
+  {&magento2_profiled_functions[7], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_before_sending_response_end[] = {
+  {&magento2_profiled_functions[8], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_sending_response_end[] = {
+  {&magento2_profiled_functions[8], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_total_end[] = {
+  {&magento2_profiled_functions[0], PROF_LAST_STOP},
+  {NULL, 0}
+};
 static const profiler_timer_t magento2_profiler_timers[] = {
 {
   "create_bootstrap",
-  {&magento2_profiled_functions[1], PROF_FIRST_START},
-  {&magento2_profiled_functions[1], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento2_profiler_timer_create_bootstrap_start, 1,
+  magento2_profiler_timer_create_bootstrap_end, 1,
   {0}
 },
 {
   "create_application",
-  {&magento2_profiled_functions[2], PROF_FIRST_START},
-  {&magento2_profiled_functions[2], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento2_profiler_timer_create_application_start, 1,
+  magento2_profiler_timer_create_application_end, 1,
   {0}
 },
 {
   "after_create_application",
-  {&magento2_profiled_functions[2], PROF_LAST_STOP},
-  {&magento2_profiled_functions[3], PROF_FIRST_START},
-  NULL, 0,
-  NULL, 0,
+  magento2_profiler_timer_after_create_application_start, 1,
+  magento2_profiler_timer_after_create_application_end, 1,
   {0}
 },
 {
   "parse_request",
-  {&magento2_profiled_functions[3], PROF_FIRST_START},
-  {&magento2_profiled_functions[3], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento2_profiler_timer_parse_request_start, 1,
+  magento2_profiler_timer_parse_request_end, 1,
   {0}
 },
 {
   "configure_area",
-  {&magento2_profiled_functions[3], PROF_LAST_STOP},
-  {&magento2_profiled_functions[4], PROF_FIRST_START},
-  NULL, 0,
-  NULL, 0,
+  magento2_profiler_timer_configure_area_start, 1,
+  magento2_profiler_timer_configure_area_end, 1,
   {0}
 },
 {
   "loading",
-  {&magento2_profiled_functions[1], PROF_FIRST_START},
-  {&magento2_profiled_functions[4], PROF_FIRST_START},
-  NULL, 0,
-  NULL, 0,
+  magento2_profiler_timer_loading_start, 1,
+  magento2_profiler_timer_loading_end, 1,
   {0}
 },
 {
   "dispatch",
-  {&magento2_profiled_functions[4], PROF_FIRST_START},
-  {&magento2_profiled_functions[4], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento2_profiler_timer_dispatch_start, 1,
+  magento2_profiler_timer_dispatch_end, 1,
+  {0}
+},
+{
+  "before_frontcontroller_dispatch",
+  magento2_profiler_timer_before_frontcontroller_dispatch_start, 1,
+  magento2_profiler_timer_before_frontcontroller_dispatch_end, 2,
+  {0}
+},
+{
+  "after_frontcontroller_dispatch",
+  magento2_profiler_timer_after_frontcontroller_dispatch_start, 1,
+  magento2_profiler_timer_after_frontcontroller_dispatch_end, 1,
   {0}
 },
 {
   "routing",
-  {&magento2_profiled_functions[4], PROF_FIRST_START},
-  {&magento2_profiled_functions[5], PROF_FIRST_START},
-  NULL, 0,
-  NULL, 0,
+  magento2_profiler_timer_routing_start, 1,
+  magento2_profiler_timer_routing_end, 1,
   {0}
 },
 {
   "controller",
-  {&magento2_profiled_functions[5], PROF_FIRST_START},
-  {&magento2_profiled_functions[5], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento2_profiler_timer_controller_start, 1,
+  magento2_profiler_timer_controller_end, 1,
   {0}
 },
 {
   "between_controller_and_layout_rendering",
-  {&magento2_profiled_functions[5], PROF_LAST_STOP},
-  {&magento2_profiled_functions[6], PROF_FIRST_START},
-  NULL, 0,
-  NULL, 0,
+  magento2_profiler_timer_between_controller_and_layout_rendering_start, 1,
+  magento2_profiler_timer_between_controller_and_layout_rendering_end, 1,
   {0}
 },
 {
   "layout_rendering",
-  {&magento2_profiled_functions[6], PROF_FIRST_START},
-  {&magento2_profiled_functions[6], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento2_profiler_timer_layout_rendering_start, 1,
+  magento2_profiler_timer_layout_rendering_end, 1,
   {0}
 },
 {
   "before_sending_response",
-  {&magento2_profiled_functions[6], PROF_LAST_STOP},
-  {&magento2_profiled_functions[7], PROF_FIRST_START},
-  NULL, 0,
-  NULL, 0,
+  magento2_profiler_timer_before_sending_response_start, 1,
+  magento2_profiler_timer_before_sending_response_end, 1,
   {0}
 },
 {
   "sending_response",
-  {&magento2_profiled_functions[7], PROF_FIRST_START},
-  {&magento2_profiled_functions[7], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento2_profiler_timer_sending_response_start, 1,
+  magento2_profiler_timer_sending_response_end, 1,
   {0}
 },
 {
   "total",
-  {&magento2_profiled_functions[1], PROF_FIRST_START},
-  {&magento2_profiled_functions[0], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento2_profiler_timer_total_start, 1,
+  magento2_profiler_timer_total_end, 1,
   {1}
 },
-{NULL, {0, 0}, {0, 0}, NULL, 0, NULL, 0, {0}}
+{NULL, NULL, 0, NULL, 0, {0}}
 };
 
 profiled_function_t *magento2_match_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {
@@ -153,7 +267,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
               const char *class_name = hp_get_class_name(data TSRMLS_CC);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Magento\\Framework\\App\\Response\\Http\\Interceptor"))
-               return &magento2_profiled_functions[7];
+               return &magento2_profiled_functions[8];
               ++hp_globals.internal_match_counters.class_unmatched;
               return NULL;
              }
@@ -243,7 +357,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
               const char *class_name = hp_get_class_name(data TSRMLS_CC);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Magento\\Framework\\View\\Layout"))
-               return &magento2_profiled_functions[8];
+               return &magento2_profiled_functions[9];
               ++hp_globals.internal_match_counters.class_unmatched;
               return NULL;
              }
@@ -351,7 +465,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
            const char *class_name = hp_get_class_name(data TSRMLS_CC);
            if (!class_name) return NULL;
            if (!strcmp(class_name, "Magento\\Framework\\App\\Cache\\TypeList"))
-            return &magento2_profiled_functions[11];
+            return &magento2_profiled_functions[12];
            ++hp_globals.internal_match_counters.class_unmatched;
            return NULL;
           }
@@ -385,11 +499,11 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
          const char *class_name = hp_get_class_name(data TSRMLS_CC);
          if (!class_name) return NULL;
          if (!strcmp(class_name, "PDOStatement"))
-          return &magento2_profiled_functions[13];
+          return &magento2_profiled_functions[14];
          if (!strcmp(class_name, "Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushAll"))
-          return &magento2_profiled_functions[9];
-         if (!strcmp(class_name, "Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushSystem"))
           return &magento2_profiled_functions[10];
+         if (!strcmp(class_name, "Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushSystem"))
+          return &magento2_profiled_functions[11];
          ++hp_globals.internal_match_counters.class_unmatched;
          return NULL;
         }
@@ -420,6 +534,8 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
           const char *class_name = hp_get_class_name(data TSRMLS_CC);
           if (!class_name) return NULL;
           if (!strcmp(class_name, "Magento\\Framework\\App\\Action\\Action"))
+           return &magento2_profiled_functions[6];
+          if (!strcmp(class_name, "Magento\\Framework\\App\\FrontController"))
            return &magento2_profiled_functions[5];
           if (!strcmp(class_name, "Magento\\Framework\\App\\FrontController\\Interceptor"))
            return &magento2_profiled_functions[4];
@@ -459,7 +575,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
               const char *class_name = hp_get_class_name(data TSRMLS_CC);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Magento\\Framework\\View\\Result\\Page\\Interceptor"))
-               return &magento2_profiled_functions[6];
+               return &magento2_profiled_functions[7];
               ++hp_globals.internal_match_counters.class_unmatched;
               return NULL;
              }
@@ -496,7 +612,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
             const char *class_name = hp_get_class_name(data TSRMLS_CC);
             if (!class_name) return NULL;
             if (!strcmp(class_name, "Magento\\Indexer\\Model\\Indexer"))
-             return &magento2_profiled_functions[12];
+             return &magento2_profiled_functions[13];
             ++hp_globals.internal_match_counters.class_unmatched;
             return NULL;
            }
@@ -541,9 +657,9 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
 static profiled_application_t magento2_profiled_application = {
 "magento2",
 magento2_profiled_functions,
-14,
+15,
 magento2_profiler_timers,
-14,
+16,
 &magento2_profiled_functions[1],
 &magento2_profiled_functions[0],
 NULL, NULL, NULL,
@@ -582,15 +698,146 @@ static profiled_function_t magento_profiled_functions[] = {
 {NULL, 0, {0, 0}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}}
 };
 
-static const profiler_timer_function_t magento_profiler_timer_routing_alt_start[] = {
+static const profiler_timer_function_t magento_profiler_timer_before_init_config_start[] = {
+  {&magento_profiled_functions[0], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_init_config_start[] = {
+  {&magento_profiled_functions[2], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_init_cache_start[] = {
+  {&magento_profiled_functions[3], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_fpc_process_request_start[] = {
+  {&magento_profiled_functions[4], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_load_modules_start[] = {
+  {&magento_profiled_functions[5], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_db_updates_start[] = {
+  {&magento_profiled_functions[7], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_load_db_start[] = {
+  {&magento_profiled_functions[8], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_load_area_start[] = {
+  {&magento_profiled_functions[9], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_init_stores_start[] = {
+  {&magento_profiled_functions[10], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_init_request_start[] = {
+  {&magento_profiled_functions[11], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_db_data_updates_start[] = {
+  {&magento_profiled_functions[12], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_routing_start[] = {
+  {&magento_profiled_functions[12], PROF_LAST_STOP},
   {&magento_profiled_functions[9], PROF_LAST_STOP},
   {NULL, 0}
 };
-static const profiler_timer_function_t magento_profiler_timer_load_modules_alt_end[] = {
+static const profiler_timer_function_t magento_profiler_timer_loading_start[] = {
+  {&magento_profiled_functions[0], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_before_layout_loading_start[] = {
+  {&magento_profiled_functions[13], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_layout_loading_start[] = {
+  {&magento_profiled_functions[14], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_between_layout_loading_and_rendering_start[] = {
+  {&magento_profiled_functions[14], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_layout_rendering_start[] = {
+  {&magento_profiled_functions[15], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_after_layout_rendering_start[] = {
+  {&magento_profiled_functions[15], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_controller_start[] = {
+  {&magento_profiled_functions[13], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_before_sending_response_start[] = {
+  {&magento_profiled_functions[16], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_sending_response_start[] = {
+  {&magento_profiled_functions[17], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_total_start[] = {
+  {&magento_profiled_functions[0], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_before_init_config_end[] = {
+  {&magento_profiled_functions[2], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_init_config_end[] = {
+  {&magento_profiled_functions[2], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_init_cache_end[] = {
+  {&magento_profiled_functions[3], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_fpc_process_request_end[] = {
+  {&magento_profiled_functions[4], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_load_modules_end[] = {
+  {&magento_profiled_functions[6], PROF_LAST_STOP},
   {&magento_profiled_functions[5], PROF_LAST_STOP},
   {NULL, 0}
 };
-static const profiler_timer_function_t magento_profiler_timer_loading_alt_end[] = {
+static const profiler_timer_function_t magento_profiler_timer_db_updates_end[] = {
+  {&magento_profiled_functions[7], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_load_db_end[] = {
+  {&magento_profiled_functions[8], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_load_area_end[] = {
+  {&magento_profiled_functions[9], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_init_stores_end[] = {
+  {&magento_profiled_functions[10], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_init_request_end[] = {
+  {&magento_profiled_functions[11], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_db_data_updates_end[] = {
+  {&magento_profiled_functions[12], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_routing_end[] = {
+  {&magento_profiled_functions[13], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_loading_end[] = {
+  {&magento_profiled_functions[13], PROF_FIRST_START},
   {&magento_profiled_functions[10], PROF_LAST_STOP},
   {&magento_profiled_functions[8], PROF_LAST_STOP},
   {&magento_profiled_functions[7], PROF_LAST_STOP},
@@ -598,186 +845,178 @@ static const profiler_timer_function_t magento_profiler_timer_loading_alt_end[] 
   {&magento_profiled_functions[5], PROF_LAST_STOP},
   {&magento_profiled_functions[4], PROF_LAST_STOP},
   {&magento_profiled_functions[3], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_before_layout_loading_end[] = {
+  {&magento_profiled_functions[14], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_layout_loading_end[] = {
+  {&magento_profiled_functions[14], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_between_layout_loading_and_rendering_end[] = {
+  {&magento_profiled_functions[15], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_layout_rendering_end[] = {
+  {&magento_profiled_functions[15], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_after_layout_rendering_end[] = {
+  {&magento_profiled_functions[16], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_controller_end[] = {
+  {&magento_profiled_functions[16], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_before_sending_response_end[] = {
+  {&magento_profiled_functions[17], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_sending_response_end[] = {
+  {&magento_profiled_functions[1], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento_profiler_timer_total_end[] = {
+  {&magento_profiled_functions[1], PROF_LAST_STOP},
   {NULL, 0}
 };
 static const profiler_timer_t magento_profiler_timers[] = {
 {
   "before_init_config",
-  {&magento_profiled_functions[0], PROF_FIRST_START},
-  {&magento_profiled_functions[2], PROF_FIRST_START},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_before_init_config_start, 1,
+  magento_profiler_timer_before_init_config_end, 1,
   {0}
 },
 {
   "init_config",
-  {&magento_profiled_functions[2], PROF_FIRST_START},
-  {&magento_profiled_functions[2], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_init_config_start, 1,
+  magento_profiler_timer_init_config_end, 1,
   {0}
 },
 {
   "init_cache",
-  {&magento_profiled_functions[3], PROF_FIRST_START},
-  {&magento_profiled_functions[3], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_init_cache_start, 1,
+  magento_profiler_timer_init_cache_end, 1,
   {0}
 },
 {
   "fpc_process_request",
-  {&magento_profiled_functions[4], PROF_FIRST_START},
-  {&magento_profiled_functions[4], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_fpc_process_request_start, 1,
+  magento_profiler_timer_fpc_process_request_end, 1,
   {0}
 },
 {
   "load_modules",
-  {&magento_profiled_functions[5], PROF_FIRST_START},
-  {&magento_profiled_functions[6], PROF_LAST_STOP},
-  NULL, 0,
-  magento_profiler_timer_load_modules_alt_end, 1,
+  magento_profiler_timer_load_modules_start, 1,
+  magento_profiler_timer_load_modules_end, 2,
   {0}
 },
 {
   "db_updates",
-  {&magento_profiled_functions[7], PROF_FIRST_START},
-  {&magento_profiled_functions[7], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_db_updates_start, 1,
+  magento_profiler_timer_db_updates_end, 1,
   {0}
 },
 {
   "load_db",
-  {&magento_profiled_functions[8], PROF_FIRST_START},
-  {&magento_profiled_functions[8], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_load_db_start, 1,
+  magento_profiler_timer_load_db_end, 1,
   {0}
 },
 {
   "load_area",
-  {&magento_profiled_functions[9], PROF_FIRST_START},
-  {&magento_profiled_functions[9], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_load_area_start, 1,
+  magento_profiler_timer_load_area_end, 1,
   {0}
 },
 {
   "init_stores",
-  {&magento_profiled_functions[10], PROF_FIRST_START},
-  {&magento_profiled_functions[10], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_init_stores_start, 1,
+  magento_profiler_timer_init_stores_end, 1,
   {0}
 },
 {
   "init_request",
-  {&magento_profiled_functions[11], PROF_FIRST_START},
-  {&magento_profiled_functions[11], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_init_request_start, 1,
+  magento_profiler_timer_init_request_end, 1,
   {0}
 },
 {
   "db_data_updates",
-  {&magento_profiled_functions[12], PROF_FIRST_START},
-  {&magento_profiled_functions[12], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_db_data_updates_start, 1,
+  magento_profiler_timer_db_data_updates_end, 1,
   {0}
 },
 {
   "routing",
-  {&magento_profiled_functions[12], PROF_LAST_STOP},
-  {&magento_profiled_functions[13], PROF_FIRST_START},
-  magento_profiler_timer_routing_alt_start, 1,
-  NULL, 0,
+  magento_profiler_timer_routing_start, 2,
+  magento_profiler_timer_routing_end, 1,
   {0}
 },
 {
   "loading",
-  {&magento_profiled_functions[0], PROF_FIRST_START},
-  {&magento_profiled_functions[13], PROF_FIRST_START},
-  NULL, 0,
-  magento_profiler_timer_loading_alt_end, 7,
+  magento_profiler_timer_loading_start, 1,
+  magento_profiler_timer_loading_end, 8,
   {0}
 },
 {
   "before_layout_loading",
-  {&magento_profiled_functions[13], PROF_FIRST_START},
-  {&magento_profiled_functions[14], PROF_FIRST_START},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_before_layout_loading_start, 1,
+  magento_profiler_timer_before_layout_loading_end, 1,
   {0}
 },
 {
   "layout_loading",
-  {&magento_profiled_functions[14], PROF_FIRST_START},
-  {&magento_profiled_functions[14], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_layout_loading_start, 1,
+  magento_profiler_timer_layout_loading_end, 1,
   {0}
 },
 {
   "between_layout_loading_and_rendering",
-  {&magento_profiled_functions[14], PROF_LAST_STOP},
-  {&magento_profiled_functions[15], PROF_FIRST_START},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_between_layout_loading_and_rendering_start, 1,
+  magento_profiler_timer_between_layout_loading_and_rendering_end, 1,
   {0}
 },
 {
   "layout_rendering",
-  {&magento_profiled_functions[15], PROF_FIRST_START},
-  {&magento_profiled_functions[15], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_layout_rendering_start, 1,
+  magento_profiler_timer_layout_rendering_end, 1,
   {0}
 },
 {
   "after_layout_rendering",
-  {&magento_profiled_functions[15], PROF_LAST_STOP},
-  {&magento_profiled_functions[16], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_after_layout_rendering_start, 1,
+  magento_profiler_timer_after_layout_rendering_end, 1,
   {0}
 },
 {
   "controller",
-  {&magento_profiled_functions[13], PROF_FIRST_START},
-  {&magento_profiled_functions[16], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_controller_start, 1,
+  magento_profiler_timer_controller_end, 1,
   {0}
 },
 {
   "before_sending_response",
-  {&magento_profiled_functions[16], PROF_LAST_STOP},
-  {&magento_profiled_functions[17], PROF_FIRST_START},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_before_sending_response_start, 1,
+  magento_profiler_timer_before_sending_response_end, 1,
   {0}
 },
 {
   "sending_response",
-  {&magento_profiled_functions[17], PROF_FIRST_START},
-  {&magento_profiled_functions[1], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_sending_response_start, 1,
+  magento_profiler_timer_sending_response_end, 1,
   {0}
 },
 {
   "total",
-  {&magento_profiled_functions[0], PROF_FIRST_START},
-  {&magento_profiled_functions[1], PROF_LAST_STOP},
-  NULL, 0,
-  NULL, 0,
+  magento_profiler_timer_total_start, 1,
+  magento_profiler_timer_total_end, 1,
   {1}
 },
-{NULL, {0, 0}, {0, 0}, NULL, 0, NULL, 0, {0}}
+{NULL, NULL, 0, NULL, 0, {0}}
 };
 
 profiled_function_t *magento_match_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {

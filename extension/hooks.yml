@@ -19,8 +19,11 @@ cms:
       get_front_name:
         name: 'Magento\Framework\App\Request\Http::getFrontName'
         tree_order: 0
-      frontcontroller_dispatch:
+      frontcontroller_interceptor_dispatch:
         name: 'Magento\Framework\App\FrontController\Interceptor::dispatch'
+        tree_order: 13
+      frontcontroller_dispatch:
+        name: 'Magento\Framework\App\FrontController::dispatch'
         tree_order: 13
       action_dispatch:
         name: 'Magento\Framework\App\Action\Action::dispatch'
@@ -100,21 +103,39 @@ cms:
           function: get_front_name
           timer: last_stop
         end:
-          function: frontcontroller_dispatch
+          function: frontcontroller_interceptor_dispatch
           timer: first_start
       loading:
         start:
           function: bootstrap_create
           timer: first_start
         end:
-          function: frontcontroller_dispatch
+          function: frontcontroller_interceptor_dispatch
           timer: first_start
       dispatch:
         start:
-          function: frontcontroller_dispatch
+          function: frontcontroller_interceptor_dispatch
           timer: first_start
         end:
+          function: frontcontroller_interceptor_dispatch
+          timer: last_stop
+      before_frontcontroller_dispatch:
+        start:
+          function: frontcontroller_interceptor_dispatch
+          timer: first_start
+        end:
+          -
+            function: frontcontroller_dispatch
+            timer: first_start
+          -
+            function: frontcontroller_interceptor_dispatch
+            timer: last_stop
+      after_frontcontroller_dispatch:
+        start:
           function: frontcontroller_dispatch
+          timer: last_stop
+        end:
+          function: frontcontroller_interceptor_dispatch
           timer: last_stop
       routing:
         start:
@@ -305,12 +326,12 @@ cms:
           function: load_modules_cache
           timer: first_start
         end:
-          function: load_modules
-          timer: last_stop
-          alt:
-            -
-              function: load_modules_cache
-              timer: last_stop
+          -
+            function: load_modules
+            timer: last_stop
+          -
+            function: load_modules_cache
+            timer: last_stop
       db_updates:
         start:
           function: db_updates
@@ -355,12 +376,12 @@ cms:
           timer: last_stop
       routing:
         start:
-          function: db_data_updates
-          timer: last_stop
-          alt:
-            -
-              function: load_area
-              timer: last_stop
+          -
+            function: db_data_updates
+            timer: last_stop
+          -
+            function: load_area
+            timer: last_stop
         end:
           function: action_predispatch
           timer: first_start
@@ -369,30 +390,30 @@ cms:
           function: create_app
           timer: first_start
         end:
-          function: action_predispatch
-          timer: first_start
-          alt:
-            -
-              function: init_stores
-              timer: last_stop
-            -
-              function: load_db
-              timer: last_stop
-            -
-              function: db_updates
-              timer: last_stop
-            -
-              function: load_modules
-              timer: last_stop
-            -
-              function: load_modules_cache
-              timer: last_stop
-            -
-              function: fpc_process_request
-              timer: last_stop
-            -
-              function: init_cache
-              timer: last_stop
+          -
+            function: action_predispatch
+            timer: first_start
+          -
+            function: init_stores
+            timer: last_stop
+          -
+            function: load_db
+            timer: last_stop
+          -
+            function: db_updates
+            timer: last_stop
+          -
+            function: load_modules
+            timer: last_stop
+          -
+            function: load_modules_cache
+            timer: last_stop
+          -
+            function: fpc_process_request
+            timer: last_stop
+          -
+            function: init_cache
+            timer: last_stop
       before_layout_loading:
         start:
           function: action_predispatch
