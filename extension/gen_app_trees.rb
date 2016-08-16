@@ -91,13 +91,13 @@ def function_index function_name, app
   end
 end
 
-def compile_profiler_timers_alt name, app, stop
+def compile_profiler_timers_stop name, app, stop
   app['timers'].each do |timer_name, timer|
-    next if timer[stop]['alt'].nil?
-    puts "static const profiler_timer_function_t #{name}_profiler_timer_#{timer_name}_alt_#{stop}[] = {"
-    timer[stop]['alt'].each do |alt_stop|
-      idx = function_index alt_stop['function'], app
-      puts "  {&#{name}_profiled_functions[#{idx}], PROF_#{alt_stop['timer'].upcase}},"
+    puts "static const profiler_timer_function_t #{name}_profiler_timer_#{timer_name}_#{stop}[] = {"
+    timer[stop] = timer[stop].is_a?(Hash) ? [timer[stop]] : timer[stop]
+    timer[stop].each do |stop_timer|
+      idx = function_index stop_timer['function'], app
+      puts "  {&#{name}_profiled_functions[#{idx}], PROF_#{stop_timer['timer'].upcase}},"
     end
     puts "  {NULL, 0}"
     puts "};"
@@ -106,27 +106,18 @@ end
 
 def compile_profiler_timers name, app
   ['start', 'end'].each do |stop|
-    compile_profiler_timers_alt name, app, stop
+    compile_profiler_timers_stop name, app, stop
   end
   puts "static const profiler_timer_t #{name}_profiler_timers[] = {"
   app['timers'].each do |timer_name, timer|
-    start_idx = function_index timer['start']['function'], app
-    end_idx = function_index timer['end']['function'], app
     puts "{"
     puts "  \"#{timer_name}\","
-    puts "  {&#{name}_profiled_functions[#{start_idx}], PROF_#{timer['start']['timer'].upcase}},"
-    puts "  {&#{name}_profiled_functions[#{end_idx}], PROF_#{timer['end']['timer'].upcase}},"
-    ['start', 'end'].each do |stop|
-      if timer[stop]['alt']
-        puts "  #{name}_profiler_timer_#{timer_name}_alt_#{stop}, #{timer[stop]['alt'].length},"
-      else
-        puts "  NULL, 0,"
-      end
-    end
+    puts "  #{name}_profiler_timer_#{timer_name}_start, #{timer['start'].length},"
+    puts "  #{name}_profiler_timer_#{timer_name}_end, #{timer['end'].length},"
     puts "  {#{timer['ignore_sql'] ? 1 : 0}}"
     puts "},"
   end
-  puts "{NULL, {0, 0}, {0, 0}, NULL, 0, NULL, 0, {0}}"
+  puts "{NULL, NULL, 0, NULL, 0, {0}}"
   puts "};"
   puts
 end

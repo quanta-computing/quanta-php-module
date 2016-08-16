@@ -10,23 +10,23 @@ const profiler_timer_t *timer, struct timeval *clock, monikor_metric_list_t *met
 
   if (timer->options.ignore_sql)
     return;
-  if (timer->start.counter == PROF_FIRST_STOP
-  || timer->start.counter == PROF_LAST_STOP) {
-    cycles += timer->start.function->sql_counters.cycles_after;
-    count += timer->start.function->sql_counters.count_after;
-    i = timer->start.function->index + 1;
+  if (timer->start[0].counter == PROF_FIRST_STOP
+  || timer->start[0].counter == PROF_LAST_STOP) {
+    cycles += timer->start[0].function->sql_counters.cycles_after;
+    count += timer->start[0].function->sql_counters.count_after;
+    i = timer->start[0].function->index + 1;
   } else {
     cycles = 0;
     count = 0;
-    i = timer->start.function->index;
+    i = timer->start[0].function->index;
   }
-  for (; i < timer->end.function->index; i++) {
+  for (; i < timer->end[0].function->index; i++) {
     cycles += app->functions[i].sql_counters.cycles + app->functions[i].sql_counters.cycles_after;
     count += app->functions[i].sql_counters.count + app->functions[i].sql_counters.count_after;
   }
-  if (timer->end.counter == PROF_FIRST_STOP || timer->end.counter == PROF_LAST_STOP) {
-    cycles += timer->end.function->sql_counters.cycles;
-    count += timer->end.function->sql_counters.count;
+  if (timer->end[0].counter == PROF_FIRST_STOP || timer->end[0].counter == PROF_LAST_STOP) {
+    cycles += timer->end[0].function->sql_counters.cycles;
+    count += timer->end[0].function->sql_counters.count;
   }
   strcpy(metric_base_end, "sql.time");
   metric = monikor_metric_float(metric_name, clock, cpu_cycles_to_ms(cpufreq, cycles), 0);
@@ -55,24 +55,25 @@ static inline uint64_t fetch_timed_function_counter_value(const profiler_timer_f
   }
 }
 
-static void qm_send_profiled_function_time_metrics(char *metric_name, char *metric_base_end,
+static int qm_send_profiled_function_time_metrics(char *metric_name, char *metric_base_end,
 const profiler_timer_t *timer, struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
   monikor_metric_t *metric;
-  uint64_t start;
-  uint64_t end;
+  uint64_t start = 0;
+  uint64_t end = 0;
   size_t i;
 
-  start = fetch_timed_function_counter_value(&timer->start);
-  for (i = 0; !start && i < timer->nb_alt_start; i++)
-    start = fetch_timed_function_counter_value(&timer->alt_start[i]);
-  end = fetch_timed_function_counter_value(&timer->end);
-  for (i = 0; !end && i < timer->nb_alt_end; i++)
-    end = fetch_timed_function_counter_value(&timer->alt_end[i]);
+  for (i = 0; !start && i < timer->nb_start; i++)
+    start = fetch_timed_function_counter_value(&timer->start[i]);
+  for (i = 0; !end && i < timer->nb_end; i++)
+    end = fetch_timed_function_counter_value(&timer->end[i]);
   strcpy(metric_base_end, "time");
   metric = monikor_metric_float(metric_name, clock, cpu_cycles_range_to_ms(cpufreq, start, end), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
   PRINTF_QUANTA("METRIC %s: %f\n", metric_name, cpu_cycles_range_to_ms(cpufreq, start, end));
+  if (!end || !start || start > end)
+    return -1;
+  return 0;
 }
 
 static void qm_send_profiled_functions_metrics(char *metric_name, char *metric_base_end,
@@ -83,12 +84,15 @@ struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
   if (hp_globals.profiler_level != QUANTA_MON_MODE_APP_PROFILING)
     return;
   for (i = 0; i < app->nb_timers; i++) {
+    int ret = -1;
     char *metric_timer_end = metric_base_end + strlen(app->timers[i].name) + 1;
+
     sprintf(metric_base_end, "%s.", app->timers[i].name);
-    qm_send_profiled_function_time_metrics(metric_name, metric_timer_end, &app->timers[i],
+    ret = qm_send_profiled_function_time_metrics(metric_name, metric_timer_end, &app->timers[i],
       clock, metrics, cpufreq);
-    qm_send_profiled_function_sql_metrics(metric_name, metric_timer_end, &app->timers[i],
-      clock, metrics, cpufreq);
+    if (!ret)
+      qm_send_profiled_function_sql_metrics(metric_name, metric_timer_end, &app->timers[i],
+        clock, metrics, cpufreq);
   }
 }
 
