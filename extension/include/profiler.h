@@ -55,6 +55,13 @@ typedef struct applicative_event {
   char *subtype;
 } applicative_event_t;
 
+typedef struct sql_query_record_t {
+  struct sql_query_record_t *next;
+  char *query;
+  uint64_t tsc_start;
+  uint64_t tsc_stop;
+} sql_query_record_t;
+
 typedef struct profiled_application_t profiled_application_t;
 typedef struct profiled_function_t profiled_function_t;
 
@@ -81,13 +88,16 @@ struct profiled_function_t {
   } tsc;
 
   struct {
-    uint64_t cycles;
-    uint64_t count;
-    uint64_t cycles_after;
-    uint64_t count_after;
-  } sql_counters;
+    sql_query_record_t *first;
+    sql_query_record_t *last;
+  } sql_queries;
 
 };
+
+typedef struct profiled_function_stack_t {
+  struct profiled_function_stack_t *prev;
+  profiled_function_t *function;
+} profiled_function_stack_t;
 
 typedef enum {
   PROF_FIRST_START,
@@ -125,8 +135,12 @@ struct profiled_application_t {
   profiled_function_t *first_app_function;
   profiled_function_t *last_app_function;
 
-  profiled_function_t *current_function;
-  profiled_function_t *last_function;
+  profiled_function_stack_t *function_stack;
+  struct {
+    sql_query_record_t *first;
+    sql_query_record_t *last;
+  } sql_queries;
+
   void *context;
 
   void *(*create_context)(struct profiled_application_t *app TSRMLS_DC);

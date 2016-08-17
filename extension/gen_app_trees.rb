@@ -78,9 +78,9 @@ def compile_profiled_functions name, app
     min_level = function['min_profiling_level'] || 'QUANTA_MON_MODE_APP_PROFILING'
     puts "{\"#{function['name'].gsub '\\', '\\\\\\\\'}\", #{index}, {#{
       ignore_in_stack}, #{min_level}}, #{
-      begin_cb}, #{end_cb}, {0, 0, 0, 0}, {0, 0, 0, 0}},"
+      begin_cb}, #{end_cb}, {0, 0, 0, 0}, {NULL, NULL}},"
   end
-  puts "{NULL, 0, {0, 0}, NULL, NULL, {0, 0, 0, 0}, {0, 0, 0, 0}}"
+  puts "{NULL, 0, {0, 0}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}}"
   puts "};"
   puts
 end
@@ -139,7 +139,9 @@ def compile_profiled_application name, app
   puts "#{app['timers'].length},"
   puts "&#{name}_profiled_functions[#{first_idx}],"
   puts "&#{name}_profiled_functions[#{last_idx}],"
-  puts "NULL, NULL, NULL,"
+  puts "NULL,"
+  puts "{NULL, NULL},"
+  puts "NULL,"
   puts "#{app['create_context_callback'] || 'NULL'},"
   puts "#{app['cleanup_context_callback'] || 'NULL'},"
   puts "#{name}_match_function,"

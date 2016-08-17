@@ -4,6 +4,7 @@
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
+#include "ext/pdo/php_pdo_driver.h"
 #include "zend_extensions.h"
 #include <SAPI.h>
 #include <sys/time.h>

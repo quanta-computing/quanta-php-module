@@ -180,7 +180,6 @@ cms:
           function: send_response
           timer: last_stop
       total:
-        ignore_sql: true
         start:
           function: bootstrap_create
           timer: first_start
@@ -471,7 +470,6 @@ cms:
           function: mage_run
           timer: last_stop
       total:
-        ignore_sql: true
         start:
           function: create_app
           timer: first_start
