@@ -45,8 +45,17 @@ zend_execute_data *ex TSRMLS_DC) {
     PRINTF_QUANTA("Cannot get magento2 version\n");
     goto end;
   }
-  ret = safe_get_class_constant("Magento\\Framework\\App\\ProductMetadata",
+  /* Try enterprise version first and then fallback to standard location
+  ** This is a hack since we guess the correct implementation of ProductMetadataInterface, a better
+  ** but more expensive way would be to fetch the actual ProductMetadataInterface implementation
+  ** from the object Manager
+  */
+  ret = safe_get_class_constant("Magento\\Enterprise\\Model\\ProductMetadata",
     "EDITION_NAME", &edition, IS_STRING TSRMLS_CC);
+  if (ret) {
+    ret = safe_get_class_constant("Magento\\Framework\\App\\ProductMetadata",
+      "EDITION_NAME", &edition, IS_STRING TSRMLS_CC);
+  }
   if (!ret)
     context->edition = estrdup(Z_STRVAL(edition));
 
