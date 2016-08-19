@@ -130,13 +130,6 @@ cms:
           -
             function: frontcontroller_interceptor_dispatch
             timer: last_stop
-      after_frontcontroller_dispatch:
-        start:
-          function: frontcontroller_dispatch
-          timer: last_stop
-        end:
-          function: frontcontroller_interceptor_dispatch
-          timer: last_stop
       routing:
         start:
           function: frontcontroller_dispatch

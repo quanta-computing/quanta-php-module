@@ -1,22 +1,23 @@
 #include "quanta_mon.h"
 
 static profiled_function_t magento2_profiled_functions[] = {
-{"Magento\\Framework\\App\\Bootstrap::run", 0, {0, QUANTA_MON_MODE_APP_PROFILING}, magento2_fetch_version, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Magento\\Framework\\App\\Bootstrap::create", 1, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Magento\\Framework\\App\\Bootstrap::createApplication", 2, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Magento\\Framework\\App\\Request\\Http::getFrontName", 3, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Magento\\Framework\\App\\FrontController\\Interceptor::dispatch", 4, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Magento\\Framework\\App\\FrontController::dispatch", 5, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Magento\\Framework\\App\\Action\\Action::dispatch", 6, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Magento\\Framework\\View\\Result\\Page\\Interceptor::renderResult", 7, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Magento\\Framework\\App\\Response\\Http\\Interceptor::sendResponse", 8, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Magento\\Framework\\View\\Layout::_renderBlock", 9, {1, QUANTA_MON_MODE_APP_PROFILING}, magento2_block_before_render, magento_block_after_render, {0, 0, 0, 0}, {NULL, NULL}},
-{"Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushAll::execute", 10, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_flush_event, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushSystem::execute", 11, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_system_flush_event, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Magento\\Framework\\App\\Cache\\TypeList::cleanType", 12, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento2_record_cache_clean_event, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Magento\\Indexer\\Model\\Indexer::reindexAll", 13, {1, QUANTA_MON_MODE_EVENTS_ONLY}, NULL, magento2_record_reindex_event, {0, 0, 0, 0}, {NULL, NULL}},
-{"PDOStatement::execute", 14, {1, QUANTA_MON_MODE_APP_PROFILING}, NULL, magento_record_sql_query, {0, 0, 0, 0}, {NULL, NULL}},
-{NULL, 0, {0, 0}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}}
+{"Magento\\Framework\\App\\Bootstrap::run", 0, {0, QUANTA_MON_MODE_APP_PROFILING}, magento2_fetch_version, NULL, {0, 0, 0, 0}},
+{"Magento\\Framework\\App\\Bootstrap::create", 1, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Magento\\Framework\\App\\Bootstrap::createApplication", 2, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Magento\\Framework\\App\\Request\\Http::getFrontName", 3, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Magento\\Framework\\App\\FrontController\\Interceptor::dispatch", 4, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Magento\\Framework\\App\\FrontController::dispatch", 5, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Magento\\Framework\\App\\Action\\Action::dispatch", 6, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Magento\\Framework\\View\\Result\\Page\\Interceptor::renderResult", 7, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Magento\\Framework\\View\\Result\\Page::renderResult", 8, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Magento\\Framework\\App\\Response\\Http\\Interceptor::sendResponse", 9, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Magento\\Framework\\View\\Layout::_renderBlock", 10, {1, QUANTA_MON_MODE_APP_PROFILING}, magento2_block_before_render, magento_block_after_render, {0, 0, 0, 0}},
+{"Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushAll::execute", 11, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_flush_event, NULL, {0, 0, 0, 0}},
+{"Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushSystem::execute", 12, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_system_flush_event, NULL, {0, 0, 0, 0}},
+{"Magento\\Framework\\App\\Cache\\TypeList::cleanType", 13, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento2_record_cache_clean_event, NULL, {0, 0, 0, 0}},
+{"Magento\\Indexer\\Model\\Indexer::reindexAll", 14, {1, QUANTA_MON_MODE_EVENTS_ONLY}, NULL, magento2_record_reindex_event, {0, 0, 0, 0}},
+{"PDOStatement::execute", 15, {1, QUANTA_MON_MODE_APP_PROFILING}, NULL, magento_record_sql_query, {0, 0, 0, 0}},
+{NULL, 0, {0, 0}, NULL, NULL, {0, 0, 0, 0}}
 };
 
 static const profiler_timer_function_t magento2_profiler_timer_create_bootstrap_start[] = {
@@ -67,8 +68,17 @@ static const profiler_timer_function_t magento2_profiler_timer_between_controlle
   {&magento2_profiled_functions[6], PROF_LAST_STOP},
   {NULL, 0}
 };
-static const profiler_timer_function_t magento2_profiler_timer_layout_rendering_start[] = {
+static const profiler_timer_function_t magento2_profiler_timer_before_layout_rendering_start[] = {
   {&magento2_profiled_functions[7], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_layout_rendering_start[] = {
+  {&magento2_profiled_functions[8], PROF_FIRST_START},
+  {&magento2_profiled_functions[7], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_after_layout_rendering_start[] = {
+  {&magento2_profiled_functions[8], PROF_LAST_STOP},
   {NULL, 0}
 };
 static const profiler_timer_function_t magento2_profiler_timer_before_sending_response_start[] = {
@@ -76,7 +86,7 @@ static const profiler_timer_function_t magento2_profiler_timer_before_sending_re
   {NULL, 0}
 };
 static const profiler_timer_function_t magento2_profiler_timer_sending_response_start[] = {
-  {&magento2_profiled_functions[8], PROF_FIRST_START},
+  {&magento2_profiled_functions[9], PROF_FIRST_START},
   {NULL, 0}
 };
 static const profiler_timer_function_t magento2_profiler_timer_total_start[] = {
@@ -132,16 +142,25 @@ static const profiler_timer_function_t magento2_profiler_timer_between_controlle
   {&magento2_profiled_functions[7], PROF_FIRST_START},
   {NULL, 0}
 };
+static const profiler_timer_function_t magento2_profiler_timer_before_layout_rendering_end[] = {
+  {&magento2_profiled_functions[8], PROF_FIRST_START},
+  {NULL, 0}
+};
 static const profiler_timer_function_t magento2_profiler_timer_layout_rendering_end[] = {
+  {&magento2_profiled_functions[8], PROF_LAST_STOP},
+  {&magento2_profiled_functions[7], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t magento2_profiler_timer_after_layout_rendering_end[] = {
   {&magento2_profiled_functions[7], PROF_LAST_STOP},
   {NULL, 0}
 };
 static const profiler_timer_function_t magento2_profiler_timer_before_sending_response_end[] = {
-  {&magento2_profiled_functions[8], PROF_FIRST_START},
+  {&magento2_profiled_functions[9], PROF_FIRST_START},
   {NULL, 0}
 };
 static const profiler_timer_function_t magento2_profiler_timer_sending_response_end[] = {
-  {&magento2_profiled_functions[8], PROF_LAST_STOP},
+  {&magento2_profiled_functions[9], PROF_LAST_STOP},
   {NULL, 0}
 };
 static const profiler_timer_function_t magento2_profiler_timer_total_end[] = {
@@ -222,9 +241,21 @@ static const profiler_timer_t magento2_profiler_timers[] = {
   {0}
 },
 {
+  "before_layout_rendering",
+  magento2_profiler_timer_before_layout_rendering_start, 1,
+  magento2_profiler_timer_before_layout_rendering_end, 1,
+  {0}
+},
+{
   "layout_rendering",
-  magento2_profiler_timer_layout_rendering_start, 1,
-  magento2_profiler_timer_layout_rendering_end, 1,
+  magento2_profiler_timer_layout_rendering_start, 2,
+  magento2_profiler_timer_layout_rendering_end, 2,
+  {0}
+},
+{
+  "after_layout_rendering",
+  magento2_profiler_timer_after_layout_rendering_start, 1,
+  magento2_profiler_timer_after_layout_rendering_end, 1,
   {0}
 },
 {
@@ -243,7 +274,7 @@ static const profiler_timer_t magento2_profiler_timers[] = {
   "total",
   magento2_profiler_timer_total_start, 1,
   magento2_profiler_timer_total_end, 1,
-  {1}
+  {0}
 },
 {NULL, NULL, 0, NULL, 0, {0}}
 };
@@ -267,7 +298,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
               const char *class_name = hp_get_class_name(data TSRMLS_CC);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Magento\\Framework\\App\\Response\\Http\\Interceptor"))
-               return &magento2_profiled_functions[8];
+               return &magento2_profiled_functions[9];
               ++hp_globals.internal_match_counters.class_unmatched;
               return NULL;
              }
@@ -357,7 +388,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
               const char *class_name = hp_get_class_name(data TSRMLS_CC);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Magento\\Framework\\View\\Layout"))
-               return &magento2_profiled_functions[9];
+               return &magento2_profiled_functions[10];
               ++hp_globals.internal_match_counters.class_unmatched;
               return NULL;
              }
@@ -465,7 +496,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
            const char *class_name = hp_get_class_name(data TSRMLS_CC);
            if (!class_name) return NULL;
            if (!strcmp(class_name, "Magento\\Framework\\App\\Cache\\TypeList"))
-            return &magento2_profiled_functions[12];
+            return &magento2_profiled_functions[13];
            ++hp_globals.internal_match_counters.class_unmatched;
            return NULL;
           }
@@ -499,11 +530,11 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
          const char *class_name = hp_get_class_name(data TSRMLS_CC);
          if (!class_name) return NULL;
          if (!strcmp(class_name, "PDOStatement"))
-          return &magento2_profiled_functions[14];
+          return &magento2_profiled_functions[15];
          if (!strcmp(class_name, "Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushAll"))
-          return &magento2_profiled_functions[10];
-         if (!strcmp(class_name, "Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushSystem"))
           return &magento2_profiled_functions[11];
+         if (!strcmp(class_name, "Magento\\Backend\\Controller\\Adminhtml\\Cache\\FlushSystem"))
+          return &magento2_profiled_functions[12];
          ++hp_globals.internal_match_counters.class_unmatched;
          return NULL;
         }
@@ -576,6 +607,8 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Magento\\Framework\\View\\Result\\Page\\Interceptor"))
                return &magento2_profiled_functions[7];
+              if (!strcmp(class_name, "Magento\\Framework\\View\\Result\\Page"))
+               return &magento2_profiled_functions[8];
               ++hp_globals.internal_match_counters.class_unmatched;
               return NULL;
              }
@@ -612,7 +645,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
             const char *class_name = hp_get_class_name(data TSRMLS_CC);
             if (!class_name) return NULL;
             if (!strcmp(class_name, "Magento\\Indexer\\Model\\Indexer"))
-             return &magento2_profiled_functions[13];
+             return &magento2_profiled_functions[14];
             ++hp_globals.internal_match_counters.class_unmatched;
             return NULL;
            }
@@ -657,12 +690,11 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
 static profiled_application_t magento2_profiled_application = {
 "magento2",
 magento2_profiled_functions,
-15,
-magento2_profiler_timers,
 16,
+magento2_profiler_timers,
+18,
 &magento2_profiled_functions[1],
 &magento2_profiled_functions[0],
-NULL,
 {NULL, NULL},
 NULL,
 magento_init_context,
@@ -672,32 +704,32 @@ magento_send_metrics
 };
 
 static profiled_function_t magento_profiled_functions[] = {
-{"Mage_Core_Model_App::__construct", 0, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Model_App::run", 1, {0, QUANTA_MON_MODE_APP_PROFILING}, magento1_fetch_version, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Model_App::_initBaseConfig", 2, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Model_App::_initCache", 3, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Model_Cache::processRequest", 4, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Model_Config::loadModulesCache", 5, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Model_Config::loadModules", 6, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Model_Resource_Setup::applyAllUpdates", 7, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Model_Config::loadDb", 8, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Model_App::loadAreaPart", 9, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Model_App::_initStores", 10, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Model_App::_initRequest", 11, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Model_Resource_Setup::applyAllDataUpdates", 12, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Controller_Varien_Action::preDispatch", 13, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Controller_Varien_Action::loadLayoutUpdates", 14, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Controller_Varien_Action::renderLayout", 15, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Controller_Varien_Action::postDispatch", 16, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Controller_Response_Http::sendResponse", 17, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Block_Abstract::toHtml", 18, {1, QUANTA_MON_MODE_APP_PROFILING}, magento1_block_before_render, magento_block_after_render, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Model_Cache::flush", 19, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_flush_event, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Adminhtml_CacheController::flushSystemAction", 20, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_system_flush_event, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Core_Model_Cache::cleanType", 21, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento1_record_cache_clean_event, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Index_Model_Process::reindexAll", 22, {1, QUANTA_MON_MODE_EVENTS_ONLY}, NULL, magento1_record_reindex_event, {0, 0, 0, 0}, {NULL, NULL}},
-{"Mage_Index_Model_Indexer_Abstract::processEvent", 23, {0, QUANTA_MON_MODE_EVENTS_ONLY}, magento1_record_process_index_event, NULL, {0, 0, 0, 0}, {NULL, NULL}},
-{"PDOStatement::execute", 24, {1, QUANTA_MON_MODE_APP_PROFILING}, NULL, magento_record_sql_query, {0, 0, 0, 0}, {NULL, NULL}},
-{NULL, 0, {0, 0}, NULL, NULL, {0, 0, 0, 0}, {NULL, NULL}}
+{"Mage_Core_Model_App::__construct", 0, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Model_App::run", 1, {0, QUANTA_MON_MODE_APP_PROFILING}, magento1_fetch_version, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Model_App::_initBaseConfig", 2, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Model_App::_initCache", 3, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Model_Cache::processRequest", 4, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Model_Config::loadModulesCache", 5, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Model_Config::loadModules", 6, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Model_Resource_Setup::applyAllUpdates", 7, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Model_Config::loadDb", 8, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Model_App::loadAreaPart", 9, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Model_App::_initStores", 10, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Model_App::_initRequest", 11, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Model_Resource_Setup::applyAllDataUpdates", 12, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Controller_Varien_Action::preDispatch", 13, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Controller_Varien_Action::loadLayoutUpdates", 14, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Controller_Varien_Action::renderLayout", 15, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Controller_Varien_Action::postDispatch", 16, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Controller_Response_Http::sendResponse", 17, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Block_Abstract::toHtml", 18, {1, QUANTA_MON_MODE_APP_PROFILING}, magento1_block_before_render, magento_block_after_render, {0, 0, 0, 0}},
+{"Mage_Core_Model_Cache::flush", 19, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_flush_event, NULL, {0, 0, 0, 0}},
+{"Mage_Adminhtml_CacheController::flushSystemAction", 20, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento_record_cache_system_flush_event, NULL, {0, 0, 0, 0}},
+{"Mage_Core_Model_Cache::cleanType", 21, {1, QUANTA_MON_MODE_EVENTS_ONLY}, magento1_record_cache_clean_event, NULL, {0, 0, 0, 0}},
+{"Mage_Index_Model_Process::reindexAll", 22, {1, QUANTA_MON_MODE_EVENTS_ONLY}, NULL, magento1_record_reindex_event, {0, 0, 0, 0}},
+{"Mage_Index_Model_Indexer_Abstract::processEvent", 23, {0, QUANTA_MON_MODE_EVENTS_ONLY}, magento1_record_process_index_event, NULL, {0, 0, 0, 0}},
+{"PDOStatement::execute", 24, {1, QUANTA_MON_MODE_APP_PROFILING}, NULL, magento_record_sql_query, {0, 0, 0, 0}},
+{NULL, 0, {0, 0}, NULL, NULL, {0, 0, 0, 0}}
 };
 
 static const profiler_timer_function_t magento_profiler_timer_before_init_config_start[] = {
@@ -1016,7 +1048,7 @@ static const profiler_timer_t magento_profiler_timers[] = {
   "total",
   magento_profiler_timer_total_start, 1,
   magento_profiler_timer_total_end, 1,
-  {1}
+  {0}
 },
 {NULL, NULL, 0, NULL, 0, {0}}
 };
@@ -1919,7 +1951,6 @@ magento_profiler_timers,
 22,
 &magento_profiled_functions[0],
 &magento_profiled_functions[1],
-NULL,
 {NULL, NULL},
 NULL,
 magento_init_context,

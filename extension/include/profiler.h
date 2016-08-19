@@ -87,17 +87,7 @@ struct profiled_function_t {
     uint64_t last_stop;
   } tsc;
 
-  struct {
-    sql_query_record_t *first;
-    sql_query_record_t *last;
-  } sql_queries;
-
 };
-
-typedef struct profiled_function_stack_t {
-  struct profiled_function_stack_t *prev;
-  profiled_function_t *function;
-} profiled_function_stack_t;
 
 typedef enum {
   PROF_FIRST_START,
@@ -135,7 +125,6 @@ struct profiled_application_t {
   profiled_function_t *first_app_function;
   profiled_function_t *last_app_function;
 
-  profiled_function_stack_t *function_stack;
   struct {
     sql_query_record_t *first;
     sql_query_record_t *last;
