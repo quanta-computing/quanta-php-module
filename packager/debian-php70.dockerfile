@@ -1,7 +1,7 @@
 FROM debian:jessie
 MAINTAINER Matthieu 'Korrigan' ROSINSKI <mro@quanta-computing.com>
 
-RUN echo -n
+RUN sed -i 's/httpredir\.debian\.org/ftp.fr.debian.org/g' /etc/apt/sources.list
 RUN apt-get update && apt-get install -y curl
 RUN echo 'deb http://apt.quanta.gr quanta/' > /etc/apt/sources.list.d/quanta.list
 RUN echo 'deb http://packages.dotdeb.org jessie all' > /etc/apt/sources.list.d/dotdeb.list
