@@ -7,7 +7,7 @@
 // #define DEBUG_QUANTA
 
 #ifdef DEBUG_QUANTA
-# define PRINTF_QUANTA(...) dprintf(1, __VA_ARGS__)
+# define PRINTF_QUANTA(...) printf(__VA_ARGS__)
 #else
 # define PRINTF_QUANTA(...) do {} while (0)
 #endif
