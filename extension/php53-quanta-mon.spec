@@ -1,5 +1,5 @@
 Name:	php53-quanta-mon
-Version: 1.1.0
+Version: 1.2.0
 Release: 1%{?dist}
 Summary: This package provides a PHP profiling module built for Magento.
 Distribution: Quanta
@@ -8,7 +8,7 @@ Packager: Matthieu ROSINSKI <support@quanta-computing.com>
 Group: Applications/Internet
 URL: http://www.quanta-computing.com
 License: toto
-Source: php53-quanta-mon-1.1.0.tgz
+Source: php53-quanta-mon-1.2.0.tgz
 
 Buildroot	: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
