@@ -124,6 +124,7 @@ extension/debian/php5*-quanta-mon/
 extension/debian/php5*-quanta-mon.substvars
 *.dsc
 *.tar.gz
+*.tar.xz
 *.build
 *.changes
 *.deb
