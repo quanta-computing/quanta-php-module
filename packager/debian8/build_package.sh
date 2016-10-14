@@ -2,7 +2,7 @@
 
 package=$1
 basedir=/php-module
-packagerdir=/php-module/packager/debian
+packagerdir=/php-module/packager/debian8
 
 if [ -z "$package" ]; then
   echo "Usage: build_package.sh <package>"

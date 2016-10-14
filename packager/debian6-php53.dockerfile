@@ -1,11 +1,10 @@
-FROM debian:wheezy
+FROM debian:squeeze
 MAINTAINER Matthieu 'Korrigan' ROSINSKI <mro@quanta-computing.com>
 
 RUN sed -i 's/httpredir\.debian\.org/ftp.fr.debian.org/g' /etc/apt/sources.list
 RUN apt-get update && apt-get install -y curl
-RUN echo 'deb http://apt.quanta.gr quanta/' > /etc/apt/sources.list.d/quanta.list
-RUN echo 'deb http://packages.dotdeb.org wheezy-php56 all' > /etc/apt/sources.list.d/dotdeb.list
-RUN echo 'deb http://repo.mysql.com/apt/debian wheezy mysql-5.6' > /etc/apt/sources.list.d/mysql.list
+RUN echo 'deb http://apt.quanta.gr quanta-squeeze/' > /etc/apt/sources.list.d/quanta.list
+RUN echo 'deb http://repo.mysql.com/apt/debian squeeze mysql-5.6' > /etc/apt/sources.list.d/mysql.list
 RUN curl -s https://www.quanta-monitoring.com/quanta-repo-key.gpg -o - | apt-key add -
 RUN curl -s https://www.dotdeb.org/dotdeb.gpg -o - | apt-key add -
 RUN apt-key adv --keyserver pgp.mit.edu --recv-keys 5072E1F5
@@ -34,6 +33,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
   quanta-agent \
   libmonikor-dev
 
+
 RUN apt-get update && apt-get install -y \
   php5-dev \
   php5-gd \
@@ -43,4 +43,5 @@ RUN apt-get update && apt-get install -y \
   php5-mcrypt \
   php5-dbg \
   php5-mysql \
+  php5-mbstring
   libapache2-mod-php5
