@@ -44,7 +44,7 @@
 
 /* Size of a temp scratch buffer            */
 #define SCRATCH_BUF_LEN            512
-#define QUANTA_MON_VERSION "1.2.0"
+#define QUANTA_MON_VERSION "1.2.1"
 
 
 /* Xhprof's global state.
