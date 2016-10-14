@@ -91,7 +91,7 @@ struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
   profiled_application_t *app = hp_globals.profiled_application;
   size_t i;
 
-  if (hp_globals.profiler_level != QUANTA_MON_MODE_APP_PROFILING)
+  if (hp_globals.profiler_level != QUANTA_MON_MODE_APP_PROFILING || !app)
     return;
   for (i = 0; i < app->nb_timers; i++) {
     sprintf(metric_base_end, "%s.", app->timers[i].name);
@@ -104,7 +104,6 @@ struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
 
 static void qm_send_total_time_metrics(char *metric_name, char *metric_base_end,
 struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
-  profiled_application_t *app = hp_globals.profiled_application;
   monikor_metric_t *metric;
 
   strcpy(metric_base_end, "php_total.time");
@@ -113,6 +112,15 @@ struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
   ), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
+}
+
+static void qm_send_before_after_app_metrics(char *metric_name, char *metric_base_end,
+struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
+  profiled_application_t *app = hp_globals.profiled_application;
+  monikor_metric_t *metric;
+
+  if (!app)
+    return;
   strcpy(metric_base_end, "before_app.time");
   metric = monikor_metric_float(metric_name, clock, cpu_cycles_range_to_ms(cpufreq,
     hp_globals.global_tsc.start, app->first_app_function->tsc.first_start
@@ -133,10 +141,11 @@ float cpufreq TSRMLS_DC) {
   char metric_name[MAX_METRIC_NAME_LENGTH];
   char *metric_base_end;
 
-  if (hp_globals.profiler_level != QUANTA_MON_MODE_APP_PROFILING || !app)
+  if (hp_globals.profiler_level != QUANTA_MON_MODE_APP_PROFILING)
     return;
-  sprintf(metric_name, "%s.%zu.profiling.", app->name, hp_globals.quanta_step_id);
+  sprintf(metric_name, "%s.%zu.profiling.", app ? app->name : "php", hp_globals.quanta_step_id);
   metric_base_end = metric_name + strlen(metric_name);
   qm_send_profiled_functions_metrics(metric_name, metric_base_end, clock, metrics, cpufreq);
   qm_send_total_time_metrics(metric_name, metric_base_end, clock, metrics, cpufreq);
+  qm_send_before_after_app_metrics(metric_name, metric_base_end, clock, metrics, cpufreq);
 }

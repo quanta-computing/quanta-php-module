@@ -4,15 +4,15 @@
 ** the original step URL.
 */
 static void fetch_request_uri(struct timeval *clock, monikor_metric_list_t *metrics) {
+  profiled_application_t *app = hp_globals.profiled_application;
   monikor_metric_t *metric;
   char metric_name[MAX_METRIC_NAME_LENGTH];
 
   if (!hp_globals.request_uri)
     return;
-  if (hp_globals.profiled_application &&
-  hp_globals.profiler_level == QUANTA_MON_MODE_APP_PROFILING) {
+  if (hp_globals.profiler_level == QUANTA_MON_MODE_APP_PROFILING) {
     sprintf(metric_name, "%s.%zu.request_uri",
-      hp_globals.profiled_application->name, hp_globals.quanta_step_id);
+      app ? app->name : "php", hp_globals.quanta_step_id);
   } else if (hp_globals.profiler_level == QUANTA_MON_MODE_HIERARCHICAL) {
     sprintf(metric_name, "qtracer.%zu.request_uri", hp_globals.quanta_step_id);
   } else {
