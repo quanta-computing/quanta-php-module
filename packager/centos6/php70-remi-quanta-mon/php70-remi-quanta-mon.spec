@@ -1,5 +1,5 @@
 Name:	php70-remi-quanta-mon
-Version: 1.2.0
+Version: 1.2.1
 Release: 1%{?dist}
 Summary: This package provides a PHP profiling module built for Magento.
 Distribution: Quanta

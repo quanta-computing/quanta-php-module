@@ -3,8 +3,8 @@
 package=$1
 basedir=/php-module
 packagerdir=/php-module/packager/debian7
-builddir=/tmp/debian-build
-outdir=${packagedir}/${package}/pkg
+builddir=/packager/build
+outdir=${packagerdir}/${package}/pkg
 
 if [ -z "$package" ]; then
   echo "Usage: build_package.sh <package>"
@@ -13,9 +13,10 @@ fi
 
 echo "Creating build directory..."
 rm -Rf ${builddir}
+mkdir -p /packager
 cp -r ${basedir}/extension ${builddir}
 cp -r ${packagerdir}/${package}/debian ${builddir}
-cd ${packagerdir}/${package}/build
+cd ${builddir}
 
 
 echo "Building package..."
@@ -23,4 +24,4 @@ debuild -us -uc
 
 echo "Delivering packages"
 mkdir -p ${outdir}
-cp ${builddir}/*.* ${outdir}
+cp -v /packager/php* ${outdir}
