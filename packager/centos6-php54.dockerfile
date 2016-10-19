@@ -11,9 +11,9 @@ RUN yum -q -y install http://rpms.remirepo.net/enterprise/remi-release-6.rpm
 
 RUN yum makecache fast
 
-RUN yum update && yum -q -y groupinstall "Development tools"
+RUN yum -q -y groupinstall "Development tools"
 
-RUN yum update && yum -q -y install \
+RUN yum -q -y install \
   quanta-agent \
   php54 \
   php54-devel \

@@ -1,5 +1,5 @@
-Name:	php53-quanta-mon
-Version: 1.2.0
+Name:	php55-quanta-mon
+Version: 1.2.1
 Release: 1%{?dist}
 Summary: This package provides a PHP profiling module built for Magento.
 Distribution: Quanta
@@ -8,7 +8,7 @@ Packager: Matthieu ROSINSKI <support@quanta-computing.com>
 Group: Applications/Internet
 URL: http://www.quanta-computing.com
 License: toto
-Source: php53-quanta-mon-1.2.0.tgz
+Source: php55-quanta-mon.tgz
 
 Buildroot	: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -21,7 +21,7 @@ Requires: libmonikor-devel >= 1.0.0
 This package contains a PHP extension to allow profiling for Quanta probes.
 
 %prep
-%setup
+%setup -n php55-quanta-mon
 
 %build
 phpize
