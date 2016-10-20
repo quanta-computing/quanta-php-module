@@ -3,6 +3,7 @@
 package=$1
 basedir=/php-module
 packagerdir=/php-module/packager/debian8
+outdir=${packagerdir}/${package}/pkg
 
 if [ -z "$package" ]; then
   echo "Usage: build_package.sh <package>"
@@ -17,3 +18,7 @@ cd ${packagerdir}/${package}/build
 
 echo "Building package..."
 debuild -us -uc
+
+echo "Delivering packages"
+mkdir -p ${outdir}
+cp -v ${packagerdir}/${package}/php* ${outdir}

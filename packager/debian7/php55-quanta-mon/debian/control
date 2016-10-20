@@ -8,7 +8,7 @@ Source: php55-quanta-mon
 Package: php55-quanta-mon
 Provides: php-quanta-mon
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libmonikor (>= 1.0.0), php5-common (>= 5.5.0), phpapi-20121113, ucf
+Depends: ${shlibs:Depends}, ${misc:Depends}, libmonikor (>= 1.0.0), php5-common (>= 5.5.0), phpapi-20121212, ucf
 Recommends: monikor
 Pre-Depends: ${misc:Pre-Depends}
 Description: This PHP extension provides a profiler for Magento
