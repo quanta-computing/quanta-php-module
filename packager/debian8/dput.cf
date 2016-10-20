@@ -15,7 +15,7 @@ allowed_distributions   = (?!UNRELEASED)
 
 [quanta]
 login                   = korrigan
-fqdn                    = pkg-1.quanta.gr
+fqdn                    = pkg-2.quanta.gr
 method                  = scp
 incoming                = /data/pkg/apt/mini-dinstall/incoming
 allow_dcut              = 1

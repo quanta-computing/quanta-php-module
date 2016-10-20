@@ -5,7 +5,6 @@ RUN curl -s https://www.quanta-monitoring.com/quanta-centos-repo.txt -o /etc/yum
 RUN curl -s https://www.quanta-monitoring.com/quanta-repo-key.gpg -o /tmp/quanta.key \
   && rpm --import /tmp/quanta.key \
   && /bin/rm -f /tmp/quanta.key
-RUN sed -i'' -e 's/rpm\.quanta\.gr\/quanta/rpm.quanta.gr\/quanta/g' /etc/yum.repos.d/quanta.repo
 
 RUN yum makecache
 
