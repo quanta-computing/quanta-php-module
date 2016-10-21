@@ -1,4 +1,4 @@
-FROM debian:squeeze
+FROM debian/eol:squeeze
 MAINTAINER Matthieu 'Korrigan' ROSINSKI <mro@quanta-computing.com>
 
 RUN sed -i 's/httpredir\.debian\.org/ftp.fr.debian.org/g' /etc/apt/sources.list
