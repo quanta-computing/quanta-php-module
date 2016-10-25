@@ -23,5 +23,11 @@ echo "Building package..."
 debuild -us -uc
 
 echo "Delivering packages"
+rm -Rf ${outdir}
 mkdir -p ${outdir}
 cp -v /packager/php* ${outdir}
+
+echo "Testing package..."
+dpkg -i ${outdir}/*.deb
+php5enmod quanta_mon || echo "No php5enmod"
+php -i | grep quanta

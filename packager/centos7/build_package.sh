@@ -26,3 +26,7 @@ rm -Rf /root/rpmbuild/RPMS/x86_64/*
 echo "Building package..."
 rpmbuild -ba /root/rpmbuild/SPECS/${package}.spec
 cp /root/rpmbuild/RPMS/x86_64/* ${packagerdir}/${package}/build
+
+echo "Testing package..."
+rpm -Uvh  /root/rpmbuild/RPMS/x86_64/*.rpm
+php -i | grep quanta

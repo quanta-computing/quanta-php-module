@@ -28,7 +28,7 @@ phpize
 %configure
 
 %install
-make
+make clean all
 mkdir -p %{buildroot}/etc/php.d/
 mkdir -p %{buildroot}/usr/lib64/php/modules
 install -m 644 quanta_mon.ini %{buildroot}/etc/php.d/quanta_mon.ini

@@ -30,7 +30,7 @@ This package contains a PHP extension to allow profiling for Quanta probes.
 %configure --with-php-config=/opt/remi/php70/root/usr/bin/php-config
 
 %install
-make
+make clean all
 mkdir -p %{buildroot}/etc/opt/remi/php70/php.d/
 mkdir -p %{buildroot}/opt/remi/php70/root/usr/lib64/php/modules
 install -m 644 quanta_mon.ini %{buildroot}/etc/opt/remi/php70/php.d/20-quanta_mon.ini
