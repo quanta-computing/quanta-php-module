@@ -5,6 +5,10 @@ zval *get_this(zend_execute_data *execute_data TSRMLS_DC) {
   const char *class_name;
 
 #if PHP_MAJOR_VERSION < 7
+# if PHP_VERSION_ID >= 50500
+  if (!execute_data->current_this)
+    execute_data = execute_data->prev_execute_data;
+# endif
   if (!execute_data
   || !(this = execute_data->current_this)
   || Z_TYPE_P(this) != IS_OBJECT) {

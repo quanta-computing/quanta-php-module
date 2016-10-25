@@ -12,4 +12,6 @@
 # define PRINTF_QUANTA(...) do {} while (0)
 #endif
 
+#include <inttypes.h>
+
 #endif /* end of include guard: QM_DEBUG_H_ */
