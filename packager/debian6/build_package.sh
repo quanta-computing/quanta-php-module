@@ -3,7 +3,7 @@
 package=$1
 basedir=/php-module
 packagerdir=/php-module/packager/debian6
-builddir=/packager/build
+builddir=${packagerdir}/${package}/build
 outdir=${packagerdir}/${package}/pkg
 
 if [ -z "$package" ]; then
