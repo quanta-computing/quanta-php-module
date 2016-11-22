@@ -1,0 +1,11 @@
+php53-quanta-mon (1.2.2) quanta; urgency=medium
+
+  * Fix a (weird) bug with execute_data and prev_execute_data on PHP 5.5 and PHP 5.6
+
+ -- Matthieu ROSINSKI <support@quanta-computing.com>  Wed, 25 Oct 2016 16:12:42 +0100
+
+php53-quanta-mon (1.2.1) quanta-squeeze; urgency=medium
+
+  * Initial release.
+
+ -- Matthieu ROSINSKI <support@quanta-computing.com>  Thu, 10 Mar 2016 14:56:19 +0100
