@@ -1,4 +1,141 @@
 cms:
+  orocommerce:
+    create_context_callback: oro_init_context
+    cleanup_context_callback: oro_cleanup_context
+    send_metrics_callback: oro_send_metrics
+    first_function: kernel_boot
+    last_function: kernel_terminate
+    functions:
+      kernel_boot:
+        name: 'Oro\Bundle\DistributionBundle\OroKernel::boot'
+      http_kernel_handle:
+        name: 'Symfony\Component\HttpKernel\HttpKernel::handle'
+      router_onkernelreq:
+        name: 'Symfony\Component\HttpKernel\EventListener\RouterListener::onKernelRequest'
+      oro_layout_onkernelview:
+        name: 'Oro\Bundle\LayoutBundle\EventListener\LayoutListener::onKernelView'
+      oro_load_layout:
+        name: 'Oro\Bundle\LayoutBundle\Layout\LayoutManager::getLayout'
+      oro_render_layout:
+        name: 'Oro\Component\Layout\Layout::render'
+      send_response:
+        name: 'Symfony\Component\HttpFoundation\Response::send'
+      kernel_terminate:
+        name: 'Symfony\Component\HttpKernel\Kernel::terminate'
+      process_block:
+        name: 'Oro\Component\Layout\LayoutBuilder::processBlockViewData'
+        begin_callback: oro_before_process_block
+        ignore_in_stack: true
+      render_block:
+        name: 'Oro\Bundle\LayoutBundle\Form\TwigRendererEngine::renderBlock'
+        begin_callback: oro_before_render_block
+        end_callback: oro_after_render_block
+        ignore_in_stack: true
+      sql_query:
+        name: 'PDOStatement::execute'
+        end_callback: oro_record_sql_query
+        ignore_in_stack: true
+        tree_order: 9
+
+    timers:
+      kernel_boot:
+        start:
+          function: kernel_boot
+          timer: first_start
+        end:
+          function: kernel_boot
+          timer: last_stop
+      before_routing:
+        start:
+          function: kernel_boot
+          timer: last_stop
+        end:
+          function: router_onkernelreq
+          timer: first_start
+      routing:
+        start:
+          function: router_onkernelreq
+          timer: first_start
+        end:
+          function: router_onkernelreq
+          timer: last_stop
+      before_layout_loading:
+        start:
+          function: oro_layout_onkernelview
+          timer: first_start
+        end:
+          function: oro_load_layout
+          timer: first_start
+      layout_loading:
+        start:
+          function: oro_load_layout
+          timer: first_start
+        end:
+          function: oro_load_layout
+          timer: last_stop
+      init_rendering:
+        start:
+          function: oro_render_layout
+          timer: first_start
+        end:
+          function: render_block
+          timer: first_start
+      layout_rendering:
+        start:
+          -
+            function: render_block
+            timer: first_start
+          -
+            function: oro_render_layout
+            timer: first_start
+        end:
+          function: oro_render_layout
+          timer: last_stop
+      # DEBUG
+      render_twig_blocks:
+        start:
+          function: render_block
+          timer: first_start
+        end:
+          function: render_block
+          timer: last_stop
+      kernel_handle:
+        start:
+          function: http_kernel_handle
+          timer: first_start
+        end:
+          function: http_kernel_handle
+          timer: last_stop
+      oro_kernel_view:
+        start:
+          function: oro_layout_onkernelview
+          timer: first_start
+        end:
+          function: oro_layout_onkernelview
+          timer: last_stop
+      # END DEBUG
+      before_sending_response:
+        start:
+          function: oro_render_layout
+          timer: last_stop
+        end:
+          function: send_response
+          timer: first_start
+      sending_response:
+        start:
+          function: send_response
+          timer: first_start
+        end:
+          function: kernel_terminate
+          timer: last_stop
+      total:
+        start:
+          function: kernel_boot
+          timer: first_start
+        end:
+          function: kernel_terminate
+          timer: last_stop
+
   magento2:
     create_context_callback: magento_init_context
     cleanup_context_callback: magento_cleanup_context

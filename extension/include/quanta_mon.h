@@ -41,10 +41,11 @@
 #include "magento_common.h"
 #include "magento1.h"
 #include "magento2.h"
+#include "oro.h"
 
 /* Size of a temp scratch buffer            */
 #define SCRATCH_BUF_LEN            512
-#define QUANTA_MON_VERSION "1.2.2"
+#define QUANTA_MON_VERSION "1.3.0-devel"
 
 
 /* Xhprof's global state.
