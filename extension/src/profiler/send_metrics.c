@@ -58,6 +58,29 @@ static void fetch_module_version(struct timeval *clock, monikor_metric_list_t *m
     monikor_metric_list_push(metrics, metric);
 }
 
+#ifdef DEBUG_QUANTA
+static void dump_metric(monikor_metric_t *metric) {
+  switch (metric->type) {
+  case MONIKOR_INTEGER:
+    PRINTF_QUANTA("METRIC INT %s@%ld: %"PRIu64"\n",
+      metric->name, metric->clock.tv_sec, metric->value._int);
+    break;
+  case MONIKOR_FLOAT:
+    PRINTF_QUANTA("METRIC FLOAT %s@%ld: %f\n",
+      metric->name, metric->clock.tv_sec, metric->value._float);
+    break;
+  case MONIKOR_STRING:
+    PRINTF_QUANTA("METRIC STRING %s@%ld: %s\n",
+      metric->name, metric->clock.tv_sec, metric->value._string);
+    break;
+  default:
+    PRINTF_QUANTA("UNKNOWN METRIC %s@%ld\n",
+      metric->name, metric->clock.tv_sec);
+    break;
+  }
+}
+#endif
+
 static void send_data_to_monikor(monikor_metric_list_t *metrics) {
   void *data = NULL;
   int sock = -1;
@@ -69,6 +92,9 @@ static void send_data_to_monikor(monikor_metric_list_t *metrics) {
   fd_set wrfds;
   struct timeval timeout;
 
+  #ifdef DEBUG_QUANTA
+    monikor_metric_list_apply(metrics, dump_metric);
+  #endif
   if (!hp_globals.path_quanta_agent_socket) {
     PRINTF_QUANTA("Cannot send data to monikor: socket not configured\n");
     return;
