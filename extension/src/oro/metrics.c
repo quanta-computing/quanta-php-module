@@ -70,9 +70,21 @@ monikor_metric_list_t *metrics, float cpufreq TSRMLS_DC) {
   }
 }
 
+static void push_version_metric(profiled_application_t *app, struct timeval *clock,
+monikor_metric_list_t *metrics) {
+  magento_context_t *context = (magento_context_t *)app->context;
+
+  if (!context->version)
+    return;
+  monikor_metric_t *metric = monikor_metric_string("app.version.app", clock, context->version);
+  if (metric)
+    monikor_metric_list_push(metrics, metric);
+}
+
 void oro_send_metrics(profiled_application_t *app, monikor_metric_list_t *metrics,
 float cpufreq, struct timeval *clock TSRMLS_DC) {
   if (hp_globals.profiler_level != QUANTA_MON_MODE_APP_PROFILING)
     return;
   push_blocks_metrics(app, clock, metrics, cpufreq);
+  push_version_metric(app, clock, metrics);
 }

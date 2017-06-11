@@ -8,6 +8,7 @@ cms:
     functions:
       kernel_boot:
         name: 'Oro\Bundle\DistributionBundle\OroKernel::boot'
+        begin_callback: 'oro_fetch_version'
       http_kernel_handle:
         name: 'Symfony\Component\HttpKernel\HttpKernel::handle'
       router_onkernelreq:
@@ -26,10 +27,6 @@ cms:
         name: 'Symfony\Component\HttpFoundation\Response::send'
       kernel_terminate:
         name: 'Symfony\Component\HttpKernel\Kernel::terminate'
-      process_block:
-        name: 'Oro\Component\Layout\LayoutBuilder::processBlockViewData'
-        begin_callback: oro_before_process_block
-        ignore_in_stack: true
       render_block:
         name: 'Oro\Bundle\LayoutBundle\Form\TwigRendererEngine::renderBlock'
         begin_callback: oro_before_render_block

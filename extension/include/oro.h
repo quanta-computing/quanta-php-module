@@ -20,7 +20,6 @@ typedef struct oro_block_stack {
 
 typedef struct {
   char *version;
-  char *edition;
 
   struct {
     oro_block_t *first;
@@ -35,7 +34,7 @@ void *oro_init_context(profiled_application_t *app TSRMLS_DC);
 void oro_cleanup_context(profiled_application_t *app TSRMLS_DC);
 
 // Callbacks
-int oro_before_process_block(profiled_application_t *app, profiled_function_t *function,
+int oro_fetch_version(profiled_application_t *app, profiled_function_t *function,
   zend_execute_data *ex TSRMLS_DC);
 int oro_before_render_block(profiled_application_t *app, profiled_function_t *function,
   zend_execute_data *ex TSRMLS_DC);

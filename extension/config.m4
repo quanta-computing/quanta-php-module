@@ -43,6 +43,7 @@ if test "$PHP_QUANTAMON" != "no"; then
     src/oro/context.c \
     src/oro/metrics.c \
     src/oro/sql.c \
+    src/oro/version.c \
     src/profiler/app_profiler.c \
     src/profiler/application.c \
     src/profiler/begin_profiling.c \

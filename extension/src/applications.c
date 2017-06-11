@@ -1,7 +1,7 @@
 #include "quanta_mon.h"
 
 static profiled_function_t orocommerce_profiled_functions[] = {
-{"Oro\\Bundle\\DistributionBundle\\OroKernel::boot", 0, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Oro\\Bundle\\DistributionBundle\\OroKernel::boot", 0, {0, QUANTA_MON_MODE_APP_PROFILING}, oro_fetch_version, NULL, {0, 0, 0, 0}},
 {"Symfony\\Component\\HttpKernel\\HttpKernel::handle", 1, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
 {"Symfony\\Component\\HttpKernel\\EventListener\\RouterListener::onKernelRequest", 2, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
 {"Symfony\\Component\\HttpKernel\\Controller\\ControllerResolver::getController", 3, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
@@ -11,9 +11,8 @@ static profiled_function_t orocommerce_profiled_functions[] = {
 {"Symfony\\Component\\HttpKernel\\HttpKernel::filterResponse", 7, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
 {"Symfony\\Component\\HttpFoundation\\Response::send", 8, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
 {"Symfony\\Component\\HttpKernel\\Kernel::terminate", 9, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
-{"Oro\\Component\\Layout\\LayoutBuilder::processBlockViewData", 10, {1, QUANTA_MON_MODE_APP_PROFILING}, oro_before_process_block, NULL, {0, 0, 0, 0}},
-{"Oro\\Bundle\\LayoutBundle\\Form\\TwigRendererEngine::renderBlock", 11, {1, QUANTA_MON_MODE_APP_PROFILING}, oro_before_render_block, oro_after_render_block, {0, 0, 0, 0}},
-{"PDOStatement::execute", 12, {1, QUANTA_MON_MODE_APP_PROFILING}, NULL, oro_record_sql_query, {0, 0, 0, 0}},
+{"Oro\\Bundle\\LayoutBundle\\Form\\TwigRendererEngine::renderBlock", 10, {1, QUANTA_MON_MODE_APP_PROFILING}, oro_before_render_block, oro_after_render_block, {0, 0, 0, 0}},
+{"PDOStatement::execute", 11, {1, QUANTA_MON_MODE_APP_PROFILING}, NULL, oro_record_sql_query, {0, 0, 0, 0}},
 {NULL, 0, {0, 0}, NULL, NULL, {0, 0, 0, 0}}
 };
 
@@ -46,7 +45,7 @@ static const profiler_timer_function_t orocommerce_profiler_timer_init_rendering
   {NULL, 0}
 };
 static const profiler_timer_function_t orocommerce_profiler_timer_layout_rendering_start[] = {
-  {&orocommerce_profiled_functions[11], PROF_FIRST_START},
+  {&orocommerce_profiled_functions[10], PROF_FIRST_START},
   {&orocommerce_profiled_functions[6], PROF_FIRST_START},
   {NULL, 0}
 };
@@ -93,7 +92,7 @@ static const profiler_timer_function_t orocommerce_profiler_timer_layout_loading
   {NULL, 0}
 };
 static const profiler_timer_function_t orocommerce_profiler_timer_init_rendering_end[] = {
-  {&orocommerce_profiled_functions[11], PROF_FIRST_START},
+  {&orocommerce_profiled_functions[10], PROF_FIRST_START},
   {NULL, 0}
 };
 static const profiler_timer_function_t orocommerce_profiler_timer_layout_rendering_end[] = {
@@ -398,7 +397,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
              const char *class_name = hp_get_class_name(data TSRMLS_CC);
              if (!class_name) return NULL;
              if (!strcmp(class_name, "Oro\\Bundle\\LayoutBundle\\Form\\TwigRendererEngine"))
-              return &orocommerce_profiled_functions[11];
+              return &orocommerce_profiled_functions[10];
              ++hp_globals.internal_match_counters.class_unmatched;
              return NULL;
             }
@@ -541,75 +540,6 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
   }
   return NULL;
  }
- if (function_name[0] == 'p') {
-  if (function_name[1] == 'r') {
-   if (function_name[2] == 'o') {
-    if (function_name[3] == 'c') {
-     if (function_name[4] == 'e') {
-      if (function_name[5] == 's') {
-       if (function_name[6] == 's') {
-        if (function_name[7] == 'B') {
-         if (function_name[8] == 'l') {
-          if (function_name[9] == 'o') {
-           if (function_name[10] == 'c') {
-            if (function_name[11] == 'k') {
-             if (function_name[12] == 'V') {
-              if (function_name[13] == 'i') {
-               if (function_name[14] == 'e') {
-                if (function_name[15] == 'w') {
-                 if (function_name[16] == 'D') {
-                  if (function_name[17] == 'a') {
-                   if (function_name[18] == 't') {
-                    if (function_name[19] == 'a') {
-                     if (function_name[20] == '\0') {
-                      ++hp_globals.internal_match_counters.function;
-                      const char *class_name = hp_get_class_name(data TSRMLS_CC);
-                      if (!class_name) return NULL;
-                      if (!strcmp(class_name, "Oro\\Component\\Layout\\LayoutBuilder"))
-                       return &orocommerce_profiled_functions[10];
-                      ++hp_globals.internal_match_counters.class_unmatched;
-                      return NULL;
-                     }
-                     return NULL;
-                    }
-                    return NULL;
-                   }
-                   return NULL;
-                  }
-                  return NULL;
-                 }
-                 return NULL;
-                }
-                return NULL;
-               }
-               return NULL;
-              }
-              return NULL;
-             }
-             return NULL;
-            }
-            return NULL;
-           }
-           return NULL;
-          }
-          return NULL;
-         }
-         return NULL;
-        }
-        return NULL;
-       }
-       return NULL;
-      }
-      return NULL;
-     }
-     return NULL;
-    }
-    return NULL;
-   }
-   return NULL;
-  }
-  return NULL;
- }
  if (function_name[0] == 'e') {
   if (function_name[1] == 'x') {
    if (function_name[2] == 'e') {
@@ -622,7 +552,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
          const char *class_name = hp_get_class_name(data TSRMLS_CC);
          if (!class_name) return NULL;
          if (!strcmp(class_name, "PDOStatement"))
-          return &orocommerce_profiled_functions[12];
+          return &orocommerce_profiled_functions[11];
          ++hp_globals.internal_match_counters.class_unmatched;
          return NULL;
         }
@@ -646,7 +576,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
 static profiled_application_t orocommerce_profiled_application = {
 "orocommerce",
 orocommerce_profiled_functions,
-13,
+12,
 orocommerce_profiler_timers,
 11,
 &orocommerce_profiled_functions[0],
