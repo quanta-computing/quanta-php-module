@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require 'yaml'
 
 def insert_into_tree node, string, value
