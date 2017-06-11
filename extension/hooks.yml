@@ -12,12 +12,16 @@ cms:
         name: 'Symfony\Component\HttpKernel\HttpKernel::handle'
       router_onkernelreq:
         name: 'Symfony\Component\HttpKernel\EventListener\RouterListener::onKernelRequest'
+      http_kernel_get_controller:
+        name: 'Symfony\Component\HttpKernel\Controller\ControllerResolver::getController'
       oro_layout_onkernelview:
         name: 'Oro\Bundle\LayoutBundle\EventListener\LayoutListener::onKernelView'
       oro_load_layout:
         name: 'Oro\Bundle\LayoutBundle\Layout\LayoutManager::getLayout'
       oro_render_layout:
         name: 'Oro\Component\Layout\Layout::render'
+      filter_response:
+        name: 'Symfony\Component\HttpKernel\HttpKernel::filterResponse'
       send_response:
         name: 'Symfony\Component\HttpFoundation\Response::send'
       kernel_terminate:
@@ -45,13 +49,23 @@ cms:
         end:
           function: kernel_boot
           timer: last_stop
-      before_routing:
+      handle_request:
         start:
           function: kernel_boot
           timer: last_stop
         end:
-          function: router_onkernelreq
-          timer: first_start
+          -
+            function: router_onkernelreq
+            timer: first_start
+          -
+            function: http_kernel_get_controller
+            timer: first_start
+          -
+            function: oro_layout_onkernelview
+            timer: first_start
+          -
+            function: filter_response
+            timer: first_start
       routing:
         start:
           function: router_onkernelreq
@@ -59,16 +73,34 @@ cms:
         end:
           function: router_onkernelreq
           timer: last_stop
-      before_layout_loading:
+      after_routing:
         start:
-          function: oro_layout_onkernelview
+          function: router_onkernelreq
+          timer: last_stop
+        end:
+          -
+            function: http_kernel_get_controller
+            timer: first_start
+          -
+            function: oro_layout_onkernelview
+            timer: first_start
+          -
+            function: filter_response
+            timer: first_start
+      controller:
+        start:
+          function: http_kernel_get_controller
           timer: first_start
         end:
-          function: oro_load_layout
-          timer: first_start
+          -
+            function: oro_layout_onkernelview
+            timer: first_start
+          -
+            function: filter_response
+            timer: first_start
       layout_loading:
         start:
-          function: oro_load_layout
+          function: oro_layout_onkernelview
           timer: first_start
         end:
           function: oro_load_layout
@@ -91,33 +123,10 @@ cms:
         end:
           function: oro_render_layout
           timer: last_stop
-      # DEBUG
-      render_twig_blocks:
+      filter_response:
         start:
-          function: render_block
+          function: filter_response
           timer: first_start
-        end:
-          function: render_block
-          timer: last_stop
-      kernel_handle:
-        start:
-          function: http_kernel_handle
-          timer: first_start
-        end:
-          function: http_kernel_handle
-          timer: last_stop
-      oro_kernel_view:
-        start:
-          function: oro_layout_onkernelview
-          timer: first_start
-        end:
-          function: oro_layout_onkernelview
-          timer: last_stop
-      # END DEBUG
-      before_sending_response:
-        start:
-          function: oro_render_layout
-          timer: last_stop
         end:
           function: send_response
           timer: first_start
@@ -135,6 +144,29 @@ cms:
         end:
           function: kernel_terminate
           timer: last_stop
+      # DEBUG
+      # kernel_handle:
+      #   start:
+      #     function: http_kernel_handle
+      #     timer: first_start
+      #   end:
+      #     function: http_kernel_handle
+      #     timer: last_stop
+      # oro_kernel_view:
+      #   start:
+      #     function: oro_layout_onkernelview
+      #     timer: first_start
+      #   end:
+      #     function: oro_layout_onkernelview
+      #     timer: last_stop
+      # before_filter_response:
+      #   start:
+      #     function: oro_render_layout
+      #     timer: last_stop
+      #   end:
+      #     function: filter_response
+      #     timer: first_start
+      # END DEBUG
 
   magento2:
     create_context_callback: magento_init_context

@@ -4,14 +4,16 @@ static profiled_function_t orocommerce_profiled_functions[] = {
 {"Oro\\Bundle\\DistributionBundle\\OroKernel::boot", 0, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
 {"Symfony\\Component\\HttpKernel\\HttpKernel::handle", 1, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
 {"Symfony\\Component\\HttpKernel\\EventListener\\RouterListener::onKernelRequest", 2, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
-{"Oro\\Bundle\\LayoutBundle\\EventListener\\LayoutListener::onKernelView", 3, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
-{"Oro\\Bundle\\LayoutBundle\\Layout\\LayoutManager::getLayout", 4, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
-{"Oro\\Component\\Layout\\Layout::render", 5, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
-{"Symfony\\Component\\HttpFoundation\\Response::send", 6, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
-{"Symfony\\Component\\HttpKernel\\Kernel::terminate", 7, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
-{"Oro\\Component\\Layout\\LayoutBuilder::processBlockViewData", 8, {1, QUANTA_MON_MODE_APP_PROFILING}, oro_before_process_block, NULL, {0, 0, 0, 0}},
-{"Oro\\Bundle\\LayoutBundle\\Form\\TwigRendererEngine::renderBlock", 9, {1, QUANTA_MON_MODE_APP_PROFILING}, oro_before_render_block, oro_after_render_block, {0, 0, 0, 0}},
-{"PDOStatement::execute", 10, {1, QUANTA_MON_MODE_APP_PROFILING}, NULL, oro_record_sql_query, {0, 0, 0, 0}},
+{"Symfony\\Component\\HttpKernel\\Controller\\ControllerResolver::getController", 3, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Oro\\Bundle\\LayoutBundle\\EventListener\\LayoutListener::onKernelView", 4, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Oro\\Bundle\\LayoutBundle\\Layout\\LayoutManager::getLayout", 5, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Oro\\Component\\Layout\\Layout::render", 6, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Symfony\\Component\\HttpKernel\\HttpKernel::filterResponse", 7, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Symfony\\Component\\HttpFoundation\\Response::send", 8, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Symfony\\Component\\HttpKernel\\Kernel::terminate", 9, {0, QUANTA_MON_MODE_APP_PROFILING}, NULL, NULL, {0, 0, 0, 0}},
+{"Oro\\Component\\Layout\\LayoutBuilder::processBlockViewData", 10, {1, QUANTA_MON_MODE_APP_PROFILING}, oro_before_process_block, NULL, {0, 0, 0, 0}},
+{"Oro\\Bundle\\LayoutBundle\\Form\\TwigRendererEngine::renderBlock", 11, {1, QUANTA_MON_MODE_APP_PROFILING}, oro_before_render_block, oro_after_render_block, {0, 0, 0, 0}},
+{"PDOStatement::execute", 12, {1, QUANTA_MON_MODE_APP_PROFILING}, NULL, oro_record_sql_query, {0, 0, 0, 0}},
 {NULL, 0, {0, 0}, NULL, NULL, {0, 0, 0, 0}}
 };
 
@@ -19,7 +21,7 @@ static const profiler_timer_function_t orocommerce_profiler_timer_kernel_boot_st
   {&orocommerce_profiled_functions[0], PROF_FIRST_START},
   {NULL, 0}
 };
-static const profiler_timer_function_t orocommerce_profiler_timer_before_routing_start[] = {
+static const profiler_timer_function_t orocommerce_profiler_timer_handle_request_start[] = {
   {&orocommerce_profiled_functions[0], PROF_LAST_STOP},
   {NULL, 0}
 };
@@ -27,7 +29,11 @@ static const profiler_timer_function_t orocommerce_profiler_timer_routing_start[
   {&orocommerce_profiled_functions[2], PROF_FIRST_START},
   {NULL, 0}
 };
-static const profiler_timer_function_t orocommerce_profiler_timer_before_layout_loading_start[] = {
+static const profiler_timer_function_t orocommerce_profiler_timer_after_routing_start[] = {
+  {&orocommerce_profiled_functions[2], PROF_LAST_STOP},
+  {NULL, 0}
+};
+static const profiler_timer_function_t orocommerce_profiler_timer_controller_start[] = {
   {&orocommerce_profiled_functions[3], PROF_FIRST_START},
   {NULL, 0}
 };
@@ -36,32 +42,20 @@ static const profiler_timer_function_t orocommerce_profiler_timer_layout_loading
   {NULL, 0}
 };
 static const profiler_timer_function_t orocommerce_profiler_timer_init_rendering_start[] = {
-  {&orocommerce_profiled_functions[5], PROF_FIRST_START},
+  {&orocommerce_profiled_functions[6], PROF_FIRST_START},
   {NULL, 0}
 };
 static const profiler_timer_function_t orocommerce_profiler_timer_layout_rendering_start[] = {
-  {&orocommerce_profiled_functions[9], PROF_FIRST_START},
-  {&orocommerce_profiled_functions[5], PROF_FIRST_START},
+  {&orocommerce_profiled_functions[11], PROF_FIRST_START},
+  {&orocommerce_profiled_functions[6], PROF_FIRST_START},
   {NULL, 0}
 };
-static const profiler_timer_function_t orocommerce_profiler_timer_render_twig_blocks_start[] = {
-  {&orocommerce_profiled_functions[9], PROF_FIRST_START},
-  {NULL, 0}
-};
-static const profiler_timer_function_t orocommerce_profiler_timer_kernel_handle_start[] = {
-  {&orocommerce_profiled_functions[1], PROF_FIRST_START},
-  {NULL, 0}
-};
-static const profiler_timer_function_t orocommerce_profiler_timer_oro_kernel_view_start[] = {
-  {&orocommerce_profiled_functions[3], PROF_FIRST_START},
-  {NULL, 0}
-};
-static const profiler_timer_function_t orocommerce_profiler_timer_before_sending_response_start[] = {
-  {&orocommerce_profiled_functions[5], PROF_LAST_STOP},
+static const profiler_timer_function_t orocommerce_profiler_timer_filter_response_start[] = {
+  {&orocommerce_profiled_functions[7], PROF_FIRST_START},
   {NULL, 0}
 };
 static const profiler_timer_function_t orocommerce_profiler_timer_sending_response_start[] = {
-  {&orocommerce_profiled_functions[6], PROF_FIRST_START},
+  {&orocommerce_profiled_functions[8], PROF_FIRST_START},
   {NULL, 0}
 };
 static const profiler_timer_function_t orocommerce_profiler_timer_total_start[] = {
@@ -72,52 +66,50 @@ static const profiler_timer_function_t orocommerce_profiler_timer_kernel_boot_en
   {&orocommerce_profiled_functions[0], PROF_LAST_STOP},
   {NULL, 0}
 };
-static const profiler_timer_function_t orocommerce_profiler_timer_before_routing_end[] = {
+static const profiler_timer_function_t orocommerce_profiler_timer_handle_request_end[] = {
   {&orocommerce_profiled_functions[2], PROF_FIRST_START},
+  {&orocommerce_profiled_functions[3], PROF_FIRST_START},
+  {&orocommerce_profiled_functions[4], PROF_FIRST_START},
+  {&orocommerce_profiled_functions[7], PROF_FIRST_START},
   {NULL, 0}
 };
 static const profiler_timer_function_t orocommerce_profiler_timer_routing_end[] = {
   {&orocommerce_profiled_functions[2], PROF_LAST_STOP},
   {NULL, 0}
 };
-static const profiler_timer_function_t orocommerce_profiler_timer_before_layout_loading_end[] = {
+static const profiler_timer_function_t orocommerce_profiler_timer_after_routing_end[] = {
+  {&orocommerce_profiled_functions[3], PROF_FIRST_START},
   {&orocommerce_profiled_functions[4], PROF_FIRST_START},
+  {&orocommerce_profiled_functions[7], PROF_FIRST_START},
+  {NULL, 0}
+};
+static const profiler_timer_function_t orocommerce_profiler_timer_controller_end[] = {
+  {&orocommerce_profiled_functions[4], PROF_FIRST_START},
+  {&orocommerce_profiled_functions[7], PROF_FIRST_START},
   {NULL, 0}
 };
 static const profiler_timer_function_t orocommerce_profiler_timer_layout_loading_end[] = {
-  {&orocommerce_profiled_functions[4], PROF_LAST_STOP},
-  {NULL, 0}
-};
-static const profiler_timer_function_t orocommerce_profiler_timer_init_rendering_end[] = {
-  {&orocommerce_profiled_functions[9], PROF_FIRST_START},
-  {NULL, 0}
-};
-static const profiler_timer_function_t orocommerce_profiler_timer_layout_rendering_end[] = {
   {&orocommerce_profiled_functions[5], PROF_LAST_STOP},
   {NULL, 0}
 };
-static const profiler_timer_function_t orocommerce_profiler_timer_render_twig_blocks_end[] = {
-  {&orocommerce_profiled_functions[9], PROF_LAST_STOP},
+static const profiler_timer_function_t orocommerce_profiler_timer_init_rendering_end[] = {
+  {&orocommerce_profiled_functions[11], PROF_FIRST_START},
   {NULL, 0}
 };
-static const profiler_timer_function_t orocommerce_profiler_timer_kernel_handle_end[] = {
-  {&orocommerce_profiled_functions[1], PROF_LAST_STOP},
+static const profiler_timer_function_t orocommerce_profiler_timer_layout_rendering_end[] = {
+  {&orocommerce_profiled_functions[6], PROF_LAST_STOP},
   {NULL, 0}
 };
-static const profiler_timer_function_t orocommerce_profiler_timer_oro_kernel_view_end[] = {
-  {&orocommerce_profiled_functions[3], PROF_LAST_STOP},
-  {NULL, 0}
-};
-static const profiler_timer_function_t orocommerce_profiler_timer_before_sending_response_end[] = {
-  {&orocommerce_profiled_functions[6], PROF_FIRST_START},
+static const profiler_timer_function_t orocommerce_profiler_timer_filter_response_end[] = {
+  {&orocommerce_profiled_functions[8], PROF_FIRST_START},
   {NULL, 0}
 };
 static const profiler_timer_function_t orocommerce_profiler_timer_sending_response_end[] = {
-  {&orocommerce_profiled_functions[7], PROF_LAST_STOP},
+  {&orocommerce_profiled_functions[9], PROF_LAST_STOP},
   {NULL, 0}
 };
 static const profiler_timer_function_t orocommerce_profiler_timer_total_end[] = {
-  {&orocommerce_profiled_functions[7], PROF_LAST_STOP},
+  {&orocommerce_profiled_functions[9], PROF_LAST_STOP},
   {NULL, 0}
 };
 static const profiler_timer_t orocommerce_profiler_timers[] = {
@@ -128,9 +120,9 @@ static const profiler_timer_t orocommerce_profiler_timers[] = {
   {0}
 },
 {
-  "before_routing",
-  orocommerce_profiler_timer_before_routing_start, 1,
-  orocommerce_profiler_timer_before_routing_end, 1,
+  "handle_request",
+  orocommerce_profiler_timer_handle_request_start, 1,
+  orocommerce_profiler_timer_handle_request_end, 4,
   {0}
 },
 {
@@ -140,9 +132,15 @@ static const profiler_timer_t orocommerce_profiler_timers[] = {
   {0}
 },
 {
-  "before_layout_loading",
-  orocommerce_profiler_timer_before_layout_loading_start, 1,
-  orocommerce_profiler_timer_before_layout_loading_end, 1,
+  "after_routing",
+  orocommerce_profiler_timer_after_routing_start, 1,
+  orocommerce_profiler_timer_after_routing_end, 3,
+  {0}
+},
+{
+  "controller",
+  orocommerce_profiler_timer_controller_start, 1,
+  orocommerce_profiler_timer_controller_end, 2,
   {0}
 },
 {
@@ -164,27 +162,9 @@ static const profiler_timer_t orocommerce_profiler_timers[] = {
   {0}
 },
 {
-  "render_twig_blocks",
-  orocommerce_profiler_timer_render_twig_blocks_start, 1,
-  orocommerce_profiler_timer_render_twig_blocks_end, 1,
-  {0}
-},
-{
-  "kernel_handle",
-  orocommerce_profiler_timer_kernel_handle_start, 1,
-  orocommerce_profiler_timer_kernel_handle_end, 1,
-  {0}
-},
-{
-  "oro_kernel_view",
-  orocommerce_profiler_timer_oro_kernel_view_start, 1,
-  orocommerce_profiler_timer_oro_kernel_view_end, 1,
-  {0}
-},
-{
-  "before_sending_response",
-  orocommerce_profiler_timer_before_sending_response_start, 1,
-  orocommerce_profiler_timer_before_sending_response_end, 1,
+  "filter_response",
+  orocommerce_profiler_timer_filter_response_start, 1,
+  orocommerce_profiler_timer_filter_response_end, 1,
   {0}
 },
 {
@@ -299,7 +279,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
               const char *class_name = hp_get_class_name(data TSRMLS_CC);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Oro\\Bundle\\LayoutBundle\\EventListener\\LayoutListener"))
-               return &orocommerce_profiled_functions[3];
+               return &orocommerce_profiled_functions[4];
               ++hp_globals.internal_match_counters.class_unmatched;
               return NULL;
              }
@@ -330,6 +310,45 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
  if (function_name[0] == 'g') {
   if (function_name[1] == 'e') {
    if (function_name[2] == 't') {
+    if (function_name[3] == 'C') {
+     if (function_name[4] == 'o') {
+      if (function_name[5] == 'n') {
+       if (function_name[6] == 't') {
+        if (function_name[7] == 'r') {
+         if (function_name[8] == 'o') {
+          if (function_name[9] == 'l') {
+           if (function_name[10] == 'l') {
+            if (function_name[11] == 'e') {
+             if (function_name[12] == 'r') {
+              if (function_name[13] == '\0') {
+               ++hp_globals.internal_match_counters.function;
+               const char *class_name = hp_get_class_name(data TSRMLS_CC);
+               if (!class_name) return NULL;
+               if (!strcmp(class_name, "Symfony\\Component\\HttpKernel\\Controller\\ControllerResolver"))
+                return &orocommerce_profiled_functions[3];
+               ++hp_globals.internal_match_counters.class_unmatched;
+               return NULL;
+              }
+              return NULL;
+             }
+             return NULL;
+            }
+            return NULL;
+           }
+           return NULL;
+          }
+          return NULL;
+         }
+         return NULL;
+        }
+        return NULL;
+       }
+       return NULL;
+      }
+      return NULL;
+     }
+     return NULL;
+    }
     if (function_name[3] == 'L') {
      if (function_name[4] == 'a') {
       if (function_name[5] == 'y') {
@@ -341,7 +360,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
            const char *class_name = hp_get_class_name(data TSRMLS_CC);
            if (!class_name) return NULL;
            if (!strcmp(class_name, "Oro\\Bundle\\LayoutBundle\\Layout\\LayoutManager"))
-            return &orocommerce_profiled_functions[4];
+            return &orocommerce_profiled_functions[5];
            ++hp_globals.internal_match_counters.class_unmatched;
            return NULL;
           }
@@ -369,15 +388,6 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
     if (function_name[3] == 'd') {
      if (function_name[4] == 'e') {
       if (function_name[5] == 'r') {
-       if (function_name[6] == '\0') {
-        ++hp_globals.internal_match_counters.function;
-        const char *class_name = hp_get_class_name(data TSRMLS_CC);
-        if (!class_name) return NULL;
-        if (!strcmp(class_name, "Oro\\Component\\Layout\\Layout"))
-         return &orocommerce_profiled_functions[5];
-        ++hp_globals.internal_match_counters.class_unmatched;
-        return NULL;
-       }
        if (function_name[6] == 'B') {
         if (function_name[7] == 'l') {
          if (function_name[8] == 'o') {
@@ -388,8 +398,68 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
              const char *class_name = hp_get_class_name(data TSRMLS_CC);
              if (!class_name) return NULL;
              if (!strcmp(class_name, "Oro\\Bundle\\LayoutBundle\\Form\\TwigRendererEngine"))
-              return &orocommerce_profiled_functions[9];
+              return &orocommerce_profiled_functions[11];
              ++hp_globals.internal_match_counters.class_unmatched;
+             return NULL;
+            }
+            return NULL;
+           }
+           return NULL;
+          }
+          return NULL;
+         }
+         return NULL;
+        }
+        return NULL;
+       }
+       if (function_name[6] == '\0') {
+        ++hp_globals.internal_match_counters.function;
+        const char *class_name = hp_get_class_name(data TSRMLS_CC);
+        if (!class_name) return NULL;
+        if (!strcmp(class_name, "Oro\\Component\\Layout\\Layout"))
+         return &orocommerce_profiled_functions[6];
+        ++hp_globals.internal_match_counters.class_unmatched;
+        return NULL;
+       }
+       return NULL;
+      }
+      return NULL;
+     }
+     return NULL;
+    }
+    return NULL;
+   }
+   return NULL;
+  }
+  return NULL;
+ }
+ if (function_name[0] == 'f') {
+  if (function_name[1] == 'i') {
+   if (function_name[2] == 'l') {
+    if (function_name[3] == 't') {
+     if (function_name[4] == 'e') {
+      if (function_name[5] == 'r') {
+       if (function_name[6] == 'R') {
+        if (function_name[7] == 'e') {
+         if (function_name[8] == 's') {
+          if (function_name[9] == 'p') {
+           if (function_name[10] == 'o') {
+            if (function_name[11] == 'n') {
+             if (function_name[12] == 's') {
+              if (function_name[13] == 'e') {
+               if (function_name[14] == '\0') {
+                ++hp_globals.internal_match_counters.function;
+                const char *class_name = hp_get_class_name(data TSRMLS_CC);
+                if (!class_name) return NULL;
+                if (!strcmp(class_name, "Symfony\\Component\\HttpKernel\\HttpKernel"))
+                 return &orocommerce_profiled_functions[7];
+                ++hp_globals.internal_match_counters.class_unmatched;
+                return NULL;
+               }
+               return NULL;
+              }
+              return NULL;
+             }
              return NULL;
             }
             return NULL;
@@ -423,7 +493,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
       const char *class_name = hp_get_class_name(data TSRMLS_CC);
       if (!class_name) return NULL;
       if (!strcmp(class_name, "Symfony\\Component\\HttpFoundation\\Response"))
-       return &orocommerce_profiled_functions[6];
+       return &orocommerce_profiled_functions[8];
       ++hp_globals.internal_match_counters.class_unmatched;
       return NULL;
      }
@@ -449,7 +519,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
            const char *class_name = hp_get_class_name(data TSRMLS_CC);
            if (!class_name) return NULL;
            if (!strcmp(class_name, "Symfony\\Component\\HttpKernel\\Kernel"))
-            return &orocommerce_profiled_functions[7];
+            return &orocommerce_profiled_functions[9];
            ++hp_globals.internal_match_counters.class_unmatched;
            return NULL;
           }
@@ -496,7 +566,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
                       const char *class_name = hp_get_class_name(data TSRMLS_CC);
                       if (!class_name) return NULL;
                       if (!strcmp(class_name, "Oro\\Component\\Layout\\LayoutBuilder"))
-                       return &orocommerce_profiled_functions[8];
+                       return &orocommerce_profiled_functions[10];
                       ++hp_globals.internal_match_counters.class_unmatched;
                       return NULL;
                      }
@@ -552,7 +622,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
          const char *class_name = hp_get_class_name(data TSRMLS_CC);
          if (!class_name) return NULL;
          if (!strcmp(class_name, "PDOStatement"))
-          return &orocommerce_profiled_functions[10];
+          return &orocommerce_profiled_functions[12];
          ++hp_globals.internal_match_counters.class_unmatched;
          return NULL;
         }
@@ -576,11 +646,11 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
 static profiled_application_t orocommerce_profiled_application = {
 "orocommerce",
 orocommerce_profiled_functions,
-11,
-orocommerce_profiler_timers,
 13,
+orocommerce_profiler_timers,
+11,
 &orocommerce_profiled_functions[0],
-&orocommerce_profiled_functions[7],
+&orocommerce_profiled_functions[9],
 {NULL, NULL},
 NULL,
 oro_init_context,
@@ -1110,10 +1180,10 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
           if (!class_name) return NULL;
           if (!strcmp(class_name, "Magento\\Framework\\App\\Action\\Action"))
            return &magento2_profiled_functions[6];
-          if (!strcmp(class_name, "Magento\\Framework\\App\\FrontController\\Interceptor"))
-           return &magento2_profiled_functions[4];
           if (!strcmp(class_name, "Magento\\Framework\\App\\FrontController"))
            return &magento2_profiled_functions[5];
+          if (!strcmp(class_name, "Magento\\Framework\\App\\FrontController\\Interceptor"))
+           return &magento2_profiled_functions[4];
           ++hp_globals.internal_match_counters.class_unmatched;
           return NULL;
          }
