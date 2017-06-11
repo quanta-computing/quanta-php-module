@@ -1,31 +1,4 @@
 #include "quanta_mon.h"
-//
-// static int depth = 0;
-//
-// static void block_var_dump(zval *val TSRMLS_DC, int num_args, va_list args, zend_hash_key *key) {
-//   PRINTF_QUANTA("BLOCK VAR !!\n");
-//   if (Z_TYPE_P(val) == IS_INDIRECT)
-//     val = Z_INDIRECT_P(val);
-//   if (Z_TYPE_P(val) == IS_REFERENCE)
-//     val = Z_REFVAL_P(val);
-//   if (Z_TYPE_P(val) == IS_STRING)
-//     PRINTF_QUANTA("BLOCK VAR [%zu] %*s (%zu) = %s\n", key->h, (int)ZSTR_LEN(key->key), ZSTR_VAL(key->key), ZSTR_LEN(key->key), Z_STRVAL_P(val));
-//   else
-//     PRINTF_QUANTA("BLOCK VAR [%zu] %*s (%zu) = %d\n", key->h, (int)ZSTR_LEN(key->key), ZSTR_VAL(key->key), ZSTR_LEN(key->key), Z_TYPE_P(val));
-// }
-//
-// static void block_vars_dump(zval *block TSRMLS_DC) {
-//   zval *vars;
-//   vars = zend_hash_find_compat(Z_OBJPROP_P(block), "vars", sizeof("vars") - 1);
-//   if (Z_TYPE_P(vars) == IS_INDIRECT)
-//     vars = Z_INDIRECT_P(vars);
-//   if (Z_TYPE_P(vars) == IS_REFERENCE)
-//     vars = Z_REFVAL_P(vars);
-//   if (Z_TYPE_P(vars) != IS_ARRAY)
-//     PRINTF_QUANTA("vars is not an array\n");
-//   else
-//     zend_hash_apply_with_arguments(Z_ARRVAL_P(vars), block_var_dump, 0, NULL TSRMLS_CC);
-// }
 
 static zval *get_block_var(zval *block, const char * key, int type TSRMLS_DC) {
   zval *data;
@@ -79,7 +52,7 @@ zend_execute_data *execute_data TSRMLS_DC) {
   }
   if ((current_block = oro_block_stack_top(context))
   && !strcmp(Z_STRVAL_P(id), current_block->name)) {
-    PRINTF_QUANTA("Same block id (%s), skipping this block\n", Z_STRVAL_P(id));
+    // PRINTF_QUANTA("Same block id (%s), skipping this block\n", Z_STRVAL_P(id));
     return -1;
   }
   if (!(block = ecalloc(1, sizeof(*block)))
@@ -118,11 +91,5 @@ zend_execute_data *execute_data TSRMLS_DC) {
       block->tsc_renderize_first_start;
   }
   // PRINTF_QUANTA("END BLOCK %s (%s)\n", block->name, block->template);
-  return 0;
-}
-
-int oro_before_process_block(profiled_application_t *app, profiled_function_t *function,
-zend_execute_data *execute_data TSRMLS_DC) {
-  // PRINTF_QUANTA("BEFORE PROCESS BLOCK\n");
   return 0;
 }
