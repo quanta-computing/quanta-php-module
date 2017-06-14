@@ -26,5 +26,5 @@ cp -v ${packagerdir}/${package}/php* ${outdir}
 
 echo "Testing package..."
 dpkg -i ${outdir}/*.deb
-php5enmod quanta_mon || echo "No php5enmod"
+php5enmod quanta_mon || phpenmod quanta_mon || echo "No phpenmod"
 php -i | grep quanta

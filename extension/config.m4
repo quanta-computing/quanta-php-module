@@ -38,6 +38,12 @@ if test "$PHP_QUANTAMON" != "no"; then
     src/module/quanta_mon.c \
     src/module/request_init.c \
     src/module/request_shutdown.c \
+    src/oro/block_stack.c \
+    src/oro/blocks.c \
+    src/oro/context.c \
+    src/oro/metrics.c \
+    src/oro/sql.c \
+    src/oro/version.c \
     src/profiler/app_profiler.c \
     src/profiler/application.c \
     src/profiler/begin_profiling.c \
@@ -69,5 +75,5 @@ if test "$PHP_QUANTAMON" != "no"; then
     src/utils/zend_hash.c \
     src/utils/zend_obj.c \
     src/utils/zend_zval.c \
-    src/applications.c, $ext_shared,,-W -Wall -Wextra -Wno-unused-parameter -D_GNU_SOURCE)
+    src/applications.c, $ext_shared,,-W -Wall -Wextra -Wno-unused-parameter -D_GNU_SOURCE -g3 -ggdb)
 fi

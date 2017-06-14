@@ -2,11 +2,12 @@
 
 ostype=$1
 version=$2
+shift 2
 localdir=`git rev-parse --show-toplevel`
 dockerfile=${localdir}/packager/${ostype}-${version}.dockerfile
 
 if [ -z "$ostype" ] || [ -z "$version" ]; then
-  echo "Usage: ./shell.sh <OS> <version>"
+  echo "Usage: ./shell.sh <OS> <version> [docker run args...]"
   exit 1
 fi
 
@@ -24,4 +25,4 @@ if [ ! $ret -eq 0 ] || [ -z "$image" ] ; then
 fi
 
 echo "======>>> Running shell"
-exec docker run -ti -v ${localdir}:/php-module ${image}
+exec docker run -ti -v ${localdir}:/php-module $@ ${image}

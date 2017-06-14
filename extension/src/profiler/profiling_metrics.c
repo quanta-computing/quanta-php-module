@@ -41,12 +41,10 @@ monikor_metric_list_t *metrics, float cpufreq) {
   metric = monikor_metric_float(metric_name, clock, cpu_cycles_to_ms(cpufreq, cycles), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
-  PRINTF_QUANTA("METRIC %s: %f\n", metric_name, cpu_cycles_to_ms(cpufreq, cycles));
   strcpy(metric_base_end, "sql.count");
   metric = monikor_metric_integer(metric_name, clock, count, 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
-  PRINTF_QUANTA("METRIC %s: %"PRIu64"\n", metric_name, count);
 }
 
 static int qm_send_profiled_function_time_metrics(char *metric_name, char *metric_base_end,
@@ -59,8 +57,6 @@ monikor_metric_list_t *metrics, float cpufreq) {
     cpu_cycles_range_to_ms(cpufreq, tsc_start, tsc_end), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
-  PRINTF_QUANTA("METRIC %s: %f\n", metric_name,
-    cpu_cycles_range_to_ms(cpufreq, tsc_start, tsc_end));
   if (!tsc_end || !tsc_start || tsc_start > tsc_end)
     return -1;
   return 0;

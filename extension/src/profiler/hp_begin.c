@@ -7,7 +7,6 @@
  */
 void hp_begin(long level TSRMLS_DC) {
   if (!hp_globals.enabled) {
-    PRINTF_QUANTA("hp_begin();\n");
     hp_globals.enabled      = 1;
 
     hp_hijack_zend_execute(level);
