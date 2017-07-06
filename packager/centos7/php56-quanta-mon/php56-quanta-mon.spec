@@ -1,5 +1,5 @@
 Name:	php56-quanta-mon
-Version: 1.2.2
+Version: 1.3.0-beta
 Release: 1%{?dist}
 Summary: This package provides a PHP profiling module built for Magento.
 Distribution: Quanta

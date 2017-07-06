@@ -12,8 +12,8 @@ fi
 
 echo "Creating build directory..."
 rm -Rf ${packagedir}/${package}/build
-cp -r ${basedir}/extension ${packagerdir}/${package}/build
-cp -r ${packagerdir}/${package}/debian ${packagerdir}/${package}/build
+cp -ar ${basedir}/extension ${packagerdir}/${package}/build
+cp -ar ${packagerdir}/${package}/debian ${packagerdir}/${package}/build
 cd ${packagerdir}/${package}/build
 
 echo "Building package..."

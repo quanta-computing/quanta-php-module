@@ -44,4 +44,11 @@ RUN apt-get update && apt-get install -y \
   php7.0-mcrypt \
   php7.0-mysql \
   php7.0-mbstring \
-  php7.0-xml
+  php7.0-xml \
+  php7.0-zip
+
+
+#ORO specific
+RUN apt-get update && apt-get install -y nodejs
+RUN curl -s https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer
+RUN /usr/local/bin/composer global require "fxp/composer-asset-plugin"
