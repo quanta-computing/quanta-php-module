@@ -25,4 +25,4 @@ if [ ! $ret -eq 0 ] || [ -z "$image" ] ; then
 fi
 
 echo "======>>> Running shell"
-exec docker run -ti -v ${localdir}:/php-module $@ ${image}
+exec docker run -ti -p 8080:80 -v ${localdir}:/php-module $@ ${image}
