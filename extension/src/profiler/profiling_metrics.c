@@ -38,7 +38,7 @@ monikor_metric_list_t *metrics, float cpufreq) {
     PRINTF_QUANTA("NO SQL FOR TIMER %s\n", timer->name);
   }
   strcpy(metric_base_end, "sql.time");
-  metric = monikor_metric_float(metric_name, clock, cpu_cycles_to_ms(cpufreq, cycles), 0);
+  metric = monikor_metric_float(metric_name, clock, timer_to_ms(cycles), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
   strcpy(metric_base_end, "sql.count");
@@ -54,7 +54,7 @@ monikor_metric_list_t *metrics, float cpufreq) {
 
   strcpy(metric_base_end, "time");
   metric = monikor_metric_float(metric_name, clock,
-    cpu_cycles_range_to_ms(cpufreq, tsc_start, tsc_end), 0);
+    timers_range_to_ms(tsc_start, tsc_end), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
   if (!tsc_end || !tsc_start || tsc_start > tsc_end)
@@ -103,7 +103,7 @@ struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
   monikor_metric_t *metric;
 
   strcpy(metric_base_end, "php_total.time");
-  metric = monikor_metric_float(metric_name, clock, cpu_cycles_range_to_ms(cpufreq,
+  metric = monikor_metric_float(metric_name, clock, timers_range_to_ms(
     hp_globals.global_tsc.start, hp_globals.global_tsc.stop
   ), 0);
   if (metric)
@@ -118,13 +118,13 @@ struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq) {
   if (!app)
     return;
   strcpy(metric_base_end, "before_app.time");
-  metric = monikor_metric_float(metric_name, clock, cpu_cycles_range_to_ms(cpufreq,
+  metric = monikor_metric_float(metric_name, clock, timers_range_to_ms(
     hp_globals.global_tsc.start, app->first_app_function->tsc.first_start
   ), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
   strcpy(metric_base_end, "after_app.time");
-  metric = monikor_metric_float(metric_name, clock, cpu_cycles_range_to_ms(cpufreq,
+  metric = monikor_metric_float(metric_name, clock, timers_range_to_ms(
     app->last_app_function->tsc.last_stop, hp_globals.global_tsc.stop
   ), 0);
   if (metric)

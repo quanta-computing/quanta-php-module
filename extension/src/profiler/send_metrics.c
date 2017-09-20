@@ -145,10 +145,10 @@ void send_metrics(TSRMLS_D) {
   if (hp_globals.quanta_clock)
     now.tv_sec = hp_globals.quanta_clock;
   qm_send_events_metrics(&now, metrics);
-  if (hp_globals.profiler_level <= QUANTA_MON_MODE_APP_PROFILING
-  && hp_globals.cpu_frequencies) {
-    float cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
-
+  if (hp_globals.profiler_level <= QUANTA_MON_MODE_APP_PROFILING) {
+  // && hp_globals.cpu_frequencies) {
+    // float cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
+    float cpufreq = 0.0; //TODO!
     fetch_request_uri(&now, metrics);
     fetch_xhprof_metrics(&now, metrics TSRMLS_CC);
     qm_send_profiler_metrics(&now, metrics, cpufreq TSRMLS_CC);

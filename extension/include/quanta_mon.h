@@ -7,6 +7,7 @@
 #include "ext/pdo/php_pdo_driver.h"
 #include "zend_extensions.h"
 #include <SAPI.h>
+#include <time.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <fcntl.h>
@@ -45,7 +46,7 @@
 
 /* Size of a temp scratch buffer            */
 #define SCRATCH_BUF_LEN            512
-#define QUANTA_MON_VERSION "1.3.0-beta"
+#define QUANTA_MON_VERSION "1.3.0-nordtsc"
 
 
 /* Xhprof's global state.
@@ -110,6 +111,7 @@ typedef struct hp_global_t {
     uint64_t start;
     uint64_t stop;
   } global_tsc;
+  struct timespec gettime_start;
 
   profiled_application_t *profiled_application;
 

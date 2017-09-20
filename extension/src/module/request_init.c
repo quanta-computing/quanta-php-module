@@ -113,6 +113,7 @@ PHP_RINIT_FUNCTION(quanta_mon) {
   uint64_t start;
   uint64_t end;
 
+  clock_gettime(CLOCK_MONOTONIC_COARSE, &hp_globals.gettime_start);
   start = cycle_timer();
   mode = extract_headers_info(TSRMLS_C);
   if (mode == -1) {

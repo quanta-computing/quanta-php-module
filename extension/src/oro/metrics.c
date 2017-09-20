@@ -20,8 +20,7 @@ float cpufreq, oro_block_t *block) {
   if ((metric = monikor_metric_integer(metric_name, clock, block->sql_queries_count, 0)))
     monikor_metric_list_push(metrics, metric);
   strcpy(metric_base_end, "sql_time");
-  metric = monikor_metric_float(metric_name, clock, cpu_cycles_to_ms(
-    cpufreq, block->sql_cpu_cycles), 0);
+  metric = monikor_metric_float(metric_name, clock, timer_to_ms(block->sql_cpu_cycles), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
 }
@@ -32,7 +31,7 @@ struct timeval *clock, monikor_metric_list_t *metrics, float cpufreq, oro_block_
   float rendering_time;
 
   strcpy(metric_base_end, "rendering_time");
-  rendering_time = cpu_cycles_range_to_ms(cpufreq,
+  rendering_time = timers_range_to_ms(
     block->renderize_children_cycles + block->tsc_renderize_first_start,
     block->tsc_renderize_last_stop
   );

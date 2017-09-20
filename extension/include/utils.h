@@ -9,6 +9,9 @@ void clear_frequencies();
 
 // Timings
 uint64_t cycle_timer();
+float timer_to_ms(uint64_t timer);
+float timers_range_to_ms(uint64_t start, uint64_t end);
+
 float cpu_cycles_range_to_ms(float cpufreq, long long start, long long end);
 float cpu_cycles_to_ms(float cpufreq, uint64_t count);
 inline double get_us_from_tsc(uint64_t count, double cpu_frequency);

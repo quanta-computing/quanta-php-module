@@ -9,8 +9,8 @@ int qm_record_event(applicative_event_class_t class, char *type, char *subtype) 
   event->class = class;
   if (!(event->type = estrdup(type))
   || !(event->subtype = estrdup(subtype))) {
-    free(event->type);
-    free(event);
+    efree(event->type);
+    efree(event);
     return -1;
   }
   event->prev = hp_globals.app_events;

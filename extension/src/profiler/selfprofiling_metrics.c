@@ -13,24 +13,24 @@ float cpufreq TSRMLS_DC) {
   metric_base_end = metric_name + strlen(metric_name);
   strcpy(metric_base_end, "init_time");
   metric = monikor_metric_float(metric_name, clock,
-    cpu_cycles_to_ms(cpufreq, hp_globals.internal_match_counters.init_cycles), 0);
+    timer_to_ms(hp_globals.internal_match_counters.init_cycles), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
   strcpy(metric_base_end, "profiling_time");
   metric = monikor_metric_float(metric_name, clock,
-    cpu_cycles_to_ms(cpufreq, hp_globals.internal_match_counters.profiling_cycles), 0);
+    timer_to_ms(hp_globals.internal_match_counters.profiling_cycles), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
   hp_globals.internal_match_counters.shutdown_cycles = cycle_timer()
     - hp_globals.internal_match_counters.shutdown_cycles;
   strcpy(metric_base_end, "shutdown_time");
   metric = monikor_metric_float(metric_name, clock,
-    cpu_cycles_to_ms(cpufreq, hp_globals.internal_match_counters.shutdown_cycles), 0);
+    timer_to_ms(hp_globals.internal_match_counters.shutdown_cycles), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
   strcpy(metric_base_end, "match_time");
   metric = monikor_metric_float(metric_name, clock,
-    cpu_cycles_to_ms(cpufreq, hp_globals.internal_match_counters.cycles), 0);
+    timer_to_ms(hp_globals.internal_match_counters.cycles), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
   strcpy(metric_base_end, "match_total_count");
