@@ -24,6 +24,6 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
     array_init(&hp_globals.stats_count);
 
     /* bind to a random cpu so that we can use rdtsc instruction. */
-    bind_to_cpu((uint32_t)(rand() % hp_globals.cpu_num));
+    // bind_to_cpu((uint32_t)(rand() % hp_globals.cpu_num));
   }
 }

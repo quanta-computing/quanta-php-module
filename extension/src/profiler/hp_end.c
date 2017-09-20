@@ -4,10 +4,10 @@ static void print_selfprofiling_metrics(void) {
   float profiling_time;
   float request_time;
 
-  if (!hp_globals.cpu_frequencies) {
-    PRINTF_QUANTA("CPU frequencies not initialized, cannot profile myself\n");
-    return;
-  }
+  // if (!hp_globals.cpu_frequencies) {
+  //   PRINTF_QUANTA("CPU frequencies not initialized, cannot profile myself\n");
+  //   return;
+  // }
   PRINTF_QUANTA("MATCH COUNTERS:\n - Total: %zu\n - Function: %zu\n - Full: %zu\n - Class unmatch: %zu\n",
     hp_globals.internal_match_counters.total,
     hp_globals.internal_match_counters.function,
@@ -15,26 +15,20 @@ static void print_selfprofiling_metrics(void) {
     hp_globals.internal_match_counters.class_unmatched
   );
   PRINTF_QUANTA("TREE TIME %fms\nHASH TIME %fms\n",
-    cpu_cycles_to_ms(hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
-      hp_globals.internal_match_counters.cycles),
-    cpu_cycles_to_ms(hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
-      hp_globals.internal_match_counters.hash_cycles)
+    timer_to_ms(hp_globals.internal_match_counters.cycles),
+    timer_to_ms(hp_globals.internal_match_counters.hash_cycles)
   );
-  profiling_time = cpu_cycles_to_ms(hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
+  profiling_time = timer_to_ms(
     hp_globals.internal_match_counters.profiling_cycles
     + hp_globals.internal_match_counters.init_cycles
     + hp_globals.internal_match_counters.shutdown_cycles);
   PRINTF_QUANTA("PROFILING TIME %fms\nINIT TIME %fms\nSHUTDOWN TIME %fms\nTOTAL TIME %fms\n",
-    cpu_cycles_to_ms(hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
-      hp_globals.internal_match_counters.profiling_cycles),
-    cpu_cycles_to_ms(hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
-      hp_globals.internal_match_counters.init_cycles),
-    cpu_cycles_to_ms(hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
-      hp_globals.internal_match_counters.shutdown_cycles),
+    timer_to_ms(hp_globals.internal_match_counters.profiling_cycles),
+    timer_to_ms(hp_globals.internal_match_counters.init_cycles),
+    timer_to_ms(hp_globals.internal_match_counters.shutdown_cycles),
     profiling_time
   );
-  request_time = cpu_cycles_to_ms(hp_globals.cpu_frequencies[hp_globals.cur_cpu_id],
-    hp_globals.global_tsc.stop - hp_globals.global_tsc.start);
+  request_time = timer_to_ms(hp_globals.global_tsc.stop - hp_globals.global_tsc.start);
   PRINTF_QUANTA("REQUEST TOTAL TIME %fms\nOVERHEAD %.3f%%\n",
     request_time, 100.0 * (profiling_time / request_time));
 }
@@ -62,7 +56,7 @@ void hp_stop(TSRMLS_D) {
   print_selfprofiling_metrics();
   hp_restore_original_zend_execute();
   /* Resore cpu affinity. */
-  restore_cpu_affinity(&hp_globals.prev_mask);
+  // restore_cpu_affinity(&hp_globals.prev_mask);
   /* Stop profiling */
   hp_globals.enabled = 0;
 }
