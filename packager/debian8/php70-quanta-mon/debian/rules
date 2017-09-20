@@ -2,11 +2,12 @@
 
 build:
 	phpize
+	make clean
 	dh_build
 
 override_dh_auto_install:
-	$(MAKE) INSTALL_ROOT=$$(pwd)/debian/php70-quanta-mon install
-	install -D -m 0644 quanta_mon.ini debian/php70-quanta-mon/etc/php/7.0/mods-available/quanta_mon.ini
+	$(MAKE) INSTALL_ROOT=$$(pwd)/debian/php70-quanta-mon-nordtsc install
+	install -D -m 0644 quanta_mon.ini debian/php70-quanta-mon-nordtsc/etc/php/7.0/mods-available/quanta_mon.ini
 
 override_dh_shlibdeps:
 	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info

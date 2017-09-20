@@ -3,10 +3,10 @@ Section: php
 Priority: optional
 Build-Depends: debhelper (>= 9), dh-exec, dh-autoreconf, autotools-dev, libmonikor-dev, php7.0-dev
 Standards-Version: 3.9.6
-Source: php70-quanta-mon
+Source: php70-quanta-mon-nordtsc
 
-Package: php70-quanta-mon
-Provides: php-quanta-mon
+Package: php70-quanta-mon-nordtsc
+Provides: php-quanta-mon, php70-quanta-mon
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libmonikor (>= 1.0.0), php7.0-common (>= 7.0.0), phpapi-20151012, ucf
 Recommends: monikor
