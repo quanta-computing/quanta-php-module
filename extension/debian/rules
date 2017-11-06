@@ -5,8 +5,8 @@ build:
 	dh_build
 
 override_dh_auto_install:
-	$(MAKE) INSTALL_ROOT=$$(pwd)/debian/php56-quanta-mon install
-	install -D -m 0644 quanta_mon.ini debian/php56-quanta-mon/etc/php5/mods-available/quanta_mon.ini
+	$(MAKE) INSTALL_ROOT=$$(pwd)/debian/php53-quanta-mon install
+	install -D -m 0644 quanta_mon.ini debian/php53-quanta-mon/etc/php5/conf.d/quanta_mon.ini
 
 override_dh_shlibdeps:
 	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info

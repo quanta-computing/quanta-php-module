@@ -1,4 +1,10 @@
-php56-quanta-mon (1.1.0) quanta; urgency=medium
+php53-quanta-mon (1.1.1) quanta-squeeze; urgency=medium
+
+  * Add admin_url php.ini option
+
+ -- Matthieu ROSINSKI <support@quanta-computing.com>  Wed, 10 Sep 2017 16:51:19 +0100
+
+php53-quanta-mon (1.1.0) quanta-squeeze; urgency=medium
 
   * Initial release.
 

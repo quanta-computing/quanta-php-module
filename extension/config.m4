@@ -9,10 +9,12 @@ if test "$PHP_QUANTAMON" != "no"; then
   [
     PHP_ADD_LIBRARY($LIBMONIKOR,,QUANTA_MON_SHARED_LIBADD)
     PHP_ADD_LIBRARY($LIBMONIKOR)
+    PHP_ADD_LIBRARY(yaml)
+    PHP_ADD_LIBRARY(curl)
   ],[
     AC_MSG_ERROR([wrong $LIBMONIKOR lib version or lib not found])
   ],[
-    -lmonikor
+    -lmonikor -lyaml -lcurl
   ])
 
   PHP_ADD_INCLUDE(include/)
