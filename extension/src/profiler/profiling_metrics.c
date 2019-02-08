@@ -41,7 +41,7 @@ monikor_metric_list_t *metrics, float cpufreq) {
   metric = monikor_metric_float(metric_name, clock, timer_to_ms(cycles), 0);
   if (metric)
     monikor_metric_list_push(metrics, metric);
-  PRINTF_QUANTA("METRIC %s: %f\n", metric_name, cpu_cycles_to_ms(cpufreq, cycles));
+  PRINTF_QUANTA("METRIC %s: %f\n", metric_name, timer_to_ms(cycles));
   strcpy(metric_base_end, "sql.count");
   metric = monikor_metric_integer(metric_name, clock, count, 0);
   if (metric)
