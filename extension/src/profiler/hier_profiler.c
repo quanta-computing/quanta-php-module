@@ -68,8 +68,9 @@ void hp_hier_end_profiling(hp_entry_t **entries  TSRMLS_DC) {
   }
 
   hp_inc_count(counts, "ct", 1  TSRMLS_CC);
-  hp_inc_count(counts, "wt", get_us_from_tsc(tsc_end - top->tsc_start,
-        hp_globals.cpu_frequencies[hp_globals.cur_cpu_id]) TSRMLS_CC);
+  hp_inc_count(counts, "wt",
+    1000 * (long)timers_range_to_ms(top->tsc_start, tsc_end)
+    TSRMLS_CC);
 
   /* Get CPU usage */
   getrusage(RUSAGE_SELF, &ru_end);
