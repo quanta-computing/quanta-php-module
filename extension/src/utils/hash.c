@@ -9,7 +9,7 @@
  *
  * @author cjiang
  */
-inline uint8_t hp_inline_hash(const char *str) {
+uint8_t hp_inline_hash(const char *str) {
   ulong h = 5381;
   uint i = 0;
   uint8_t res = 0;

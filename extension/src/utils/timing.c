@@ -30,7 +30,7 @@ float cpu_cycles_range_to_ms(float cpufreq, long long start, long long end) {
   return cpu_cycles_to_ms(cpufreq, end - start);
 }
 
-inline double get_us_from_tsc(uint64_t count, double cpu_frequency) {
+double get_us_from_tsc(uint64_t count, double cpu_frequency) {
   return count / cpu_frequency;
 }
 

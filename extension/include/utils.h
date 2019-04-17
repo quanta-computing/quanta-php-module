@@ -11,7 +11,7 @@ void clear_frequencies();
 uint64_t cycle_timer();
 float cpu_cycles_range_to_ms(float cpufreq, long long start, long long end);
 float cpu_cycles_to_ms(float cpufreq, uint64_t count);
-inline double get_us_from_tsc(uint64_t count, double cpu_frequency);
+double get_us_from_tsc(uint64_t count, double cpu_frequency);
 long get_us_interval(struct timeval *start, struct timeval *end);
 
 //Compat
@@ -37,7 +37,7 @@ int safe_new(char *class, zval *ret, int params_count, zval params[] TSRMLS_DC);
 int safe_get_class_constant(char *class, char *name, zval *ret, int type TSRMLS_DC);
 
 
-inline uint8_t hp_inline_hash(const char *str);
+uint8_t hp_inline_hash(const char *str);
 const char *hp_get_base_filename(const char *filename);
 char *hp_get_function_name(zend_execute_data *data TSRMLS_DC);
 char *hp_get_function_name_fast(zend_execute_data *execute_data TSRMLS_DC);
