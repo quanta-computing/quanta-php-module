@@ -31,11 +31,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Clone quanta-php-module repository
-      uses: actions/checkout@v3
+    - name: List files
+      run: ls -lRa .
 
     - name: Clone Buildozer repository
       uses: actions/checkout@v3
       with:
+        ssh-key: ${{ secrets.BUILDOZER_DEPLOY_KEY }}
         repository: quanta-computing/buildozer
-        ref: 'master'
+        persist-credentials: true
+
+    - name: List files again
+      run: ls -lRa .
