@@ -1,0 +1,41 @@
+name: Quanta PHP Module builder
+
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    branches:
+      - '**'
+    types:
+      - opened
+      - edited
+      - synchronize
+      - labeled
+
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  PACKER_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+
+  build_php_module:
+    if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'release')
+    environment: build
+    name: 'QM3K PHP Module build'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clone quanta-php-module repository
+      uses: actions/checkout@v3
+
+    - name: Clone Buildozer repository
+      uses: actions/checkout@v3
+      with:
+        repository: quanta-computing/buildozer
+        persist-credentials: true
