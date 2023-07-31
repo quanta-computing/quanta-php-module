@@ -34,12 +34,18 @@ jobs:
     - name: List files
       run: ls -lRa .
 
+    - name: Clone Quanta PHP Module repository
+      uses: actions/checkout@v3
+      with:
+        path: php-module
+
     - name: Clone Buildozer repository
       uses: actions/checkout@v3
       with:
         ssh-key: ${{ secrets.BUILDOZER_DEPLOY_KEY }}
         repository: quanta-computing/buildozer
         persist-credentials: true
+        path: buildozer
 
     - name: List files again
       run: ls -lRa .
