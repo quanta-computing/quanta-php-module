@@ -57,7 +57,7 @@ jobs:
         ls -l
         pwd
         ls -l ../
-        ./buildozer -t php56-quanta-mon -o debian -v jessie -s ../php-module/ -r php56
+        ./buildozer -t php74-quanta-mon -o debian -v buster -s ../php-module/ -r php74-buster
 
     - name: List files again
       run: ls -lRa .
