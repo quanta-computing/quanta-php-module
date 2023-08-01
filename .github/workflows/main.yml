@@ -33,8 +33,6 @@ jobs:
     steps:
     - name: Clone Quanta PHP Module repository
       uses: actions/checkout@v3
-      with:
-        path: php-module
 
     - name: Clone Buildozer repository
       uses: actions/checkout@v3
