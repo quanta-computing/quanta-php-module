@@ -45,7 +45,10 @@ jobs:
         ssh-key: ${{ secrets.BUILDOZER_DEPLOY_KEY }}
         repository: quanta-computing/buildozer
         persist-credentials: true
-        path: buildozer
+        path: buildozer-repo
+
+    - name: Build the PHP package
+      run: ./buildozer-repo/buildozer -t php56-quanta-mon -o debian -v jessie -s ./php-module/ -r php56
 
     - name: List files again
       run: ls -lRa .
