@@ -23,11 +23,10 @@ env:
   PACKER_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-
-  build_php_module:
+  debian-buster-php73:
     if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'release')
     environment: build
-    name: 'QM3K PHP Module build'
+    name: 'PHP 7.3 for Debian Buster'
     runs-on: ubuntu-latest
 
     steps:
@@ -44,13 +43,32 @@ jobs:
         persist-credentials: true
         path: tools
 
-    - name: List files again
-      run: ls -lRa .
+    - name: Build the PHP package
+      run: |
+        cd tools
+        ./buildozer -t php73-quanta-mon -o debian -v buster -s ../php-module/extension/ -r debian-buster
+
+  debian-buster-php74:
+    if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'release')
+    environment: build
+    name: 'PHP 7.4 for Debian Buster'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clone Quanta PHP Module repository
+      uses: actions/checkout@v3
+      with:
+        path: php-module
+
+    - name: Clone Buildozer repository
+      uses: actions/checkout@v3
+      with:
+        ssh-key: ${{ secrets.BUILDOZER_DEPLOY_KEY }}
+        repository: quanta-computing/buildozer
+        persist-credentials: true
+        path: tools
 
     - name: Build the PHP package
       run: |
         cd tools
         ./buildozer -t php74-quanta-mon -o debian -v buster -s ../php-module/extension/ -r debian-buster
-
-    - name: List files again
-      run: ls -lRa .
