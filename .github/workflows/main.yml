@@ -47,10 +47,17 @@ jobs:
         persist-credentials: true
         path: buildozer-repo
 
+    - name: List files again
+      run: ls -lRa .
+
+
     - name: Build the PHP package
       run: |
         cd buildozer-repo
-        ./buildozer -t php56-quanta-mon -o debian -v jessie -s /php-module/ -r php56
+        ls -l
+        pwd
+        ls -l ../
+        ./buildozer -t php56-quanta-mon -o debian -v jessie -s ../php-module/ -r php56
 
     - name: List files again
       run: ls -lRa .
