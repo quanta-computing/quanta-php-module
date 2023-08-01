@@ -31,13 +31,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: List files
-      run: ls -lRa .
-
     - name: Clone Quanta PHP Module repository
       uses: actions/checkout@v3
-      with:
-        path: php-module
 
     - name: Clone Buildozer repository
       uses: actions/checkout@v3
@@ -45,19 +40,13 @@ jobs:
         ssh-key: ${{ secrets.BUILDOZER_DEPLOY_KEY }}
         repository: quanta-computing/buildozer
         persist-credentials: true
-        path: buildozer-repo
 
     - name: List files again
       run: ls -lRa .
 
-
     - name: Build the PHP package
       run: |
-        cd buildozer-repo
-        ls -l
-        pwd
-        ls -l ../
-        ./buildozer -t php74-quanta-mon -o debian -v buster -s ../php-module/ -r php74-buster
+        ./buildozer -t php74-quanta-mon -o debian -v buster -s . -r debian-buster
 
     - name: List files again
       run: ls -lRa .
