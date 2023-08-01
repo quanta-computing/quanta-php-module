@@ -33,6 +33,8 @@ jobs:
     steps:
     - name: Clone Quanta PHP Module repository
       uses: actions/checkout@v3
+      with:
+        path: php-module
 
     - name: Clone Buildozer repository
       uses: actions/checkout@v3
@@ -46,7 +48,7 @@ jobs:
 
     - name: Build the PHP package
       run: |
-        ./buildozer -t php74-quanta-mon -o debian -v buster -s . -r debian-buster
+        ./buildozer -t php74-quanta-mon -o debian -v buster -s ./php-module/extension -r debian-buster
 
     - name: List files again
       run: ls -lRa .
