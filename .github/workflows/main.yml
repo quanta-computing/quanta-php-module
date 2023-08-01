@@ -48,7 +48,9 @@ jobs:
         path: buildozer-repo
 
     - name: Build the PHP package
-      run: ./buildozer-repo/buildozer -t php56-quanta-mon -o debian -v jessie -s ./php-module/ -r php56
+      run: |
+        cd buildozer-repo
+        ./buildozer -t php56-quanta-mon -o debian -v jessie -s /php-module/ -r php56
 
     - name: List files again
       run: ls -lRa .
