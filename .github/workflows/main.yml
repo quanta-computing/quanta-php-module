@@ -26,7 +26,7 @@ jobs:
   debian-builds:
     if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'release')
     environment: build
-    name: 'PHP 7.3, 7.4 for debian jessie, stretch, buster'
+    name: 'Building ${{ matrix.php-version }} for Debian ${{ matrix.debian-version }}'
     runs-on: ubuntu-latest
     strategy:
       matrix:
