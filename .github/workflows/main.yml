@@ -29,9 +29,9 @@ jobs:
     name: 'PHP 7.3, 7.4 for debian jessie, stretch, buster'
     runs-on: ubuntu-latest
     strategy:
-    matrix:
-      php-version: [php73, php74] #php72, php80, php81, php82
-      debian-version: [jessie, stretch, buster] #bullseye, bookworm
+      matrix:
+        php-version: [php73, php74] #php72, php80, php81, php82
+        debian-version: [jessie, stretch, buster] #bullseye, bookworm
 
     steps:
     - name: Clone Quanta PHP Module repository
