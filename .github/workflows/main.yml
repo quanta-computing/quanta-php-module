@@ -29,6 +29,7 @@ jobs:
     name: 'Building ${{ matrix.php-version }} for Debian ${{ matrix.debian-version }}'
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         php-version: [php73, php74] #php72, php80, php81, php82
         debian-version: [jessie, stretch, buster] #bullseye, bookworm
