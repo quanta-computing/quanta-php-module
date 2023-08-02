@@ -55,14 +55,14 @@ jobs:
 
     - name: gzip packages
       run: |
-        cd tools/buildozer/debian/pkg/
+        cd tools/debian/${{ matrix.debian-version }}/pkg/
         tar czvf debian-${{ matrix.debian-version }}-${{ matrix.php-version }}.tgz ${{ matrix.php-version }}-quanta-mon-${{ matrix.debian-version }}
 
     - name: Upload package to release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: tools/buildozer/debian/pkg/debian-${{ matrix.debian-version }}-${{ matrix.php-version }}.tgz
+        file: tools/debian/${{ matrix.debian-version }}/pkg/debian-${{ matrix.debian-version }}-${{ matrix.php-version }}.tgz
         asset_name: debian-${{ matrix.debian-version }}-${{ matrix.php-version }}.tgz
         tag: ${{ github.ref }}
         overwrite: true
