@@ -30,20 +30,20 @@ typedef struct {
 } oro_context_t;
 
 // Context
-void *oro_init_context(profiled_application_t *app TSRMLS_DC);
-void oro_cleanup_context(profiled_application_t *app TSRMLS_DC);
+void *oro_init_context(profiled_application_t *app);
+void oro_cleanup_context(profiled_application_t *app);
 
 // Callbacks
 int oro_fetch_version(profiled_application_t *app, profiled_function_t *function,
-  zend_execute_data *ex TSRMLS_DC);
+  zend_execute_data *ex);
 int oro_before_render_block(profiled_application_t *app, profiled_function_t *function,
-  zend_execute_data *ex TSRMLS_DC);
+  zend_execute_data *ex);
 int oro_after_render_block(profiled_application_t *app, profiled_function_t *function,
-  zend_execute_data *ex TSRMLS_DC);
+  zend_execute_data *ex);
 int oro_record_sql_query(profiled_application_t *app, profiled_function_t *function,
-  zend_execute_data *data TSRMLS_DC);
+  zend_execute_data *data);
 void oro_send_metrics(profiled_application_t *app, monikor_metric_list_t *metrics,
-  float cpufreq, struct timeval *clock TSRMLS_DC);
+  float cpufreq, struct timeval *clock);
 
 // Block stack
 oro_block_t *oro_block_stack_pop(oro_context_t *context);

@@ -42,11 +42,11 @@ static void print_selfprofiling_metrics(void) {
 /**
  * Called at request shutdown time. Cleans the profiler's global state.
  */
-void hp_end(TSRMLS_D) {
+void hp_end(void) {
   /* Stop profiler if enabled */
   if (hp_globals.enabled) {
-    hp_stop(TSRMLS_C);
-    hp_clean_profiler_state(TSRMLS_C);
+    hp_stop();
+    hp_clean_profiler_state();
   }
 }
 
@@ -54,11 +54,11 @@ void hp_end(TSRMLS_D) {
  * Called from quanta_mon_disable(). Removes all the proxies setup by
  * hp_begin() and restores the original values.
  */
-void hp_stop(TSRMLS_D) {
+void hp_stop(void) {
   /* End any unfinished calls */
   while (hp_globals.entries)
-    hp_end_profiling(&hp_globals.entries, -1, NULL TSRMLS_CC);
-  send_metrics(TSRMLS_C);
+    hp_end_profiling(&hp_globals.entries, -1, NULL);
+  send_metrics();
   print_selfprofiling_metrics();
   hp_restore_original_zend_execute();
   /* Resore cpu affinity. */

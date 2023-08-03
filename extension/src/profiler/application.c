@@ -8,17 +8,17 @@ static void init_profiled_application_counters(profiled_application_t *app) {
   }
 }
 
-void init_profiled_application(profiled_application_t *app TSRMLS_DC) {
+void init_profiled_application(profiled_application_t *app) {
   app->sql_queries.first = NULL;
   app->sql_queries.last = NULL;
   init_profiled_application_counters(app);
   if (app->create_context)
-    app->context = app->create_context(app TSRMLS_CC);
+    app->context = app->create_context(app);
   else
     app->context = NULL;
 }
 
-void clean_profiled_application(profiled_application_t *app TSRMLS_DC) {
+void clean_profiled_application(profiled_application_t *app) {
   sql_query_record_t *query;
   sql_query_record_t *next_query;
   size_t sql_count;
@@ -35,5 +35,5 @@ void clean_profiled_application(profiled_application_t *app TSRMLS_DC) {
   }
   PRINTF_QUANTA("TOTAL SQL QUERIES: %zu\n", sql_count);
   if (app->cleanup_context)
-    app->cleanup_context(app TSRMLS_CC);
+    app->cleanup_context(app);
 }

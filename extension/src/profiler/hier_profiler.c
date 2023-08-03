@@ -5,7 +5,7 @@
  *
  * @author kannan
  */
-void hp_hier_begin_profiling(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC) {
+void hp_hier_begin_profiling(hp_entry_t **entries, hp_entry_t *current) {
   hp_entry_t *p;
   int recurse_level = 0;
 
@@ -26,8 +26,8 @@ void hp_hier_begin_profiling(hp_entry_t **entries, hp_entry_t *current  TSRMLS_D
 
   /* Get CPU & memory usage */
   getrusage(RUSAGE_SELF, &(current->ru_start_hprof));
-  current->mu_start_hprof  = zend_memory_usage(0 TSRMLS_CC);
-  current->pmu_start_hprof = zend_memory_peak_usage(0 TSRMLS_CC);
+  current->mu_start_hprof  = zend_memory_usage(0);
+  current->pmu_start_hprof = zend_memory_peak_usage(0);
 }
 
 /**
@@ -35,7 +35,7 @@ void hp_hier_begin_profiling(hp_entry_t **entries, hp_entry_t *current  TSRMLS_D
  *
  * @author kannan
  */
-void hp_hier_end_profiling(hp_entry_t **entries  TSRMLS_DC) {
+void hp_hier_end_profiling(hp_entry_t **entries) {
   hp_entry_t       *top = (*entries);
   zval             *counts;
   struct rusage    ru_end;
@@ -67,9 +67,9 @@ void hp_hier_end_profiling(hp_entry_t **entries  TSRMLS_DC) {
 #endif
   }
 
-  hp_inc_count(counts, "ct", 1  TSRMLS_CC);
+  hp_inc_count(counts, "ct", 1 );
   hp_inc_count(counts, "wt", get_us_from_tsc(tsc_end - top->tsc_start,
-        hp_globals.cpu_frequencies[hp_globals.cur_cpu_id]) TSRMLS_CC);
+        hp_globals.cpu_frequencies[hp_globals.cur_cpu_id]));
 
   /* Get CPU usage */
   getrusage(RUSAGE_SELF, &ru_end);
@@ -78,13 +78,13 @@ void hp_hier_end_profiling(hp_entry_t **entries  TSRMLS_DC) {
   hp_inc_count(counts, "cpu",
     get_us_interval(&(top->ru_start_hprof.ru_utime), &(ru_end.ru_utime))
     + get_us_interval(&(top->ru_start_hprof.ru_stime), &(ru_end.ru_stime))
-    TSRMLS_CC);
+   );
 
   /* Get Memory usage */
-  mu_end  = zend_memory_usage(0 TSRMLS_CC);
-  pmu_end = zend_memory_peak_usage(0 TSRMLS_CC);
+  mu_end  = zend_memory_usage(0);
+  pmu_end = zend_memory_peak_usage(0);
 
   /* Bump Memory stats in the counts hashtable */
-  hp_inc_count(counts, "mu",  mu_end - top->mu_start_hprof    TSRMLS_CC);
-  hp_inc_count(counts, "pmu", pmu_end - top->pmu_start_hprof  TSRMLS_CC);
+  hp_inc_count(counts, "mu",  mu_end - top->mu_start_hprof   );
+  hp_inc_count(counts, "pmu", pmu_end - top->pmu_start_hprof );
 }

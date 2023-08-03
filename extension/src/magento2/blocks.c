@@ -1,6 +1,6 @@
 #include "quanta_mon.h"
 
-static zval *get_block_name(zend_execute_data *execute_data TSRMLS_DC) {
+static zval *get_block_name(zend_execute_data *execute_data) {
   zval *ret;
 
   if (!execute_data || !execute_data->prev_execute_data
@@ -11,7 +11,7 @@ static zval *get_block_name(zend_execute_data *execute_data TSRMLS_DC) {
   return ret;
 }
 
-static zval *get_block_object(zval *this, zval *block_name TSRMLS_DC) {
+static zval *get_block_object(zval *this, zval *block_name) {
   zval *blocks = NULL;
   zval *block = NULL;
 
@@ -39,7 +39,7 @@ static zval *get_block_object(zval *this, zval *block_name TSRMLS_DC) {
 }
 
 int magento2_block_before_render(profiled_application_t *app, profiled_function_t *function,
-zend_execute_data *execute_data TSRMLS_DC) {
+zend_execute_data *execute_data) {
   zval *this;
   zval *block_name;
   zval *zblock;
@@ -47,20 +47,20 @@ zend_execute_data *execute_data TSRMLS_DC) {
   magento_context_t *context = (magento_context_t *)app->context;
 
   (void)function;
-  if (!(this = get_prev_this(execute_data TSRMLS_CC))
-  || !(block_name = get_block_name(execute_data TSRMLS_CC))
-  || !(zblock = get_block_object(this, block_name TSRMLS_CC))
+  if (!(this = get_prev_this(execute_data))
+  || !(block_name = get_block_name(execute_data))
+  || !(zblock = get_block_object(this, block_name))
   || !(block = ecalloc(1, sizeof(magento_block_t)))
   || !(block->name = estrdup(Z_STRVAL_P(block_name)))) {
     PRINTF_QUANTA("Cannot get block info\n");
     efree(block);
     return -1;
   }
-  block->class = magento_get_block_class_name(zblock TSRMLS_CC);
+  block->class = magento_get_block_class_name(zblock);
   if (block->class)
-    block->class_file = magento_get_block_class_file(zblock TSRMLS_CC);
+    block->class_file = magento_get_block_class_file(zblock);
   block->template = magento_get_block_attr("\0*\0_template",
-    sizeof("\0*\0_template") - 1, zblock TSRMLS_CC);
+    sizeof("\0*\0_template") - 1, zblock);
   block_stack_push(context, block);
   if (context->blocks.first == NULL)
     context->blocks.first = block;

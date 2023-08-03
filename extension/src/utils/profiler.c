@@ -10,7 +10,7 @@
  * @return void
  * @author kannan
  */
-void hp_inc_count(zval *counts, char *name, long count TSRMLS_DC) {
+void hp_inc_count(zval *counts, char *name, long count) {
   HashTable *ht;
   zval *data;
 

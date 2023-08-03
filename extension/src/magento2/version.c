@@ -1,6 +1,6 @@
 #include "quanta_mon.h"
 
-static char *get_magento2_composer_version(FILE *composer_file_handle TSRMLS_DC) {
+static char *get_magento2_composer_version(FILE *composer_file_handle) {
   char *line = NULL;
   char *ptr = NULL;
   char *end;
@@ -24,7 +24,7 @@ end:
 }
 
 int magento2_fetch_version(profiled_application_t *app, profiled_function_t *function,
-zend_execute_data *ex TSRMLS_DC) {
+zend_execute_data *ex) {
   int ret;
   zval edition;
   char composer_path[1024];
@@ -51,10 +51,10 @@ zend_execute_data *ex TSRMLS_DC) {
   ** from the object Manager
   */
   ret = safe_get_class_constant("Magento\\Enterprise\\Model\\ProductMetadata",
-    "EDITION_NAME", &edition, IS_STRING TSRMLS_CC);
+    "EDITION_NAME", &edition, IS_STRING);
   if (ret) {
     ret = safe_get_class_constant("Magento\\Framework\\App\\ProductMetadata",
-      "EDITION_NAME", &edition, IS_STRING TSRMLS_CC);
+      "EDITION_NAME", &edition, IS_STRING);
   }
   if (!ret)
     context->edition = estrdup(Z_STRVAL(edition));

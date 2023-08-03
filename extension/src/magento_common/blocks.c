@@ -1,9 +1,9 @@
 #include "quanta_mon.h"
 
-char *magento_get_block_class_name(zval *block TSRMLS_DC) {
+char *magento_get_block_class_name(zval *block) {
   const char *class_name;
 
-  if (!(class_name = get_obj_class_name(block TSRMLS_CC)))
+  if (!(class_name = get_obj_class_name(block)))
     return NULL;
   return estrdup(class_name);
 }
@@ -20,11 +20,11 @@ char *magento_get_block_class_file(zval *block) {
 #if PHP_MAJOR_VERSION < 7
   return estrdup(ce->info.user.filename);
 #else
-  return ZSTR_VAL(ce->info.user.filename) ? estrdup(ZSTR_VAL(ce->info.user.filename)) : NULL;
+  return estrdup(ZSTR_VAL(ce->info.user.filename));
 #endif
 }
 
-char *magento_get_block_attr(const char *key, size_t key_len, zval *this TSRMLS_DC) {
+char *magento_get_block_attr(const char *key, size_t key_len, zval *this) {
   zval *data;
   HashTable *block;
 
@@ -45,7 +45,7 @@ char *magento_get_block_attr(const char *key, size_t key_len, zval *this TSRMLS_
 }
 
 int magento_block_after_render(profiled_application_t *app, profiled_function_t *function,
-zend_execute_data *execute_data TSRMLS_DC) {
+zend_execute_data *execute_data) {
   magento_block_t *block;
   magento_block_t *parent;
   magento_context_t *context = (magento_context_t *)app->context;

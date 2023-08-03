@@ -1,6 +1,6 @@
 #include "quanta_mon.h"
 
-zval *get_mage_model_zdata(HashTable *attrs, char *key, int type TSRMLS_DC) {
+zval *get_mage_model_zdata(HashTable *attrs, char *key, int type) {
   zval *data;
   zval *ret;
 
@@ -27,10 +27,10 @@ zval *get_mage_model_zdata(HashTable *attrs, char *key, int type TSRMLS_DC) {
   return ret;
 }
 
-char *get_mage_model_data(HashTable *attrs, char *key TSRMLS_DC) {
+char *get_mage_model_data(HashTable *attrs, char *key) {
   zval *data;
 
-  if (!(data = get_mage_model_zdata(attrs, key, IS_STRING TSRMLS_CC)))
+  if (!(data = get_mage_model_zdata(attrs, key, IS_STRING)))
     return NULL;
   return Z_STRVAL_P(data);
 }

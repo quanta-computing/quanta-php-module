@@ -2,7 +2,7 @@
 
 #if PHP_MAJOR_VERSION < 7
 static int _safe_call_function(char *function_name, zval *object, zval *ret_val, int ret_type,
-size_t call_params_count, zval *call_params[] TSRMLS_DC) {
+size_t call_params_count, zval *call_params[]) {
   int ret;
   zval *params[1];
   zval is_callable;
@@ -17,14 +17,14 @@ size_t call_params_count, zval *call_params[] TSRMLS_DC) {
   } else {
     ZVAL_STRING_COMPAT(params[0], function_name);
   }
-  ret = call_user_function(CG(function_table), NULL, &func, &is_callable, 1, params TSRMLS_CC);
+  ret = call_user_function(CG(function_table), NULL, &func, &is_callable, 1, params);
   if (ret != SUCCESS || Z_TYPE(is_callable) != IS_BOOL || !Z_BVAL(is_callable)) {
     ret = FAILURE;
     goto end;
   }
   ZVAL_STRING_COMPAT(&func, function_name);
   ret = call_user_function(object ? NULL : CG(function_table), object ? &object : NULL,
-    &func, ret_val, call_params_count, call_params TSRMLS_CC);
+    &func, ret_val, call_params_count, call_params);
 
 end:
   FREE_ZVAL(params[0]);
@@ -34,7 +34,7 @@ end:
 }
 #else
 static int _safe_call_function(char *function_name, zval *object, zval *ret_val, int ret_type,
-size_t call_params_count, zval call_params[] TSRMLS_DC) {
+size_t call_params_count, zval call_params[]) {
   int ret;
   zval params[1];
   zval is_callable;
@@ -49,10 +49,10 @@ size_t call_params_count, zval call_params[] TSRMLS_DC) {
   } else {
     ZVAL_STRING_COMPAT(&params[0], function_name);
   }
-  ret = call_user_function(CG(function_table), NULL, &func, &is_callable, 1, params TSRMLS_CC);
+  ret = call_user_function(CG(function_table), NULL, &func, &is_callable, 1, params);
   if (ret != SUCCESS || Z_TYPE(is_callable) != IS_TRUE) {
     PRINTF_QUANTA("%s::%s is not callable (%d == %d), ztype %d\n",
-      object ? get_obj_class_name(object TSRMLS_CC) : NULL,
+      object ? get_obj_class_name(object) : NULL,
       function_name, ret, SUCCESS,
       Z_TYPE(is_callable));
     ret = FAILURE;
@@ -60,7 +60,7 @@ size_t call_params_count, zval call_params[] TSRMLS_DC) {
   }
   ZVAL_STRING_COMPAT(&func, function_name);
   ret = call_user_function(object ? NULL : CG(function_table), object,
-    &func, ret_val, call_params_count, call_params TSRMLS_CC);
+    &func, ret_val, call_params_count, call_params);
 
 end:
   zval_dtor(&params[0]);
@@ -75,7 +75,7 @@ end:
 
 
 int safe_call_function(char *function, zval *ret, int ret_type,
-size_t params_count, zval params[] TSRMLS_DC) {
+size_t params_count, zval params[]) {
 #if PHP_MAJOR_VERSION < 7
   zval *php5_params[params_count];
   zval *tmp;
@@ -87,17 +87,17 @@ size_t params_count, zval params[] TSRMLS_DC) {
     tmp = &params[i];
     MAKE_COPY_ZVAL(&tmp, php5_params[i]);
   }
-  retcode = _safe_call_function(function, NULL, ret, ret_type, params_count, php5_params TSRMLS_CC);
+  retcode = _safe_call_function(function, NULL, ret, ret_type, params_count, php5_params);
   for (i = 0; i < params_count; i++)
     FREE_ZVAL(php5_params[i]);
   return retcode;
 #else
-  return _safe_call_function(function, NULL, ret, ret_type, params_count, params TSRMLS_CC);
+  return _safe_call_function(function, NULL, ret, ret_type, params_count, params);
 #endif
 }
 
 int safe_call_method(zval *object, char *method, zval *ret, int ret_type,
-size_t params_count, zval params[] TSRMLS_DC) {
+size_t params_count, zval params[]) {
 #if PHP_MAJOR_VERSION < 7
   zval *php5_params[params_count];
   zval *tmp;
@@ -109,11 +109,11 @@ size_t params_count, zval params[] TSRMLS_DC) {
     tmp = &params[i];
     MAKE_COPY_ZVAL(&tmp, php5_params[i]);
   }
-  retcode = _safe_call_function(method, object, ret, ret_type, params_count, php5_params TSRMLS_CC);
+  retcode = _safe_call_function(method, object, ret, ret_type, params_count, php5_params);
   for (i = 0; i < params_count; i++)
     FREE_ZVAL(php5_params[i]);
   return retcode;
 #else
-  return _safe_call_function(method, object, ret, ret_type, params_count, params TSRMLS_CC);
+  return _safe_call_function(method, object, ret, ret_type, params_count, params);
 #endif
 }

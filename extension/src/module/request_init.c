@@ -1,6 +1,6 @@
 #include "quanta_mon.h"
 
-static char *extract_request_uri(HashTable *_SERVER TSRMLS_DC) {
+static char *extract_request_uri(HashTable *_SERVER) {
   zval *request_uri;
 
   request_uri = zend_hash_find_compat(_SERVER, "REQUEST_URI", sizeof("REQUEST_URI") - 1);
@@ -12,7 +12,7 @@ static char *extract_request_uri(HashTable *_SERVER TSRMLS_DC) {
   return estrdup(Z_STRVAL_P(request_uri));
 }
 
-static int extract_step_clock_and_mode(HashTable *_SERVER TSRMLS_DC) {
+static int extract_step_clock_and_mode(HashTable *_SERVER) {
   zval *data;
   char *quanta_header;
   char *quanta_mode;
@@ -46,7 +46,7 @@ static int extract_step_clock_and_mode(HashTable *_SERVER TSRMLS_DC) {
 }
 
 
-static void arm_server_auto_global(TSRMLS_D) {
+static void arm_server_auto_global() {
   zend_auto_global* auto_global;
 #if PHP_MAJOR_VERSION >= 7
   zval *auto_global_zval;
@@ -58,7 +58,7 @@ static void arm_server_auto_global(TSRMLS_D) {
   if (zend_hash_find(CG(auto_globals), "_SERVER", sizeof("_SERVER"), (void **)&auto_global) == FAILURE)
     return;
   auto_global->armed = auto_global->auto_global_callback(auto_global->name,
-    auto_global->name_len TSRMLS_CC);
+    auto_global->name_len);
 #else
   auto_global_zval = zend_hash_find_compat(CG(auto_globals), "_SERVER", sizeof("_SERVER") - 1);
   if (!auto_global_zval) {
@@ -76,21 +76,21 @@ static void arm_server_auto_global(TSRMLS_D) {
 **
 ** @returns: the profiled mode
 */
-static int extract_headers_info(TSRMLS_D) {
+static int extract_headers_info(void) {
   HashTable *_SERVER;
   zval *zserver;
   int mode;
 
   hp_globals.quanta_clock = 0;
-  arm_server_auto_global(TSRMLS_C);
+  arm_server_auto_global();
   zserver = zend_hash_find_compat(&EG(symbol_table), "_SERVER", sizeof("_SERVER") - 1);
   if (!zserver || Z_TYPE_P(zserver) != IS_ARRAY) {
     PRINTF_QUANTA("NO _SERVER\n");
     return -1;
   }
   _SERVER = Z_ARRVAL_P(zserver);
-  hp_globals.request_uri = extract_request_uri(_SERVER TSRMLS_CC);
-  mode = extract_step_clock_and_mode(_SERVER TSRMLS_CC);
+  hp_globals.request_uri = extract_request_uri(_SERVER);
+  mode = extract_step_clock_and_mode(_SERVER);
   if (mode == -1) {
     if (!hp_globals.request_uri || strstr(hp_globals.request_uri, hp_globals.admin_url)) {
       PRINTF_QUANTA("ENABLING EVENTS %s %s\n", hp_globals.request_uri, hp_globals.admin_url);
@@ -114,14 +114,14 @@ PHP_RINIT_FUNCTION(quanta_mon) {
   uint64_t end;
 
   start = cycle_timer();
-  mode = extract_headers_info(TSRMLS_C);
+  mode = extract_headers_info();
   if (mode == -1) {
     PRINTF_QUANTA("PROFILER NOT ENABLED\n");
     return SUCCESS;
   }
   PRINTF_QUANTA("PROFILER ENABLED WITH MODE %d\n", mode);
   hp_globals.global_tsc.start = start;
-  hp_begin(mode TSRMLS_CC);
+  hp_begin(mode);
   end = cycle_timer();
   hp_globals.internal_match_counters.init_cycles += end - start;
   return SUCCESS;

@@ -1,6 +1,6 @@
 #include "quanta_mon.h"
 
-char *hp_get_function_name_fast(zend_execute_data *execute_data TSRMLS_DC) {
+char *hp_get_function_name_fast(zend_execute_data *execute_data) {
 #if PHP_MAJOR_VERSION < 7
   return execute_data ? execute_data->function_state.function->common.function_name : NULL;
 #else
@@ -18,7 +18,7 @@ static zend_function *hp_get_current_function(zend_execute_data *execute_data) {
 #endif
 }
 
-const char *hp_get_class_name(zend_execute_data *data TSRMLS_DC) {
+const char *hp_get_class_name(zend_execute_data *data) {
   const char *cls = NULL;
   zend_function      *curr_func;
 
@@ -47,7 +47,7 @@ const char *hp_get_class_name(zend_execute_data *data TSRMLS_DC) {
  *
  * @author kannan, hzhao
  */
-char *hp_get_function_name(zend_execute_data *data TSRMLS_DC) {
+char *hp_get_function_name(zend_execute_data *data) {
   const char        *func = NULL;
   const char        *cls = NULL;
   char              *ret = NULL;
@@ -55,11 +55,11 @@ char *hp_get_function_name(zend_execute_data *data TSRMLS_DC) {
 
   if (!data || !(curr_func = hp_get_current_function(data)))
     return NULL;
-  func = hp_get_function_name_fast(data TSRMLS_CC);
+  func = hp_get_function_name_fast(data);
   if (func) {
-    cls = hp_get_class_name(data TSRMLS_CC);
+    cls = hp_get_class_name(data);
     if (cls) {
-      int   len;
+      size_t   len;
       len = strlen(cls) + strlen(func) + 8;
       ret = (char*)emalloc(len);
       snprintf(ret, len, "%s::%s", cls, func);
@@ -116,7 +116,7 @@ char *hp_get_function_name(zend_execute_data *data TSRMLS_DC) {
      */
     if (add_filename){
       const char *filename = NULL;
-      int   len;
+      size_t   len;
 
       if (curr_func->op_array.filename) {
 #if PHP_MAJOR_VERSION < 7

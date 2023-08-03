@@ -2,28 +2,28 @@
 
 #if PHP_VERSION_ID < 50500
 /* Pointer to the original execute function */
-static ZEND_DLEXPORT void (*_zend_execute) (zend_op_array *ops TSRMLS_DC);
+static ZEND_DLEXPORT void (*_zend_execute) (zend_op_array *ops);
 
 /* Pointer to the origianl execute_internal function */
 static ZEND_DLEXPORT void (*_zend_execute_internal) (zend_execute_data *data,
-                           int ret TSRMLS_DC);
+                           int ret);
 #elif PHP_MAJOR_VERSION < 7
 /* Pointer to the original execute function */
-static void (*_zend_execute_ex) (zend_execute_data *execute_data TSRMLS_DC);
+static void (*_zend_execute_ex) (zend_execute_data *execute_data);
 
 /* Pointer to the origianl execute_internal function */
 static void (*_zend_execute_internal) (zend_execute_data *data,
-                      struct _zend_fcall_info *fci, int ret TSRMLS_DC);
+                      struct _zend_fcall_info *fci, int ret);
 #else
 static void (*_zend_execute_ex) (zend_execute_data *execute_data);
 static void (*_zend_execute_internal) (zend_execute_data *execute_data, zval *return_value);
 #endif
 
 /* Pointer to the original compile function */
-static zend_op_array * (*_zend_compile_file) (zend_file_handle *file_handle, int type TSRMLS_DC);
+static zend_op_array * (*_zend_compile_file) (zend_file_handle *file_handle, int type);
 
 /* Pointer to the original compile string function (used by eval) */
-static zend_op_array * (*_zend_compile_string) (zval *source_string, char *filename TSRMLS_DC);
+static zend_op_array * (*_zend_compile_string) (zval *source_string, char *filename);
 
 
 void hp_restore_original_zend_execute(void) {
@@ -73,10 +73,10 @@ void hp_hijack_zend_execute(long level) {
  * @author hzhao, kannan
  */
 #if PHP_VERSION_ID < 50500
-ZEND_DLEXPORT void hp_execute (zend_op_array *ops TSRMLS_DC) {
+ZEND_DLEXPORT void hp_execute (zend_op_array *ops) {
   zend_execute_data *execute_data = EG(current_execute_data);
 #else
-ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
+ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data) {
 #endif
   char *func = NULL;
   int hp_profile_flag = 1;
@@ -86,28 +86,28 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
 
   start1 = cycle_timer();
   if (hp_globals.profiler_level == QUANTA_MON_MODE_HIERARCHICAL) {
-    func = hp_get_function_name(execute_data TSRMLS_CC);
+    func = hp_get_function_name(execute_data);
   } else {
-    func = hp_get_function_name_fast(execute_data TSRMLS_CC);
+    func = hp_get_function_name_fast(execute_data);
   }
   if (!func) {
 #if PHP_VERSION_ID < 50500
-    _zend_execute(ops TSRMLS_CC);
+    _zend_execute(ops);
 #else
-    _zend_execute_ex(execute_data TSRMLS_CC);
+    _zend_execute_ex(execute_data);
 #endif
     return;
   }
 
-  hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, execute_data TSRMLS_CC);
+  hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, execute_data);
   end1 = cycle_timer();
 #if PHP_VERSION_ID < 50500
-  _zend_execute(ops TSRMLS_CC);
+  _zend_execute(ops);
 #else
-  _zend_execute_ex(execute_data TSRMLS_CC);
+  _zend_execute_ex(execute_data);
 #endif
   start2 = cycle_timer();
-  hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data TSRMLS_CC);
+  hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data);
   if (hp_globals.profiler_level == QUANTA_MON_MODE_HIERARCHICAL)
     efree(func);
   end2 = cycle_timer();
@@ -132,12 +132,12 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
  #define EX_T(offset) (*(temp_variable *)((char *) EX(Ts) + offset))
 
  ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
-                                        int ret TSRMLS_DC) {
+                                        int ret) {
  #else
  #define EX_T(offset) (*EX_TMP_VAR(execute_data, offset))
 
  ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
-                                        struct _zend_fcall_info *fci, int ret TSRMLS_DC) {
+                                        struct _zend_fcall_info *fci, int ret) {
  #endif
      char *func = NULL;
      int hp_profile_flag = -1;
@@ -147,36 +147,36 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
 
      start1 = cycle_timer();
      if (hp_globals.profiler_level == QUANTA_MON_MODE_HIERARCHICAL) {
-       func = hp_get_function_name(execute_data TSRMLS_CC);
+       func = hp_get_function_name(execute_data);
      } else {
-       func = hp_get_function_name_fast(execute_data TSRMLS_CC);
+       func = hp_get_function_name_fast(execute_data);
      }
      if (func) {
-       hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, execute_data TSRMLS_CC);
+       hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, execute_data);
      }
 
      end1 = cycle_timer();
      if (!_zend_execute_internal) {
  #if PHP_VERSION_ID >= 70000
-         execute_internal(execute_data, return_value TSRMLS_CC);
+         execute_internal(execute_data, return_value);
  #elif PHP_VERSION_ID < 50500
-         execute_internal(execute_data, ret TSRMLS_CC);
+         execute_internal(execute_data, ret);
  #else
-         execute_internal(execute_data, fci, ret TSRMLS_CC);
+         execute_internal(execute_data, fci, ret);
  #endif
      } else {
          /* call the old override */
  #if PHP_VERSION_ID >= 70000
-         _zend_execute_internal(execute_data, return_value TSRMLS_CC);
+         _zend_execute_internal(execute_data, return_value);
  #elif PHP_VERSION_ID < 50500
-         _zend_execute_internal(execute_data, ret TSRMLS_CC);
+         _zend_execute_internal(execute_data, ret);
  #else
-         _zend_execute_internal(execute_data, fci, ret TSRMLS_CC);
+         _zend_execute_internal(execute_data, fci, ret);
  #endif
      }
      start2 = cycle_timer();
      if (func) {
-       hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data TSRMLS_CC);
+       hp_end_profiling(&hp_globals.entries, hp_profile_flag, execute_data);
      }
      if (hp_globals.profiler_level == QUANTA_MON_MODE_HIERARCHICAL)
        efree(func);
@@ -192,7 +192,7 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
  *
  * @author kannan, hzhao
  */
-ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle, int type TSRMLS_DC) {
+ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle, int type) {
 
   const char     *filename;
   char           *func;
@@ -205,9 +205,9 @@ ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle, int 
   func = (char *)emalloc(len);
   snprintf(func, len, "load::%s", filename);
 
-  hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, NULL TSRMLS_CC);
-  ret = _zend_compile_file(file_handle, type TSRMLS_CC);
-  hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL TSRMLS_CC);
+  hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, NULL);
+  ret = _zend_compile_file(file_handle, type);
+  hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL);
 
   efree(func);
   return ret;
@@ -216,10 +216,15 @@ ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle, int 
 /**
  * Proxy for zend_compile_string(). Used to profile PHP eval compilation time.
  */
-ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filename TSRMLS_DC) {
-
+#if PHP_VERSION_ID >= 80200
+ZEND_DLEXPORT zend_op_array* hp_compile_string(zend_string *source_string, const char *filename, zend_compile_position position) {
+#elif PHP_VERSION_ID >= 80000
+ZEND_DLEXPORT zend_op_array* hp_compile_string(zend_string *source_string, const char *filename) {
+#else
+ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filename) {
+#endif
     char          *func;
-    int            len;
+    size_t            len;
     zend_op_array *ret;
     int            hp_profile_flag = 1;
 
@@ -227,9 +232,9 @@ ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filena
     func = (char *)emalloc(len);
     snprintf(func, len, "eval::%s", filename);
 
-    hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, NULL TSRMLS_CC);
-    ret = _zend_compile_string(source_string, filename TSRMLS_CC);
-    hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL TSRMLS_CC);
+    hp_profile_flag = hp_begin_profiling(&hp_globals.entries, func, NULL);
+    ret = _zend_compile_string(source_string, filename);
+    hp_end_profiling(&hp_globals.entries, hp_profile_flag, NULL);
     efree(func);
     return ret;
 }

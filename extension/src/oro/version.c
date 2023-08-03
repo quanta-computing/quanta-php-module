@@ -30,14 +30,14 @@ done:
 
 static const char *installed_file = "vendor/composer/installed.json";
 
-static char *get_oro_vendor_file(zend_execute_data *execute_data TSRMLS_DC) {
+static char *get_oro_vendor_file(zend_execute_data *execute_data) {
   zval *this;
   zend_class_entry *ce;
   char *this_filename;
   char *filename;
   char *end;
 
-  if (!(this = get_prev_this(execute_data TSRMLS_CC))
+  if (!(this = get_prev_this(execute_data))
   || !(ce = Z_OBJCE_P(this))
   || ce->type != ZEND_USER_CLASS
   || !ce->info.user.filename) {
@@ -60,13 +60,13 @@ static char *get_oro_vendor_file(zend_execute_data *execute_data TSRMLS_DC) {
 }
 
 int oro_fetch_version(profiled_application_t *app, profiled_function_t *function,
-zend_execute_data *execute_data TSRMLS_DC) {
+zend_execute_data *execute_data) {
   oro_context_t *context = (oro_context_t *)app->context;
   char *filepath = NULL;
   FILE *composer_file_handle = NULL;
 
   (void)function;
-  filepath = get_oro_vendor_file(execute_data TSRMLS_CC);
+  filepath = get_oro_vendor_file(execute_data);
   if (!filepath)
     return 0;
   if (!(composer_file_handle = fopen(filepath, "r"))) {

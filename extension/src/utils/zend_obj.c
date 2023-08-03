@@ -1,12 +1,12 @@
 #include "quanta_mon.h"
 
-const char *get_obj_class_name(zval *obj TSRMLS_DC) {
+const char *get_obj_class_name(zval *obj) {
 #if PHP_MAJOR_VERSION < 7
   const char *class_name;
   zend_uint class_name_len;
 
   if (!Z_OBJ_HANDLER_P(obj, get_class_name)
-  || Z_OBJ_HANDLER_P(obj, get_class_name)(obj, &class_name, &class_name_len, 0 TSRMLS_CC) != SUCCESS)
+  || Z_OBJ_HANDLER_P(obj, get_class_name)(obj, &class_name, &class_name_len, 0) != SUCCESS)
     return NULL;
   return class_name;
 #else
@@ -34,14 +34,14 @@ zend_class_entry *_zend_fetch_class_compat(char *class, int flags) {
 #endif
 }
 
-int safe_new(char *class, zval *object, int params_count, zval params[] TSRMLS_DC) {
+int safe_new(char *class, zval *object, int params_count, zval params[]) {
   zend_class_entry *ce;
   zval dummy;
 
   ZVAL_NULL(&dummy);
   if (!(ce = _zend_fetch_class_compat(class, ZEND_FETCH_CLASS_SILENT))
   || object_init_ex(object, ce)
-  || safe_call_method(object, "__construct", &dummy, IS_NULL, params_count, params TSRMLS_CC)) {
+  || safe_call_method(object, "__construct", &dummy, IS_NULL, params_count, params)) {
     zval_dtor(&dummy);
     return -1;
   }
@@ -49,7 +49,7 @@ int safe_new(char *class, zval *object, int params_count, zval params[] TSRMLS_D
   return 0;
 }
 
-int safe_get_class_constant(char *class, char *name, zval *retval, int type TSRMLS_DC) {
+int safe_get_class_constant(char *class, char *name, zval *retval, int type) {
   zend_class_entry *ce;
   zval *constant;
 
