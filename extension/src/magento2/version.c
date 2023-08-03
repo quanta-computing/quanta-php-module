@@ -13,6 +13,8 @@ static char *get_magento2_composer_version(FILE *composer_file_handle) {
       if ((end = strchr(ptr, '\"'))) {
         *end = 0;
         ptr = estrdup(ptr);
+      } else {
+        ptr = NULL;
       }
       goto end;
     }
