@@ -1,0 +1,97 @@
+name: Quanta PHP Module builder
+
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    branches:
+      - '**'
+    types:
+      - opened
+      - edited
+      - synchronize
+      - labeled
+
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  PACKER_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  debian-builds:
+    if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'release')
+    environment: build
+    name: 'Building ${{ matrix.php-version }} for Debian ${{ matrix.debian-version }}'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: [php73, php74] #php72, php80, php81, php82
+        debian-version: [buster, bullseye] #, bookworm #
+
+    steps:
+    - name: Clone Quanta PHP Module repository
+      uses: actions/checkout@v3
+      with:
+        path: php-module
+
+    - name: Clone Buildozer repository
+      uses: actions/checkout@v3
+      with:
+        ssh-key: ${{ secrets.BUILDOZER_DEPLOY_KEY }}
+        repository: quanta-computing/buildozer
+        ref: 'new-packages-worflow'
+        persist-credentials: true
+        path: tools
+
+    - name: Build the PHP package
+      run: |
+        cd tools
+        ./buildozer -t ${{ matrix.php-version }}-quanta-mon -o debian -v ${{ matrix.debian-version }} -s ../php-module/extension/ -r ${{ matrix.debian-version }}
+
+    - name: Upload packages
+      uses: actions/upload-artifact@v3
+      with:
+        name: debian-${{ matrix.debian-version }}-${{ matrix.php-version }}.tgz
+        path: tools/debian/${{ matrix.debian-version }}/pkg/
+
+  # centos-builds:
+  #   if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'release')
+  #   environment: build
+  #   name: 'Building ${{ matrix.php-version }} for CentOS ${{ matrix.centos-version }}'
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       php-version: [php73, php74] #php72, php80, php81, php82
+  #       centos-version: [7] #8
+
+  #   steps:
+  #   - name: Clone Quanta PHP Module repository
+  #     uses: actions/checkout@v3
+  #     with:
+  #       path: php-module
+
+  #   - name: Clone Buildozer repository
+  #     uses: actions/checkout@v3
+  #     with:
+  #       ssh-key: ${{ secrets.BUILDOZER_DEPLOY_KEY }}
+  #       repository: quanta-computing/buildozer
+  #       persist-credentials: true
+  #       path: tools
+
+  #   - name: Build the PHP package
+  #     run: |
+  #       cd tools
+  #       ./buildozer -t ${{ matrix.php-version }}-quanta-mon -o centos -v ${{ matrix.centos-version }} -s ../php-module/extension/ -r centos-${{ matrix.centos-version }}
+
+  #   - name: Upload packages
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: centos-${{ matrix.centos-version }}-${{ matrix.php-version }}.tgz
+  #       path: tools/centos/${{ matrix.centos-version }}/pkg/
