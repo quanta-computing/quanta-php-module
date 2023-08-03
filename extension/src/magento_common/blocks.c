@@ -17,11 +17,7 @@ char *magento_get_block_class_file(zval *block) {
     PRINTF_QUANTA("Cannot get block class file\n");
     return NULL;
   }
-#if PHP_MAJOR_VERSION < 7
-  return estrdup(ce->info.user.filename);
-#else
   return estrdup(ZSTR_VAL(ce->info.user.filename));
-#endif
 }
 
 char *magento_get_block_attr(const char *key, size_t key_len, zval *this) {
@@ -29,14 +25,12 @@ char *magento_get_block_attr(const char *key, size_t key_len, zval *this) {
   HashTable *block;
 
   block = Z_OBJPROP_P(this);
-  if (!(data = zend_hash_find_compat(block, key, key_len))) {
+  if (!(data = zend_hash_str_find(block, key, key_len))) {
     PRINTF_QUANTA("Cannot extract attr %s from block\n", key + 3);
     return NULL;
   }
-#if PHP_MAJOR_VERSION >= 7
   if (Z_TYPE_P(data) == IS_INDIRECT)
     data = Z_INDIRECT_P(data);
-#endif
   if (Z_TYPE_P(data) != IS_STRING) {
     PRINTF_QUANTA("Block attr %s is not a string (it's a %d)\n", key + 3, Z_TYPE_P(data));
     return NULL;

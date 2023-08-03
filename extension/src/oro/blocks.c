@@ -4,21 +4,19 @@ static zval *get_block_var(zval *block, const char * key, int type) {
   zval *data;
   zval *ret;
 
-  if (!(data = zend_hash_find_compat(Z_OBJPROP_P(block), "vars", sizeof("vars") - 1))) {
+  if (!(data = zend_hash_str_find(Z_OBJPROP_P(block), "vars", sizeof("vars") - 1))) {
     PRINTF_QUANTA("Cannot fetch block vars\n");
     return NULL;
   }
-#if PHP_MAJOR_VERSION >= 7
   if (Z_TYPE_P(data) == IS_INDIRECT)
     data = Z_INDIRECT_P(data);
-#endif
   if (Z_TYPE_P(data) == IS_REFERENCE)
     data = Z_REFVAL_P(data);
   if (Z_TYPE_P(data) != IS_ARRAY) {
     PRINTF_QUANTA("vars is not an array, it's a %d\n", Z_TYPE_P(data));
     return NULL;
   }
-  if (!(ret = zend_hash_find_compat(Z_ARRVAL_P(data), key, strlen(key)))) {
+  if (!(ret = zend_hash_str_find(Z_ARRVAL_P(data), key, strlen(key)))) {
     PRINTF_QUANTA("Cannot fetch %s in vars\n", key);
     return NULL;
   }

@@ -15,8 +15,6 @@ double get_us_from_tsc(uint64_t count, double cpu_frequency);
 long get_us_interval(struct timeval *start, struct timeval *end);
 
 //Compat
-zval *zend_hash_find_compat(HashTable *ht, const char *key, size_t key_len);
-zend_bool zend_hash_exists_compat(HashTable *ht, const char *key, size_t key_len);
 zval *zend_read_property_compat(zend_class_entry *ce, zval *obj, const char *name);
 
 // Safe helpers

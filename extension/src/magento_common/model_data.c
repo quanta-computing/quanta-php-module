@@ -4,19 +4,17 @@ zval *get_mage_model_zdata(HashTable *attrs, char *key, int type) {
   zval *data;
   zval *ret;
 
-  if (!(data = zend_hash_find_compat(attrs, "\0*\0_data", sizeof("\0*\0_data") - 1))) {
+  if (!(data = zend_hash_str_find(attrs, "\0*\0_data", sizeof("\0*\0_data") - 1))) {
     PRINTF_QUANTA("Cannot fetch model data\n");
     return NULL;
   }
-#if PHP_MAJOR_VERSION >= 7
   if (Z_TYPE_P(data) == IS_INDIRECT)
     data = Z_INDIRECT_P(data);
-#endif
   if (Z_TYPE_P(data) != IS_ARRAY) {
     PRINTF_QUANTA("_data is not an array\n");
     return NULL;
   }
-  if (!(ret = zend_hash_find_compat(Z_ARRVAL_P(data), key, strlen(key)))) {
+  if (!(ret = zend_hash_str_find(Z_ARRVAL_P(data), key, strlen(key)))) {
     PRINTF_QUANTA("Cannot fetch %s in model data\n", key);
     return NULL;
   }

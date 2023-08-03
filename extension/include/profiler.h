@@ -183,17 +183,8 @@ hp_entry_t *hp_fast_alloc_hprof_entry();
 void hp_fast_free_hprof_entry(hp_entry_t *p);
 
 // Zend hijacks
-#if PHP_VERSION_ID < 50500
-ZEND_DLEXPORT void hp_execute (zend_op_array *ops);
-ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, int ret);
-#elif PHP_MAJOR_VERSION < 7
-ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data);
-ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
-  struct _zend_fcall_info *fci, int ret);
-#else
 ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data);
 ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, zval *return_value);
-#endif
 ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle, int type);
 
 

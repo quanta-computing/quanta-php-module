@@ -18,7 +18,7 @@ void hp_inc_count(zval *counts, char *name, long count) {
   ht = HASH_OF(counts);
   if (!ht) return;
 
-  if ((data = zend_hash_find_compat(ht, name, strlen(name)))) {
+  if ((data = zend_hash_str_find(ht, name, strlen(name)))) {
     ZVAL_LONG(data, Z_LVAL_P(data) + count);
   } else {
     add_assoc_long(counts, name, count);

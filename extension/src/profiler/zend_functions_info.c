@@ -1,21 +1,13 @@
 #include "quanta_mon.h"
 
 char *hp_get_function_name_fast(zend_execute_data *execute_data) {
-#if PHP_MAJOR_VERSION < 7
-  return execute_data ? execute_data->function_state.function->common.function_name : NULL;
-#else
   return (execute_data && execute_data->func && execute_data->func->common.function_name) ?
     ZSTR_VAL(execute_data->func->common.function_name)
     : NULL;
-#endif
 }
 
 static zend_function *hp_get_current_function(zend_execute_data *execute_data) {
-#if PHP_MAJOR_VERSION < 7
-  return execute_data ? execute_data->function_state.function : NULL;
-#else
   return execute_data ? execute_data->func : NULL;
-#endif
 }
 
 const char *hp_get_class_name(zend_execute_data *data) {
@@ -24,19 +16,11 @@ const char *hp_get_class_name(zend_execute_data *data) {
 
   if (!(curr_func = hp_get_current_function(data)))
     return NULL;
-#if PHP_MAJOR_VERSION < 7
-  if (curr_func->common.scope) {
-    cls = curr_func->common.scope->name;
-  } else if (data->object) {
-    cls = Z_OBJCE_P(data->object)->name;
-  }
-#else
   if (curr_func->common.scope && curr_func->common.scope->name) {
     cls = ZSTR_VAL(curr_func->common.scope->name);
   } else if (Z_OBJ(data->This) && Z_OBJCE(data->This)->name) {
     cls = ZSTR_VAL(Z_OBJCE(data->This)->name);
   }
-#endif
   return cls;
 }
 
@@ -73,17 +57,11 @@ char *hp_get_function_name(zend_execute_data *data) {
     /* we are dealing with a special directive/function like
      * include, eval, etc.
      */
-#if ZEND_EXTENSION_API_NO >= 220121212
     if (data->prev_execute_data) {
       curr_op = data->prev_execute_data->opline->extended_value;
     } else {
       curr_op = data->opline->extended_value;
     }
-#elif ZEND_EXTENSION_API_NO >= 220100525
-    curr_op = data->opline->extended_value;
-#else
-    curr_op = data->opline->op2.u.constant.value.lval;
-#endif
 
     switch (curr_op) {
       case ZEND_EVAL:
@@ -119,11 +97,7 @@ char *hp_get_function_name(zend_execute_data *data) {
       size_t   len;
 
       if (curr_func->op_array.filename) {
-#if PHP_MAJOR_VERSION < 7
-        filename = hp_get_base_filename(curr_func->op_array.filename);
-#else
         filename = hp_get_base_filename(ZSTR_VAL(curr_func->op_array.filename));
-#endif
       }
       if (!filename)
         filename = "???";

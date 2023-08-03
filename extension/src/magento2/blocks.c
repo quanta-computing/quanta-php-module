@@ -15,21 +15,19 @@ static zval *get_block_object(zval *this, zval *block_name) {
   zval *blocks = NULL;
   zval *block = NULL;
 
-  blocks = zend_hash_find_compat(Z_OBJPROP_P(this), "\0*\0_blocks", sizeof("\0*\0_blocks") - 1);
+  blocks = zend_hash_str_find(Z_OBJPROP_P(this), "\0*\0_blocks", sizeof("\0*\0_blocks") - 1);
   if (!blocks) {
     PRINTF_QUANTA("_blocks not found\n");
     return NULL;
   }
-#if PHP_MAJOR_VERSION >= 7
   if (Z_TYPE_P(blocks) == IS_INDIRECT)
     blocks = Z_INDIRECT_P(blocks);
-#endif
   if (Z_TYPE_P(blocks) != IS_ARRAY) {
     PRINTF_QUANTA("Cannot get block object, _blocks is a %d (expected %d)\n",
       blocks ? Z_TYPE_P(blocks): 0, IS_ARRAY);
     return NULL;
   }
-  block = zend_hash_find_compat(Z_ARRVAL_P(blocks), Z_STRVAL_P(block_name), Z_STRLEN_P(block_name));
+  block = zend_hash_str_find(Z_ARRVAL_P(blocks), Z_STRVAL_P(block_name), Z_STRLEN_P(block_name));
   if (!block || Z_TYPE_P(block) != IS_OBJECT) {
     PRINTF_QUANTA("Cannot get block %s (it's a %d)\n", Z_STRVAL_P(block_name),
       block ? Z_TYPE_P(block) : 0);

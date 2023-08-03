@@ -32,7 +32,6 @@
 #endif
 
 #include "cpu.h"
-#include "compat.h"
 #include "profiler.h"
 #include "module.h"
 #include "utils.h"

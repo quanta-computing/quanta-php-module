@@ -44,9 +44,7 @@ void hp_hier_end_profiling(hp_entry_t **entries) {
   long int         pmu_end;
   uint64_t         tsc_end;
   HashTable        *ht;
-#if PHP_MAJOR_VERSION >= 7
   zval             counts_val;
-#endif
 
   hp_globals.func_hash_counters[top->hash_code]--;
   tsc_end = cycle_timer();
@@ -55,16 +53,10 @@ void hp_hier_end_profiling(hp_entry_t **entries) {
   || !(ht = HASH_OF(&hp_globals.stats_count))) {
     return;
   }
-  if (!(counts = zend_hash_find_compat(ht, symbol, strlen(symbol)))) {
-#if PHP_MAJOR_VERSION < 7
-    MAKE_STD_ZVAL(counts);
-    array_init(counts);
-    zend_hash_update(ht, symbol, strlen(symbol) + 1, &counts, sizeof(counts), NULL);
-#else
+  if (!(counts = zend_hash_str_find(ht, symbol, strlen(symbol)))) {
     counts = &counts_val;
     array_init(counts);
     zend_hash_str_update(ht, symbol, strlen(symbol), counts);
-#endif
   }
 
   hp_inc_count(counts, "ct", 1 );
@@ -78,7 +70,7 @@ void hp_hier_end_profiling(hp_entry_t **entries) {
   hp_inc_count(counts, "cpu",
     get_us_interval(&(top->ru_start_hprof.ru_utime), &(ru_end.ru_utime))
     + get_us_interval(&(top->ru_start_hprof.ru_stime), &(ru_end.ru_stime))
-   );
+  );
 
   /* Get Memory usage */
   mu_end  = zend_memory_usage(0);

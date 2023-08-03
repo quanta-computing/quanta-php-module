@@ -44,11 +44,7 @@ static char *get_oro_vendor_file(zend_execute_data *execute_data) {
     PRINTF_QUANTA("ORO DIRECTORY NOT FOUND\n");
     return NULL;
   }
-  #if PHP_MAJOR_VERSION < 7
-    this_filename = ce->info.user.filename;
-  #else
-    this_filename = ZSTR_VAL(ce->info.user.filename);
-  #endif
+  this_filename = ZSTR_VAL(ce->info.user.filename);
   if (!(end = rindex(this_filename, '/')))
     return NULL;
   filename = ecalloc((end - this_filename) + 1 - strlen("app")+ strlen(installed_file), 1);
