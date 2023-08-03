@@ -3,6 +3,7 @@
 *.ko
 *.obj
 *.elf
+*.dep
 
 # Precompiled Headers
 *.gch
@@ -102,6 +103,7 @@ extension/config.nice
 extension/config.status
 extension/config.sub
 extension/configure
+extension/configure.ac
 extension/configure.in
 extension/install-sh
 extension/libtool
