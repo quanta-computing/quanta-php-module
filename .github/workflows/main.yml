@@ -32,7 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         php-version: [php73, php74] #php72, php80, php81, php82
-        debian-version: [jessie, stretch, buster] #bullseye, bookworm
+        debian-version: [buster] #bullseye, bookworm
 
     steps:
     - name: Clone Quanta PHP Module repository
@@ -53,21 +53,11 @@ jobs:
         cd tools
         ./buildozer -t ${{ matrix.php-version }}-quanta-mon -o debian -v ${{ matrix.debian-version }} -s ../php-module/extension/ -r ${{ matrix.debian-version }}
 
-    - name: gzip packages
-      run: |
-        cd tools/debian/${{ matrix.debian-version }}/pkg/
-        tar czvf debian-${{ matrix.debian-version }}-${{ matrix.php-version }}.tgz ${{ matrix.php-version }}-quanta-mon-${{ matrix.debian-version }}
-
-    - name: Upload package to release
-      uses: svenstaro/upload-release-action@v2
+    - name: Upload packages
+      uses: actions/upload-artifact@v3
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: tools/debian/${{ matrix.debian-version }}/pkg/debian-${{ matrix.debian-version }}-${{ matrix.php-version }}.tgz
-        asset_name: debian-${{ matrix.debian-version }}-${{ matrix.php-version }}.tgz
-        tag: ${{ github.ref }}
-        overwrite: true
-        body: "Packages of ${{ matrix.php-version }} for Debian ${{ matrix.debian-version }} are ready"
-
+        name: debian-${{ matrix.debian-version }}-${{ matrix.php-version }}.tgz
+        path: tools/debian/${{ matrix.debian-version }}/pkg/
 
   # centos-builds:
   #   if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'release')
