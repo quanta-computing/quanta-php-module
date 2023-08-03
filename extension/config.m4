@@ -72,7 +72,6 @@ if test "$PHP_QUANTAMON" != "no"; then
     src/utils/safe_get_constant.c \
     src/utils/this.c \
     src/utils/timing.c \
-    src/utils/zend_hash.c \
     src/utils/zend_obj.c \
     src/utils/zend_zval.c \
     src/applications.c, $ext_shared,,-W -Wall -Wextra -Wno-unused-parameter -D_GNU_SOURCE)
