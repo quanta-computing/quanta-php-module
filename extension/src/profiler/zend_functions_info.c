@@ -115,14 +115,19 @@ char *hp_get_function_name(zend_execute_data *data TSRMLS_DC) {
      * you'll see something like "run_init::foo.php" in your reports.
      */
     if (add_filename){
-      const char *filename;
+      const char *filename = NULL;
       int   len;
+
+      if (curr_func->op_array.filename) {
 #if PHP_MAJOR_VERSION < 7
-      filename = hp_get_base_filename(curr_func->op_array.filename);
+        filename = hp_get_base_filename(curr_func->op_array.filename);
 #else
-      filename = hp_get_base_filename(ZSTR_VAL(curr_func->op_array.filename));
+        filename = hp_get_base_filename(ZSTR_VAL(curr_func->op_array.filename));
 #endif
-      len      = strlen("run_init") + strlen(filename) + 3;
+      }
+      if (!filename)
+        filename = "???";
+      len      = strlen("run_init::") + strlen(filename) + 1;
       ret      = (char *)emalloc(len);
       snprintf(ret, len, "run_init::%s", filename);
     } else {
