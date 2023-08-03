@@ -1,5 +1,6 @@
 #include "quanta_mon.h"
 
+#if DEBUG_QUANTA
 static void print_selfprofiling_metrics(void) {
   float profiling_time;
   float request_time;
@@ -38,6 +39,7 @@ static void print_selfprofiling_metrics(void) {
   PRINTF_QUANTA("REQUEST TOTAL TIME %fms\nOVERHEAD %.3f%%\n",
     request_time, 100.0 * (profiling_time / request_time));
 }
+#endif
 
 /**
  * Called at request shutdown time. Cleans the profiler's global state.
@@ -59,7 +61,9 @@ void hp_stop(void) {
   while (hp_globals.entries)
     hp_end_profiling(&hp_globals.entries, -1, NULL);
   send_metrics();
+#if DEBUG_QUANTA
   print_selfprofiling_metrics();
+#endif
   hp_restore_original_zend_execute();
   /* Resore cpu affinity. */
   restore_cpu_affinity(&hp_globals.prev_mask);
