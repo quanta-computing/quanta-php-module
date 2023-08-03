@@ -31,8 +31,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: [php73, php74] #php72, php80, php81, php82
-        debian-version: [buster, bullseye] #, bookworm #
+        php-version: [php80]  #, php81, php82
+        debian-version: [bullseye] #, bookworm #
 
     steps:
     - name: Clone Quanta PHP Module repository
