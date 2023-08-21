@@ -31,8 +31,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: [php83] # php73, php74, php80, php81, php82, php83
-        debian-version: [bullseye, bookworm] # [buster, bullseye, bookworm]
+        php-version: [php73, php74, php80, php81, php82, php83]
+        debian-version: [buster] # [buster, bullseye, bookworm]
 
     steps:
     - name: Clone Quanta PHP Module repository
@@ -65,44 +65,44 @@ jobs:
         cd tools
         ./pelletesteuse -t ${{ matrix.php-version }}-quanta-mon -o debian -v ${{ matrix.debian-version }} -r 1.3.4
 
-  centos-builds:
-    if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'release')
-    environment: build
-    name: 'Building ${{ matrix.php-version }} for CentOS ${{ matrix.centos-version }}'
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        php-version: [php73] # php73, php74, php80, php81, php82, php83
-        centos-version: [8] # 7, 8, 9
+  # centos-builds:
+  #   if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'release')
+  #   environment: build
+  #   name: 'Building ${{ matrix.php-version }} for CentOS ${{ matrix.centos-version }}'
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       php-version: [php73] # php73, php74, php80, php81, php82, php83
+  #       centos-version: [8] # 7, 8, 9
 
-    steps:
-    - name: Clone Quanta PHP Module repository
-      uses: actions/checkout@v3
-      with:
-        path: php-module
+  #   steps:
+  #   - name: Clone Quanta PHP Module repository
+  #     uses: actions/checkout@v3
+  #     with:
+  #       path: php-module
 
-    - name: Clone Buildozer repository
-      uses: actions/checkout@v3
-      with:
-        ssh-key: ${{ secrets.BUILDOZER_DEPLOY_KEY }}
-        repository: quanta-computing/buildozer
-        ref: 'new-packages-worflow'
-        persist-credentials: true
-        path: tools
+  #   - name: Clone Buildozer repository
+  #     uses: actions/checkout@v3
+  #     with:
+  #       ssh-key: ${{ secrets.BUILDOZER_DEPLOY_KEY }}
+  #       repository: quanta-computing/buildozer
+  #       ref: 'new-packages-worflow'
+  #       persist-credentials: true
+  #       path: tools
 
-    - name: Build the PHP package
-      run: |
-        cd tools
-        ./buildozer -t ${{ matrix.php-version }}-quanta-mon -o centos -v ${{ matrix.centos-version }} -s ../php-module/extension/ -r 1.3.4
+  #   - name: Build the PHP package
+  #     run: |
+  #       cd tools
+  #       ./buildozer -t ${{ matrix.php-version }}-quanta-mon -o centos -v ${{ matrix.centos-version }} -s ../php-module/extension/ -r 1.3.4
 
-    - name: Upload packages
-      uses: actions/upload-artifact@v3
-      with:
-        name: centos-${{ matrix.centos-version }}-${{ matrix.php-version }}.tgz
-        path: tools/centos/${{ matrix.centos-version }}/pkg/
+  #   - name: Upload packages
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: centos-${{ matrix.centos-version }}-${{ matrix.php-version }}.tgz
+  #       path: tools/centos/${{ matrix.centos-version }}/pkg/
 
-    - name: Pelletesting
-      run: |
-        cd tools
-        ./pelletesteuse -t ${{ matrix.php-version }}-quanta-mon -o centos -v ${{ matrix.centos-version }} -r 1.3.4
+  #   - name: Pelletesting
+  #     run: |
+  #       cd tools
+  #       ./pelletesteuse -t ${{ matrix.php-version }}-quanta-mon -o centos -v ${{ matrix.centos-version }} -r 1.3.4
