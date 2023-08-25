@@ -60,9 +60,6 @@ jobs:
             version: kinetic
           - os: centos
             version: lunar
-          - os: centos
-          - version: 9
-            php-version: php73
           - os: ubuntu
             version: buster
           - os: ubuntu
