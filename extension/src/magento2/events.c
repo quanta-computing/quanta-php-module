@@ -1,15 +1,15 @@
 #include "quanta_mon.h"
 
 int magento2_record_reindex_event(profiled_application_t *app, profiled_function_t *function,
-zend_execute_data *execute_data TSRMLS_DC) {
+zend_execute_data *execute_data) {
   zval *this;
   zval *title;
   zval *title_text;
 
   (void)app;
   (void)function;
-  if (!(this = get_this(execute_data TSRMLS_CC))
-  || !(title = get_mage_model_zdata(Z_OBJPROP_P(this), "title", IS_OBJECT TSRMLS_CC))
+  if (!(this = get_this(execute_data))
+  || !(title = get_mage_model_zdata(Z_OBJPROP_P(this), "title", IS_OBJECT))
   || !(title_text = zend_read_property_compat(Z_OBJCE_P(title), title, "text"))) {
     PRINTF_QUANTA("Cannot get reindex type\n");
     return -1;
@@ -22,7 +22,7 @@ zend_execute_data *execute_data TSRMLS_DC) {
 }
 
 int magento2_record_cache_clean_event(profiled_application_t *app, profiled_function_t *function,
-zend_execute_data *execute_data TSRMLS_DC) {
+zend_execute_data *execute_data) {
   zval *subtype;
 
   (void)app;

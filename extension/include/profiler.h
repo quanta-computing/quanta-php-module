@@ -66,7 +66,7 @@ typedef struct profiled_application_t profiled_application_t;
 typedef struct profiled_function_t profiled_function_t;
 
 typedef int (*profiled_function_callback_t)(profiled_application_t *app, profiled_function_t *func,
-  zend_execute_data *ex TSRMLS_DC);
+  zend_execute_data *ex);
 
 struct profiled_function_t {
   const char *name;
@@ -132,50 +132,50 @@ struct profiled_application_t {
 
   void *context;
 
-  void *(*create_context)(struct profiled_application_t *app TSRMLS_DC);
-  void (*cleanup_context)(struct profiled_application_t *app TSRMLS_DC);
-  profiled_function_t *(*match_function)(const char *name, zend_execute_data *data TSRMLS_DC);
+  void *(*create_context)(struct profiled_application_t *app);
+  void (*cleanup_context)(struct profiled_application_t *app);
+  profiled_function_t *(*match_function)(const char *name, zend_execute_data *data);
   void (*send_metrics)(struct profiled_application_t *app, monikor_metric_list_t *metrics,
-    float cpufreq, struct timeval *clock TSRMLS_DC);
+    float cpufreq, struct timeval *clock);
 };
 
 
 // Profiling
-void hp_begin(long level TSRMLS_DC);
-void hp_stop(TSRMLS_D);
-void hp_end(TSRMLS_D);
-void hp_init_profiler_state(int level TSRMLS_DC);
-void hp_clean_profiler_state(TSRMLS_D);
+void hp_begin(long level);
+void hp_stop(void);
+void hp_end(void);
+void hp_init_profiler_state(int level);
+void hp_clean_profiler_state(void);
 void hp_hijack_zend_execute(long level);
 void hp_restore_original_zend_execute(void);
 
-void hp_inc_count(zval *counts, char *name, long count TSRMLS_DC);
+void hp_inc_count(zval *counts, char *name, long count);
 size_t hp_get_entry_name(hp_entry_t  *entry, char *result_buf, size_t result_len);
 size_t hp_get_function_stack(hp_entry_t *entry, int level, char *result_buf, size_t result_len);
 
-int hp_begin_profiling(hp_entry_t **entries, const char *symbol, zend_execute_data *data TSRMLS_DC);
-void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data *data TSRMLS_DC);
-int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data TSRMLS_DC);
-int qm_end_profiling(int function_idx, zend_execute_data *execute_data TSRMLS_DC);
-void hp_hier_begin_profiling(hp_entry_t **entries, hp_entry_t *current  TSRMLS_DC);
-void hp_hier_end_profiling(hp_entry_t **entries  TSRMLS_DC);
+int hp_begin_profiling(hp_entry_t **entries, const char *symbol, zend_execute_data *data);
+void hp_end_profiling(hp_entry_t **entries, int profile_curr, zend_execute_data *data);
+int qm_begin_profiling(const char *curr_func, zend_execute_data *execute_data);
+int qm_end_profiling(int function_idx, zend_execute_data *execute_data);
+void hp_hier_begin_profiling(hp_entry_t **entries, hp_entry_t *current );
+void hp_hier_end_profiling(hp_entry_t **entries );
 
 // Metrics stuff
-void send_metrics(TSRMLS_D);
-void qm_send_events_metrics(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC);
+void send_metrics(void);
+void qm_send_events_metrics(struct timeval *clock, monikor_metric_list_t *metrics);
 void qm_send_profiler_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
-  float cpufreq TSRMLS_DC);
+  float cpufreq);
 void qm_send_selfprofiling_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
-  float cpufreq TSRMLS_DC);
+  float cpufreq);
 
 // Application stuff
 profiled_application_t *qm_match_first_app_function(const char* function_name,
-  zend_execute_data* data TSRMLS_DC);
-void init_profiled_application(profiled_application_t *app TSRMLS_DC);
-void clean_profiled_application(profiled_application_t *app TSRMLS_DC);
+  zend_execute_data* data);
+void init_profiled_application(profiled_application_t *app);
+void clean_profiled_application(profiled_application_t *app);
 int qm_record_event(applicative_event_class_t class, char *type, char *subtype);
 int qm_record_sql_query(profiled_application_t *app, profiled_function_t *function,
-  zend_execute_data *data TSRMLS_DC);
+  zend_execute_data *data);
 
 // HP list
 void hp_free_the_free_list();
@@ -183,19 +183,17 @@ hp_entry_t *hp_fast_alloc_hprof_entry();
 void hp_fast_free_hprof_entry(hp_entry_t *p);
 
 // Zend hijacks
-#if PHP_VERSION_ID < 50500
-ZEND_DLEXPORT void hp_execute (zend_op_array *ops TSRMLS_DC);
-ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, int ret TSRMLS_DC);
-#elif PHP_MAJOR_VERSION < 7
-ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC);
-ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
-  struct _zend_fcall_info *fci, int ret TSRMLS_DC);
-#else
-ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC);
+ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data);
 ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, zval *return_value);
-#endif
-ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle, int type TSRMLS_DC);
-ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filename TSRMLS_DC);
+ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle, int type);
 
+
+#if PHP_VERSION_ID >= 80200
+ZEND_DLEXPORT zend_op_array* hp_compile_string(zend_string *source_string, const char *filename, zend_compile_position position);
+#elif PHP_VERSION_ID >= 80000
+ZEND_DLEXPORT zend_op_array* hp_compile_string(zend_string *source_string, const char *filename);
+#else
+ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filename);
+#endif
 
 #endif /* end of include guard: QM_PROFILER_H_ */

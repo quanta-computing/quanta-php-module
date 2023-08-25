@@ -1,7 +1,7 @@
 #include "quanta_mon.h"
 
 int magento_record_cache_flush_event(profiled_application_t *app, profiled_function_t *function,
-zend_execute_data *execute_data TSRMLS_DC) {
+zend_execute_data *execute_data) {
   (void)app;
   (void)function;
   (void)execute_data;
@@ -12,7 +12,7 @@ zend_execute_data *execute_data TSRMLS_DC) {
 }
 
 int magento_record_cache_system_flush_event(profiled_application_t *app,
-profiled_function_t *function, zend_execute_data *execute_data TSRMLS_DC) {
+profiled_function_t *function, zend_execute_data *execute_data) {
   (void)app;
   (void)function;
   (void)execute_data;

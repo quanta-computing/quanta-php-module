@@ -18,7 +18,7 @@ PHP_MINIT_FUNCTION(quanta_mon) {
   if (!hp_globals.admin_url || !*hp_globals.admin_url)
     hp_globals.admin_url = QUANTA_MON_DEFAULT_ADMIN_URL;
   if ((!hp_globals.path_quanta_agent_socket) || (strlen(hp_globals.path_quanta_agent_socket) < 4)) {
-    php_error_docref(NULL TSRMLS_CC, E_WARNING,
+    php_error_docref(NULL, E_WARNING,
       "quanta_mon.path_quanta_agent_socket configuration missing or invalid. Module disabled.");
     return FAILURE;
   }

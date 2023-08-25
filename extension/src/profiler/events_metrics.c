@@ -9,7 +9,7 @@ static inline const char *event_class_str(applicative_event_t *event) {
     return "unknown";
 }
 
-void qm_send_events_metrics(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
+void qm_send_events_metrics(struct timeval *clock, monikor_metric_list_t *metrics) {
   char metric_name[MAX_METRIC_NAME_LENGTH];
   monikor_metric_t *metric;
   applicative_event_t *event;

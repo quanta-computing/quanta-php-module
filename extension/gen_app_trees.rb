@@ -47,7 +47,7 @@ end
 def compile_node app_name, node, depth = 0
   if node[:children].empty?
     print depth, "++hp_globals.internal_match_counters.function;"
-    print depth, "const char *class_name = hp_get_class_name(data TSRMLS_CC);";
+    print depth, "const char *class_name = hp_get_class_name(data);";
     print depth, "if (!class_name) return NULL;"
     node[:value].each do |value|
       print depth, "if (!strcmp(class_name, \"#{value[:class_name].gsub '\\', '\\\\\\\\'}\"))"
@@ -64,7 +64,7 @@ def compile_node app_name, node, depth = 0
 end
 
 def compile_tree app_name, tree
-  puts "profiled_function_t *#{app_name}_match_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {"
+  puts "profiled_function_t *#{app_name}_match_function(const char* function_name, zend_execute_data* data) {"
   puts " ++hp_globals.internal_match_counters.total;"
   compile_node app_name, tree
   puts "}"
@@ -153,7 +153,7 @@ end
 def compile_app_first_node node, depth = 0
   if node[:children].empty?
     print depth, "++hp_globals.internal_match_counters.function;"
-    print depth, "const char *class_name = hp_get_class_name(data TSRMLS_CC);";
+    print depth, "const char *class_name = hp_get_class_name(data);";
     print depth, "if (!class_name) return NULL;"
     node[:value].each do |value|
       print depth, "if (!strcmp(class_name, \"#{value[:class_name].gsub '\\', '\\\\\\\\'}\"))"
@@ -171,7 +171,7 @@ end
 
 def compile_app_first_tree tree
   puts "profiled_application_t *qm_match_first_app_function(const char* function_name,"
-  puts "zend_execute_data* data TSRMLS_DC) {"
+  puts "zend_execute_data* data) {"
   puts " ++hp_globals.internal_match_counters.total;"
   compile_app_first_node tree
   puts "}"

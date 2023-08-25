@@ -1,24 +1,22 @@
 #include "quanta_mon.h"
 
-static zval *get_block_var(zval *block, const char * key, int type TSRMLS_DC) {
+static zval *get_block_var(zval *block, const char * key, int type) {
   zval *data;
   zval *ret;
 
-  if (!(data = zend_hash_find_compat(Z_OBJPROP_P(block), "vars", sizeof("vars") - 1))) {
+  if (!(data = zend_hash_str_find(Z_OBJPROP_P(block), "vars", sizeof("vars") - 1))) {
     PRINTF_QUANTA("Cannot fetch block vars\n");
     return NULL;
   }
-#if PHP_MAJOR_VERSION >= 7
   if (Z_TYPE_P(data) == IS_INDIRECT)
     data = Z_INDIRECT_P(data);
-#endif
   if (Z_TYPE_P(data) == IS_REFERENCE)
     data = Z_REFVAL_P(data);
   if (Z_TYPE_P(data) != IS_ARRAY) {
     PRINTF_QUANTA("vars is not an array, it's a %d\n", Z_TYPE_P(data));
     return NULL;
   }
-  if (!(ret = zend_hash_find_compat(Z_ARRVAL_P(data), key, strlen(key)))) {
+  if (!(ret = zend_hash_str_find(Z_ARRVAL_P(data), key, strlen(key)))) {
     PRINTF_QUANTA("Cannot fetch %s in vars\n", key);
     return NULL;
   }
@@ -30,7 +28,7 @@ static zval *get_block_var(zval *block, const char * key, int type TSRMLS_DC) {
 }
 
 int oro_before_render_block(profiled_application_t *app, profiled_function_t *function,
-zend_execute_data *execute_data TSRMLS_DC) {
+zend_execute_data *execute_data) {
   oro_context_t *context = (oro_context_t *)app->context;
   oro_block_t *current_block;
   oro_block_t *block;
@@ -46,7 +44,7 @@ zend_execute_data *execute_data TSRMLS_DC) {
     PRINTF_QUANTA("Cannot parse arguments\n");
     return -1;
   }
-  if (!(id = get_block_var(zblock, "id", IS_STRING TSRMLS_CC))) {
+  if (!(id = get_block_var(zblock, "id", IS_STRING))) {
     PRINTF_QUANTA("Cannot get block id\n");
     return -1;
   }
@@ -58,8 +56,8 @@ zend_execute_data *execute_data TSRMLS_DC) {
   if (!(block = ecalloc(1, sizeof(*block)))
   || !(block->name = estrdup(Z_STRVAL_P(id))))
     return -1;
-  if (!safe_call_function("current", &twig, IS_OBJECT, 1, resource TSRMLS_CC)
-  && !safe_call_method(&twig, "getTemplateName", &template, IS_STRING, 0, NULL TSRMLS_CC)) {
+  if (!safe_call_function("current", &twig, IS_OBJECT, 1, resource)
+  && !safe_call_method(&twig, "getTemplateName", &template, IS_STRING, 0, NULL)) {
     block->template = estrdup(Z_STRVAL(template));
   } else {
     PRINTF_QUANTA("Cannot get template\n");
@@ -76,7 +74,7 @@ zend_execute_data *execute_data TSRMLS_DC) {
 }
 
 int oro_after_render_block(profiled_application_t *app, profiled_function_t *function,
-zend_execute_data *execute_data TSRMLS_DC) {
+zend_execute_data *execute_data) {
   oro_context_t *context = (oro_context_t *)app->context;
   oro_block_t *block;
   oro_block_t *parent;

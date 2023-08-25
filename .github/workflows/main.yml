@@ -1,0 +1,105 @@
+name: Quanta PHP Module builder
+
+on:
+  pull_request:
+    branches:
+      - '**'
+    types:
+      - opened
+      - edited
+      - synchronize
+      - labeled
+
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  PACKER_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  builds:
+    if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'release')
+    environment: build
+    name: '[${{ matrix.os }}][${{ matrix.version }}][${{ matrix.php-version }}] - Quanta PHP Module Builds'
+    runs-on: ubuntu-latest
+    # needs: detect-version
+    strategy:
+      fail-fast: false
+      matrix:
+        # os: [debian, centos, ubuntu]
+        os: [ubuntu]
+        version: [jammy, kinetic, lunar]
+        # version: [buster, bullseye, bookworm, 7, 8, 9, jammy, kinetic, lunar]
+        php-version: [php73, php74, php80, php81, php82, php83]
+        # exclude:
+        #   - os: debian
+        #     version: 7
+        #   - os: debian
+        #     version: 8
+        #   - os: debian
+        #     version: 9
+        #   - os: debian
+        #     version: jammy
+        #   - os: debian
+        #     version: kinetic
+        #   - os: debian
+        #     version: lunar
+        #   - os: centos
+        #     version: buster
+        #   - os: centos
+        #     version: bullseye
+        #   - os: centos
+        #     version: bookworm
+        #   - os: centos
+        #     version: jammy
+        #   - os: centos
+        #     version: kinetic
+        #   - os: centos
+        #     version: lunar
+        #   - os: ubuntu
+        #     version: buster
+        #   - os: ubuntu
+        #     version: bullseye
+        #   - os: ubuntu
+        #     version: bookworm
+        #   - os: ubuntu
+        #     version: 7
+        #   - os: ubuntu
+        #     version: 8
+        #   - os: ubuntu
+        #     version: 9
+
+
+    steps:
+    - name: Clone Quanta PHP module repository
+      uses: actions/checkout@v3
+      with:
+        path: quanta-php-module
+
+    - name: Clone Buildozer repository
+      uses: actions/checkout@v3
+      with:
+        ssh-key: ${{ secrets.BUILDOZER_DEPLOY_KEY }}
+        repository: quanta-computing/buildozer
+        ref: 'new-packages-worflow'
+        persist-credentials: true
+        path: tools
+
+    - name: Build php module packages
+      run: |
+        cd tools
+        ./buildozer -t ${{ matrix.php-version }}-quanta-mon -o ${{ matrix.os }} -v ${{ matrix.version }} -s ../quanta-php-module/extension/ -r 1.3.4
+
+    - name: Upload packages
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.os }}-${{ matrix.version }}_${{ matrix.php-version }}-quanta-mon-1.3.4.tgz
+        path: tools/${{ matrix.os }}/${{ matrix.version }}/pkg/
+
+  #   - name: Pelletesting
+  #     run: |
+  #       cd tools
+  #       ./pelletesteuse -t ${{ matrix.php-version }}-quanta-mon -o debian -v ${{ matrix.debian-version }} -r 1.3.4
