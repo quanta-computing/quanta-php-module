@@ -32,8 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [debian, centos, ubuntu]
-        os: [ubuntu]
+        os: [debian, centos, ubuntu]
         version: [buster, bullseye, bookworm, 7, 8, 9, jammy, kinetic, lunar]
         php-version: [php73, php74, php80, php81, php82, php83]
         exclude:
