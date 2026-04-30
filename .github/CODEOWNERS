@@ -1,0 +1,10 @@
+
+# Pipelines Codeowners rules
+.github/**                    @quanta-computing/owners-pipelines
+.yamlfix.toml                 @quanta-computing/owners-pipelines
+
+# Security Codeowners rules
+.gitleaks.toml                @quanta-computing/owners-security
+.gitleaksignore               @quanta-computing/owners-security
+.githooks/pre-commit          @quanta-computing/owners-security
+**/secu-*.yml                 @quanta-computing/owners-security
