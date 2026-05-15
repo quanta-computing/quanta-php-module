@@ -1,7 +1,7 @@
 #include "quanta_mon.h"
 
 void qm_send_selfprofiling_metrics(struct timeval *clock, monikor_metric_list_t *metrics,
-float cpufreq TSRMLS_DC) {
+float cpufreq) {
   profiled_application_t *app = hp_globals.profiled_application;
   char metric_name[MAX_METRIC_NAME_LENGTH];
   char *metric_base_end;

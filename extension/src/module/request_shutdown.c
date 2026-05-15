@@ -6,6 +6,6 @@
 PHP_RSHUTDOWN_FUNCTION(quanta_mon) {
   hp_globals.global_tsc.stop = cycle_timer();
   hp_globals.internal_match_counters.shutdown_cycles = hp_globals.global_tsc.stop;
-  hp_end(TSRMLS_C);
+  hp_end();
   return SUCCESS;
 }

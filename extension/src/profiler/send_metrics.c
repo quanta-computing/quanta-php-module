@@ -24,14 +24,14 @@ static void fetch_request_uri(struct timeval *clock, monikor_metric_list_t *metr
     monikor_metric_list_push(metrics, metric);
 }
 
-static void fetch_xhprof_metrics(struct timeval *clock, monikor_metric_list_t *metrics TSRMLS_DC) {
+static void fetch_xhprof_metrics(struct timeval *clock, monikor_metric_list_t *metrics) {
   char metric_name[MAX_METRIC_NAME_LENGTH];
   zval encoded;
 
   if (hp_globals.profiler_level != QUANTA_MON_MODE_HIERARCHICAL)
     return;
   ZVAL_NULL(&encoded);
-  if (safe_call_function("json_encode", &encoded, IS_STRING, 1, &hp_globals.stats_count TSRMLS_CC)) {
+  if (safe_call_function("json_encode", &encoded, IS_STRING, 1, &hp_globals.stats_count)) {
     PRINTF_QUANTA("Error: cannot json encode xhprof output\n");
   } else {
     sprintf(metric_name, "qtracer.%zu.json", hp_globals.quanta_step_id);
@@ -131,7 +131,7 @@ end:
     close(sock);
 }
 
-void send_metrics(TSRMLS_D) {
+void send_metrics() {
   monikor_metric_list_t *metrics;
   struct timeval now;
 
@@ -150,12 +150,12 @@ void send_metrics(TSRMLS_D) {
     float cpufreq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
 
     fetch_request_uri(&now, metrics);
-    fetch_xhprof_metrics(&now, metrics TSRMLS_CC);
-    qm_send_profiler_metrics(&now, metrics, cpufreq TSRMLS_CC);
-    qm_send_selfprofiling_metrics(&now, metrics, cpufreq TSRMLS_CC);
+    fetch_xhprof_metrics(&now, metrics);
+    qm_send_profiler_metrics(&now, metrics, cpufreq);
+    qm_send_selfprofiling_metrics(&now, metrics, cpufreq);
     if (hp_globals.profiled_application && hp_globals.profiled_application->send_metrics) {
       hp_globals.profiled_application->send_metrics(hp_globals.profiled_application, metrics,
-        cpufreq, &now TSRMLS_CC);
+        cpufreq, &now);
     }
   }
   /* We only want to provide context information such as versions when we actually have some metrics

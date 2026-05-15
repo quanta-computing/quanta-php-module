@@ -181,7 +181,7 @@ static const profiler_timer_t orocommerce_profiler_timers[] = {
 {NULL, NULL, 0, NULL, 0, {0}}
 };
 
-profiled_function_t *orocommerce_match_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {
+profiled_function_t *orocommerce_match_function(const char* function_name, zend_execute_data* data) {
  ++hp_globals.internal_match_counters.total;
  if (function_name[0] == 'b') {
   if (function_name[1] == 'o') {
@@ -189,7 +189,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
     if (function_name[3] == 't') {
      if (function_name[4] == '\0') {
       ++hp_globals.internal_match_counters.function;
-      const char *class_name = hp_get_class_name(data TSRMLS_CC);
+      const char *class_name = hp_get_class_name(data);
       if (!class_name) return NULL;
       if (!strcmp(class_name, "Oro\\Bundle\\DistributionBundle\\OroKernel"))
        return &orocommerce_profiled_functions[0];
@@ -212,7 +212,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
       if (function_name[5] == 'e') {
        if (function_name[6] == '\0') {
         ++hp_globals.internal_match_counters.function;
-        const char *class_name = hp_get_class_name(data TSRMLS_CC);
+        const char *class_name = hp_get_class_name(data);
         if (!class_name) return NULL;
         if (!strcmp(class_name, "Symfony\\Component\\HttpKernel\\HttpKernel"))
          return &orocommerce_profiled_functions[1];
@@ -248,7 +248,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
                if (function_name[14] == 't') {
                 if (function_name[15] == '\0') {
                  ++hp_globals.internal_match_counters.function;
-                 const char *class_name = hp_get_class_name(data TSRMLS_CC);
+                 const char *class_name = hp_get_class_name(data);
                  if (!class_name) return NULL;
                  if (!strcmp(class_name, "Symfony\\Component\\HttpKernel\\EventListener\\RouterListener"))
                   return &orocommerce_profiled_functions[2];
@@ -275,7 +275,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
             if (function_name[11] == 'w') {
              if (function_name[12] == '\0') {
               ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
+              const char *class_name = hp_get_class_name(data);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Oro\\Bundle\\LayoutBundle\\EventListener\\LayoutListener"))
                return &orocommerce_profiled_functions[4];
@@ -321,7 +321,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
              if (function_name[12] == 'r') {
               if (function_name[13] == '\0') {
                ++hp_globals.internal_match_counters.function;
-               const char *class_name = hp_get_class_name(data TSRMLS_CC);
+               const char *class_name = hp_get_class_name(data);
                if (!class_name) return NULL;
                if (!strcmp(class_name, "Symfony\\Component\\HttpKernel\\Controller\\ControllerResolver"))
                 return &orocommerce_profiled_functions[3];
@@ -356,7 +356,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
          if (function_name[8] == 't') {
           if (function_name[9] == '\0') {
            ++hp_globals.internal_match_counters.function;
-           const char *class_name = hp_get_class_name(data TSRMLS_CC);
+           const char *class_name = hp_get_class_name(data);
            if (!class_name) return NULL;
            if (!strcmp(class_name, "Oro\\Bundle\\LayoutBundle\\Layout\\LayoutManager"))
             return &orocommerce_profiled_functions[5];
@@ -387,6 +387,15 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
     if (function_name[3] == 'd') {
      if (function_name[4] == 'e') {
       if (function_name[5] == 'r') {
+       if (function_name[6] == '\0') {
+        ++hp_globals.internal_match_counters.function;
+        const char *class_name = hp_get_class_name(data);
+        if (!class_name) return NULL;
+        if (!strcmp(class_name, "Oro\\Component\\Layout\\Layout"))
+         return &orocommerce_profiled_functions[6];
+        ++hp_globals.internal_match_counters.class_unmatched;
+        return NULL;
+       }
        if (function_name[6] == 'B') {
         if (function_name[7] == 'l') {
          if (function_name[8] == 'o') {
@@ -394,7 +403,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
            if (function_name[10] == 'k') {
             if (function_name[11] == '\0') {
              ++hp_globals.internal_match_counters.function;
-             const char *class_name = hp_get_class_name(data TSRMLS_CC);
+             const char *class_name = hp_get_class_name(data);
              if (!class_name) return NULL;
              if (!strcmp(class_name, "Oro\\Bundle\\LayoutBundle\\Form\\TwigRendererEngine"))
               return &orocommerce_profiled_functions[10];
@@ -409,15 +418,6 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
          }
          return NULL;
         }
-        return NULL;
-       }
-       if (function_name[6] == '\0') {
-        ++hp_globals.internal_match_counters.function;
-        const char *class_name = hp_get_class_name(data TSRMLS_CC);
-        if (!class_name) return NULL;
-        if (!strcmp(class_name, "Oro\\Component\\Layout\\Layout"))
-         return &orocommerce_profiled_functions[6];
-        ++hp_globals.internal_match_counters.class_unmatched;
         return NULL;
        }
        return NULL;
@@ -448,7 +448,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
               if (function_name[13] == 'e') {
                if (function_name[14] == '\0') {
                 ++hp_globals.internal_match_counters.function;
-                const char *class_name = hp_get_class_name(data TSRMLS_CC);
+                const char *class_name = hp_get_class_name(data);
                 if (!class_name) return NULL;
                 if (!strcmp(class_name, "Symfony\\Component\\HttpKernel\\HttpKernel"))
                  return &orocommerce_profiled_functions[7];
@@ -489,7 +489,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
     if (function_name[3] == 'd') {
      if (function_name[4] == '\0') {
       ++hp_globals.internal_match_counters.function;
-      const char *class_name = hp_get_class_name(data TSRMLS_CC);
+      const char *class_name = hp_get_class_name(data);
       if (!class_name) return NULL;
       if (!strcmp(class_name, "Symfony\\Component\\HttpFoundation\\Response"))
        return &orocommerce_profiled_functions[8];
@@ -515,7 +515,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
          if (function_name[8] == 'e') {
           if (function_name[9] == '\0') {
            ++hp_globals.internal_match_counters.function;
-           const char *class_name = hp_get_class_name(data TSRMLS_CC);
+           const char *class_name = hp_get_class_name(data);
            if (!class_name) return NULL;
            if (!strcmp(class_name, "Symfony\\Component\\HttpKernel\\Kernel"))
             return &orocommerce_profiled_functions[9];
@@ -549,7 +549,7 @@ profiled_function_t *orocommerce_match_function(const char* function_name, zend_
        if (function_name[6] == 'e') {
         if (function_name[7] == '\0') {
          ++hp_globals.internal_match_counters.function;
-         const char *class_name = hp_get_class_name(data TSRMLS_CC);
+         const char *class_name = hp_get_class_name(data);
          if (!class_name) return NULL;
          if (!strcmp(class_name, "PDOStatement"))
           return &orocommerce_profiled_functions[11];
@@ -823,7 +823,7 @@ static const profiler_timer_t magento2_profiler_timers[] = {
 {NULL, NULL, 0, NULL, 0, {0}}
 };
 
-profiled_function_t *magento2_match_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {
+profiled_function_t *magento2_match_function(const char* function_name, zend_execute_data* data) {
  ++hp_globals.internal_match_counters.total;
  if (function_name[0] == 's') {
   if (function_name[1] == 'e') {
@@ -839,7 +839,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
             if (function_name[11] == 'e') {
              if (function_name[12] == '\0') {
               ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
+              const char *class_name = hp_get_class_name(data);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Magento\\Framework\\App\\Response\\Http\\Interceptor"))
                return &magento2_profiled_functions[8];
@@ -884,7 +884,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
             if (function_name[11] == 'e') {
              if (function_name[12] == '\0') {
               ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
+              const char *class_name = hp_get_class_name(data);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Magento\\Framework\\App\\Request\\Http"))
                return &magento2_profiled_functions[3];
@@ -929,7 +929,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
             if (function_name[11] == 'k') {
              if (function_name[12] == '\0') {
               ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
+              const char *class_name = hp_get_class_name(data);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Magento\\Framework\\View\\Layout"))
                return &magento2_profiled_functions[9];
@@ -968,7 +968,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
       if (function_name[5] == 'e') {
        if (function_name[6] == '\0') {
         ++hp_globals.internal_match_counters.function;
-        const char *class_name = hp_get_class_name(data TSRMLS_CC);
+        const char *class_name = hp_get_class_name(data);
         if (!class_name) return NULL;
         if (!strcmp(class_name, "Magento\\Framework\\App\\Bootstrap"))
          return &magento2_profiled_functions[1];
@@ -988,7 +988,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
                  if (function_name[16] == 'n') {
                   if (function_name[17] == '\0') {
                    ++hp_globals.internal_match_counters.function;
-                   const char *class_name = hp_get_class_name(data TSRMLS_CC);
+                   const char *class_name = hp_get_class_name(data);
                    if (!class_name) return NULL;
                    if (!strcmp(class_name, "Magento\\Framework\\App\\Bootstrap"))
                     return &magento2_profiled_functions[2];
@@ -1037,7 +1037,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
          if (function_name[8] == 'e') {
           if (function_name[9] == '\0') {
            ++hp_globals.internal_match_counters.function;
-           const char *class_name = hp_get_class_name(data TSRMLS_CC);
+           const char *class_name = hp_get_class_name(data);
            if (!class_name) return NULL;
            if (!strcmp(class_name, "Magento\\Framework\\App\\Cache\\TypeList"))
             return &magento2_profiled_functions[12];
@@ -1071,7 +1071,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
        if (function_name[6] == 'e') {
         if (function_name[7] == '\0') {
          ++hp_globals.internal_match_counters.function;
-         const char *class_name = hp_get_class_name(data TSRMLS_CC);
+         const char *class_name = hp_get_class_name(data);
          if (!class_name) return NULL;
          if (!strcmp(class_name, "PDOStatement"))
           return &magento2_profiled_functions[14];
@@ -1106,14 +1106,14 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
         if (function_name[7] == 'h') {
          if (function_name[8] == '\0') {
           ++hp_globals.internal_match_counters.function;
-          const char *class_name = hp_get_class_name(data TSRMLS_CC);
+          const char *class_name = hp_get_class_name(data);
           if (!class_name) return NULL;
           if (!strcmp(class_name, "Magento\\Framework\\App\\Action\\Action"))
            return &magento2_profiled_functions[6];
-          if (!strcmp(class_name, "Magento\\Framework\\App\\FrontController"))
-           return &magento2_profiled_functions[5];
           if (!strcmp(class_name, "Magento\\Framework\\App\\FrontController\\Interceptor"))
            return &magento2_profiled_functions[4];
+          if (!strcmp(class_name, "Magento\\Framework\\App\\FrontController"))
+           return &magento2_profiled_functions[5];
           ++hp_globals.internal_match_counters.class_unmatched;
           return NULL;
          }
@@ -1147,7 +1147,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
             if (function_name[11] == 't') {
              if (function_name[12] == '\0') {
               ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
+              const char *class_name = hp_get_class_name(data);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Magento\\Framework\\View\\Result\\Page\\Interceptor"))
                return &magento2_profiled_functions[7];
@@ -1184,7 +1184,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
           if (function_name[9] == 'l') {
            if (function_name[10] == '\0') {
             ++hp_globals.internal_match_counters.function;
-            const char *class_name = hp_get_class_name(data TSRMLS_CC);
+            const char *class_name = hp_get_class_name(data);
             if (!class_name) return NULL;
             if (!strcmp(class_name, "Magento\\Indexer\\Model\\Indexer"))
              return &magento2_profiled_functions[13];
@@ -1213,7 +1213,7 @@ profiled_function_t *magento2_match_function(const char* function_name, zend_exe
    if (function_name[2] == 'n') {
     if (function_name[3] == '\0') {
      ++hp_globals.internal_match_counters.function;
-     const char *class_name = hp_get_class_name(data TSRMLS_CC);
+     const char *class_name = hp_get_class_name(data);
      if (!class_name) return NULL;
      if (!strcmp(class_name, "Magento\\Framework\\App\\Bootstrap"))
       return &magento2_profiled_functions[0];
@@ -1595,7 +1595,7 @@ static const profiler_timer_t magento_profiler_timers[] = {
 {NULL, NULL, 0, NULL, 0, {0}}
 };
 
-profiled_function_t *magento_match_function(const char* function_name, zend_execute_data* data TSRMLS_DC) {
+profiled_function_t *magento_match_function(const char* function_name, zend_execute_data* data) {
  ++hp_globals.internal_match_counters.total;
  if (function_name[0] == 'c') {
   if (function_name[1] == 'l') {
@@ -1608,7 +1608,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
          if (function_name[8] == 'e') {
           if (function_name[9] == '\0') {
            ++hp_globals.internal_match_counters.function;
-           const char *class_name = hp_get_class_name(data TSRMLS_CC);
+           const char *class_name = hp_get_class_name(data);
            if (!class_name) return NULL;
            if (!strcmp(class_name, "Mage_Core_Model_Cache"))
             return &magento_profiled_functions[21];
@@ -1646,7 +1646,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
            if (function_name[10] == 't') {
             if (function_name[11] == '\0') {
              ++hp_globals.internal_match_counters.function;
-             const char *class_name = hp_get_class_name(data TSRMLS_CC);
+             const char *class_name = hp_get_class_name(data);
              if (!class_name) return NULL;
              if (!strcmp(class_name, "Mage_Core_Model_App"))
               return &magento_profiled_functions[0];
@@ -1689,7 +1689,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
                if (function_name[14] == 'g') {
                 if (function_name[15] == '\0') {
                  ++hp_globals.internal_match_counters.function;
-                 const char *class_name = hp_get_class_name(data TSRMLS_CC);
+                 const char *class_name = hp_get_class_name(data);
                  if (!class_name) return NULL;
                  if (!strcmp(class_name, "Mage_Core_Model_App"))
                   return &magento_profiled_functions[2];
@@ -1723,7 +1723,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
           if (function_name[9] == 'e') {
            if (function_name[10] == '\0') {
             ++hp_globals.internal_match_counters.function;
-            const char *class_name = hp_get_class_name(data TSRMLS_CC);
+            const char *class_name = hp_get_class_name(data);
             if (!class_name) return NULL;
             if (!strcmp(class_name, "Mage_Core_Model_App"))
              return &magento_profiled_functions[3];
@@ -1748,7 +1748,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
            if (function_name[10] == 's') {
             if (function_name[11] == '\0') {
              ++hp_globals.internal_match_counters.function;
-             const char *class_name = hp_get_class_name(data TSRMLS_CC);
+             const char *class_name = hp_get_class_name(data);
              if (!class_name) return NULL;
              if (!strcmp(class_name, "Mage_Core_Model_App"))
               return &magento_profiled_functions[10];
@@ -1776,7 +1776,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
             if (function_name[11] == 't') {
              if (function_name[12] == '\0') {
               ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
+              const char *class_name = hp_get_class_name(data);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Mage_Core_Model_App"))
                return &magento_profiled_functions[11];
@@ -1821,7 +1821,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
             if (function_name[11] == 'e') {
              if (function_name[12] == '\0') {
               ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
+              const char *class_name = hp_get_class_name(data);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Mage_Core_Controller_Response_Http"))
                return &magento_profiled_functions[17];
@@ -1869,7 +1869,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
                if (function_name[14] == 's') {
                 if (function_name[15] == '\0') {
                  ++hp_globals.internal_match_counters.function;
-                 const char *class_name = hp_get_class_name(data TSRMLS_CC);
+                 const char *class_name = hp_get_class_name(data);
                  if (!class_name) return NULL;
                  if (!strcmp(class_name, "Mage_Core_Model_Resource_Setup"))
                   return &magento_profiled_functions[7];
@@ -1903,7 +1903,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
                    if (function_name[18] == 's') {
                     if (function_name[19] == '\0') {
                      ++hp_globals.internal_match_counters.function;
-                     const char *class_name = hp_get_class_name(data TSRMLS_CC);
+                     const char *class_name = hp_get_class_name(data);
                      if (!class_name) return NULL;
                      if (!strcmp(class_name, "Mage_Core_Model_Resource_Setup"))
                       return &magento_profiled_functions[12];
@@ -1957,7 +1957,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
        if (function_name[6] == 'e') {
         if (function_name[7] == '\0') {
          ++hp_globals.internal_match_counters.function;
-         const char *class_name = hp_get_class_name(data TSRMLS_CC);
+         const char *class_name = hp_get_class_name(data);
          if (!class_name) return NULL;
          if (!strcmp(class_name, "PDOStatement"))
           return &magento_profiled_functions[24];
@@ -1985,7 +1985,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
      if (function_name[4] == 'h') {
       if (function_name[5] == '\0') {
        ++hp_globals.internal_match_counters.function;
-       const char *class_name = hp_get_class_name(data TSRMLS_CC);
+       const char *class_name = hp_get_class_name(data);
        if (!class_name) return NULL;
        if (!strcmp(class_name, "Mage_Core_Model_Cache"))
         return &magento_profiled_functions[19];
@@ -2006,7 +2006,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
                  if (function_name[16] == 'n') {
                   if (function_name[17] == '\0') {
                    ++hp_globals.internal_match_counters.function;
-                   const char *class_name = hp_get_class_name(data TSRMLS_CC);
+                   const char *class_name = hp_get_class_name(data);
                    if (!class_name) return NULL;
                    if (!strcmp(class_name, "Mage_Adminhtml_CacheController"))
                     return &magento_profiled_functions[20];
@@ -2059,7 +2059,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
           if (function_name[9] == 'l') {
            if (function_name[10] == '\0') {
             ++hp_globals.internal_match_counters.function;
-            const char *class_name = hp_get_class_name(data TSRMLS_CC);
+            const char *class_name = hp_get_class_name(data);
             if (!class_name) return NULL;
             if (!strcmp(class_name, "Mage_Index_Model_Process"))
              return &magento_profiled_functions[22];
@@ -2094,7 +2094,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
             if (function_name[11] == 't') {
              if (function_name[12] == '\0') {
               ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
+              const char *class_name = hp_get_class_name(data);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Mage_Core_Controller_Varien_Action"))
                return &magento_profiled_functions[15];
@@ -2127,7 +2127,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
    if (function_name[2] == 'n') {
     if (function_name[3] == '\0') {
      ++hp_globals.internal_match_counters.function;
-     const char *class_name = hp_get_class_name(data TSRMLS_CC);
+     const char *class_name = hp_get_class_name(data);
      if (!class_name) return NULL;
      if (!strcmp(class_name, "Mage_Core_Model_App"))
       return &magento_profiled_functions[1];
@@ -2156,7 +2156,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
               if (function_name[13] == 't') {
                if (function_name[14] == '\0') {
                 ++hp_globals.internal_match_counters.function;
-                const char *class_name = hp_get_class_name(data TSRMLS_CC);
+                const char *class_name = hp_get_class_name(data);
                 if (!class_name) return NULL;
                 if (!strcmp(class_name, "Mage_Core_Model_Cache"))
                  return &magento_profiled_functions[4];
@@ -2184,7 +2184,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
             if (function_name[11] == 't') {
              if (function_name[12] == '\0') {
               ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
+              const char *class_name = hp_get_class_name(data);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Mage_Index_Model_Indexer_Abstract"))
                return &magento_profiled_functions[23];
@@ -2222,7 +2222,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
            if (function_name[10] == 'h') {
             if (function_name[11] == '\0') {
              ++hp_globals.internal_match_counters.function;
-             const char *class_name = hp_get_class_name(data TSRMLS_CC);
+             const char *class_name = hp_get_class_name(data);
              if (!class_name) return NULL;
              if (!strcmp(class_name, "Mage_Core_Controller_Varien_Action"))
               return &magento_profiled_functions[13];
@@ -2262,7 +2262,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
             if (function_name[11] == 'h') {
              if (function_name[12] == '\0') {
               ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
+              const char *class_name = hp_get_class_name(data);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Mage_Core_Controller_Varien_Action"))
                return &magento_profiled_functions[16];
@@ -2301,7 +2301,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
       if (function_name[5] == 'l') {
        if (function_name[6] == '\0') {
         ++hp_globals.internal_match_counters.function;
-        const char *class_name = hp_get_class_name(data TSRMLS_CC);
+        const char *class_name = hp_get_class_name(data);
         if (!class_name) return NULL;
         if (!strcmp(class_name, "Mage_Core_Block_Abstract"))
          return &magento_profiled_functions[18];
@@ -2338,7 +2338,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
                 if (function_name[15] == 'e') {
                  if (function_name[16] == '\0') {
                   ++hp_globals.internal_match_counters.function;
-                  const char *class_name = hp_get_class_name(data TSRMLS_CC);
+                  const char *class_name = hp_get_class_name(data);
                   if (!class_name) return NULL;
                   if (!strcmp(class_name, "Mage_Core_Model_Config"))
                    return &magento_profiled_functions[5];
@@ -2357,7 +2357,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
             }
             if (function_name[11] == '\0') {
              ++hp_globals.internal_match_counters.function;
-             const char *class_name = hp_get_class_name(data TSRMLS_CC);
+             const char *class_name = hp_get_class_name(data);
              if (!class_name) return NULL;
              if (!strcmp(class_name, "Mage_Core_Model_Config"))
               return &magento_profiled_functions[6];
@@ -2382,7 +2382,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
       if (function_name[5] == 'b') {
        if (function_name[6] == '\0') {
         ++hp_globals.internal_match_counters.function;
-        const char *class_name = hp_get_class_name(data TSRMLS_CC);
+        const char *class_name = hp_get_class_name(data);
         if (!class_name) return NULL;
         if (!strcmp(class_name, "Mage_Core_Model_Config"))
          return &magento_profiled_functions[8];
@@ -2403,7 +2403,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
             if (function_name[11] == 't') {
              if (function_name[12] == '\0') {
               ++hp_globals.internal_match_counters.function;
-              const char *class_name = hp_get_class_name(data TSRMLS_CC);
+              const char *class_name = hp_get_class_name(data);
               if (!class_name) return NULL;
               if (!strcmp(class_name, "Mage_Core_Model_App"))
                return &magento_profiled_functions[9];
@@ -2441,7 +2441,7 @@ profiled_function_t *magento_match_function(const char* function_name, zend_exec
                  if (function_name[16] == 's') {
                   if (function_name[17] == '\0') {
                    ++hp_globals.internal_match_counters.function;
-                   const char *class_name = hp_get_class_name(data TSRMLS_CC);
+                   const char *class_name = hp_get_class_name(data);
                    if (!class_name) return NULL;
                    if (!strcmp(class_name, "Mage_Core_Controller_Varien_Action"))
                     return &magento_profiled_functions[14];
@@ -2502,7 +2502,7 @@ magento_send_metrics
 };
 
 profiled_application_t *qm_match_first_app_function(const char* function_name,
-zend_execute_data* data TSRMLS_DC) {
+zend_execute_data* data) {
  ++hp_globals.internal_match_counters.total;
  if (function_name[0] == 'b') {
   if (function_name[1] == 'o') {
@@ -2510,7 +2510,7 @@ zend_execute_data* data TSRMLS_DC) {
     if (function_name[3] == 't') {
      if (function_name[4] == '\0') {
       ++hp_globals.internal_match_counters.function;
-      const char *class_name = hp_get_class_name(data TSRMLS_CC);
+      const char *class_name = hp_get_class_name(data);
       if (!class_name) return NULL;
       if (!strcmp(class_name, "Oro\\Bundle\\DistributionBundle\\OroKernel"))
        return &orocommerce_profiled_application;
@@ -2533,7 +2533,7 @@ zend_execute_data* data TSRMLS_DC) {
       if (function_name[5] == 'e') {
        if (function_name[6] == '\0') {
         ++hp_globals.internal_match_counters.function;
-        const char *class_name = hp_get_class_name(data TSRMLS_CC);
+        const char *class_name = hp_get_class_name(data);
         if (!class_name) return NULL;
         if (!strcmp(class_name, "Magento\\Framework\\App\\Bootstrap"))
          return &magento2_profiled_application;
@@ -2565,7 +2565,7 @@ zend_execute_data* data TSRMLS_DC) {
            if (function_name[10] == 't') {
             if (function_name[11] == '\0') {
              ++hp_globals.internal_match_counters.function;
-             const char *class_name = hp_get_class_name(data TSRMLS_CC);
+             const char *class_name = hp_get_class_name(data);
              if (!class_name) return NULL;
              if (!strcmp(class_name, "Mage_Core_Model_App"))
               return &magento_profiled_application;

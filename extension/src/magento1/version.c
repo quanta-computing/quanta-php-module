@@ -1,7 +1,7 @@
 #include "quanta_mon.h"
 
 int magento1_fetch_version(profiled_application_t *app, profiled_function_t *function,
-zend_execute_data *data TSRMLS_DC) {
+zend_execute_data *data) {
   zval version;
   zval edition;
   magento_context_t *context = (magento_context_t *)app->context;
@@ -10,8 +10,8 @@ zend_execute_data *data TSRMLS_DC) {
   (void)data;
   ZVAL_NULL(&version);
   ZVAL_NULL(&edition);
-  if (safe_call_function("Mage::getVersion", &version, IS_STRING, 0, NULL TSRMLS_CC)
-  || safe_call_function("Mage::getEdition", &edition, IS_STRING, 0, NULL TSRMLS_CC)) {
+  if (safe_call_function("Mage::getVersion", &version, IS_STRING, 0, NULL)
+  || safe_call_function("Mage::getEdition", &edition, IS_STRING, 0, NULL)) {
     PRINTF_QUANTA("Could not get magento version\n");
     goto end;
   }

@@ -6,7 +6,7 @@ static oro_context_t oro_context = {
   NULL
 };
 
-void *oro_init_context(profiled_application_t *app TSRMLS_DC) {
+void *oro_init_context(profiled_application_t *app) {
   oro_context.version = NULL;
   oro_context.blocks.first = NULL;
   oro_context.blocks.last = NULL;
@@ -14,10 +14,10 @@ void *oro_init_context(profiled_application_t *app TSRMLS_DC) {
   return (void *)&oro_context;
 }
 
-void oro_cleanup_context(profiled_application_t *app TSRMLS_DC) {
+void oro_cleanup_context(profiled_application_t *app) {
   oro_context_t *context = (oro_context_t *)app->context;
 
   efree(context->version);
   while (oro_block_stack_pop(context));
-  oro_init_context(app TSRMLS_CC);
+  oro_init_context(app);
 }

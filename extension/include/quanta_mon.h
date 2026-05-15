@@ -32,7 +32,6 @@
 #endif
 
 #include "cpu.h"
-#include "compat.h"
 #include "profiler.h"
 #include "module.h"
 #include "utils.h"
@@ -45,7 +44,7 @@
 
 /* Size of a temp scratch buffer            */
 #define SCRATCH_BUF_LEN            512
-#define QUANTA_MON_VERSION "1.3.1"
+#define QUANTA_MON_VERSION "1.3.4"
 
 
 /* Xhprof's global state.

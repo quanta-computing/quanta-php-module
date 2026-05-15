@@ -5,7 +5,7 @@
  *
  * @author kannan, veeve
  */
-void hp_init_profiler_state(int level TSRMLS_DC) {
+void hp_init_profiler_state(int level) {
   /* Setup globals */
   if (!hp_globals.ever_enabled) {
     hp_globals.ever_enabled  = 1;

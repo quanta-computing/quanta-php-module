@@ -54,7 +54,7 @@ monikor_metric_list_t *metrics, float cpufreq, oro_block_t *block) {
 }
 
 static void push_blocks_metrics(profiled_application_t *app, struct timeval *clock,
-monikor_metric_list_t *metrics, float cpufreq TSRMLS_DC) {
+monikor_metric_list_t *metrics, float cpufreq) {
   oro_context_t *context = (oro_context_t *)app->context;
   oro_block_t *current_block;
   oro_block_t *next_block;
@@ -82,7 +82,7 @@ monikor_metric_list_t *metrics) {
 }
 
 void oro_send_metrics(profiled_application_t *app, monikor_metric_list_t *metrics,
-float cpufreq, struct timeval *clock TSRMLS_DC) {
+float cpufreq, struct timeval *clock) {
   if (hp_globals.profiler_level != QUANTA_MON_MODE_APP_PROFILING)
     return;
   push_blocks_metrics(app, clock, metrics, cpufreq);
